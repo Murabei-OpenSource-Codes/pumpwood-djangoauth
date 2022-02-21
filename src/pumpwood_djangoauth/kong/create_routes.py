@@ -5,7 +5,7 @@ import time
 import textwrap
 from copy import deepcopy
 from django.core.wsgi import get_wsgi_application
-from pumpwood_django_auth.kong.singleton import kong_api
+from pumpwood_djangoauth.kong.singleton import kong_api
 from slugify import slugify
 from pumpwood_communication.serializers import pumpJsonDump
 
@@ -58,7 +58,7 @@ def register_auth_kong_objects(service_url: str, service_description: str,
     """
     # Load apps before importing then to code
     get_wsgi_application()
-    from pumpwood_django_auth.system.models import KongService, KongRoute
+    from pumpwood_djangoauth.system.models import KongService, KongRoute
 
     temp_routes = deepcopy(routes)
     sleep_time = random.uniform(0, 5)

@@ -7,7 +7,7 @@ from pumpwood_djangoviews.views import PumpWoodRestService
 from django.contrib.auth import authenticate, login, logout
 from rest_framework.authtoken.models import Token
 from django.contrib.auth.models import User
-from pumpwood_django_auth.registration.serializers import SerializerUser
+from pumpwood_djangoauth.registration.serializers import SerializerUser
 
 
 @api_view(['POST'])

@@ -2,10 +2,10 @@
 from rest_framework.response import Response
 from rest_framework.decorators import api_view
 from pumpwood_djangoviews.views import PumpWoodRestService
-from pumpwood_django_auth.system.models import KongService, KongRoute
-from pumpwood_django_auth.system.serializers import (
+from pumpwood_djangoauth.system.models import KongService, KongRoute
+from pumpwood_djangoauth.system.serializers import (
     KongServiceSerializer, KongRouteSerializer)
-from pumpwood_django_auth.kong.singleton import kong_api
+from pumpwood_djangoauth.kong.singleton import kong_api
 from pumpwood_communication import exceptions
 
 

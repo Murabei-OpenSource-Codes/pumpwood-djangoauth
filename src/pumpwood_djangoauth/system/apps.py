@@ -2,4 +2,4 @@ from django.apps import AppConfig
 
 
 class SystemConfig(AppConfig):
-    name = 'pumpwood_django_auth.system'
+    name = 'pumpwood_djangoauth.system'

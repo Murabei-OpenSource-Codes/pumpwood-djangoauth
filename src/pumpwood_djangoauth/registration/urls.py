@@ -1,6 +1,6 @@
 from pumpwood_djangoviews.routers import PumpWoodRouter
 from django.conf.urls import url
-from pumpwood_django_auth.registration import views
+from pumpwood_djangoauth.registration import views
 
 pumpwoodrouter = PumpWoodRouter()
 pumpwoodrouter.register(viewset=views.RestUser)

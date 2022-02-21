@@ -2,7 +2,7 @@
 from django.db import models
 from django.db.models import Q
 from pumpwood_djangoviews.action import action
-from pumpwood_django_auth.kong.singleton import kong_api
+from pumpwood_djangoauth.kong.singleton import kong_api
 from pumpwood_communication import exceptions
 from pumpwood_communication.serializers import PumpWoodJSONEncoder
 
@@ -153,7 +153,7 @@ class KongService(models.Model):
         Returns [dict] -> dict:
             Return a serialized KongService object.
         """
-        from pumpwood_django_auth.system.serializers import (
+        from pumpwood_djangoauth.system.serializers import (
             KongServiceSerializer)
         registred_service = KongService.objects.filter(
             Q(service_name=service_name) | Q(service_url=service_url)
@@ -272,7 +272,7 @@ class KongRoute(models.Model):
         Returns [dict]:
             Return a serialized KongRoute object.
         """
-        from pumpwood_django_auth.system.serializers import (
+        from pumpwood_djangoauth.system.serializers import (
             KongRouteSerializer)
 
         # Check values for route_type
