@@ -30,7 +30,7 @@ class KongRouteSerializer(DynamicFieldsModelSerializer):
 class KongServiceSerializer(DynamicFieldsModelSerializer):
     pk = serializers.IntegerField(source='id', allow_null=True, required=False)
     model_class = ClassNameField()
-    route_set = KongRouteSerializer(many=True, read_only=True)
+    route_set = serializers.SerializerMethodField()
 
     class Meta:
         model = KongService
@@ -38,3 +38,7 @@ class KongServiceSerializer(DynamicFieldsModelSerializer):
             "pk", "model_class", "service_url", "service_name",
             "service_kong_id", "description", "notes", "healthcheck_route",
             "dimentions", "icon", "route_set", "extra_info")
+
+    def get_route_set(self, instance):
+        songs = instance.route_set.all().order_by('description')
+        return KongRouteSerializer(songs, many=True).data
