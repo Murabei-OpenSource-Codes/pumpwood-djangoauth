@@ -6,7 +6,6 @@ from pumpwood_djangoauth.system.models import KongService, KongRoute
 from pumpwood_djangoauth.system.serializers import (
     KongServiceSerializer, KongRouteSerializer)
 from pumpwood_djangoauth.kong.singleton import kong_api
-from pumpwood_communication import exceptions
 
 
 @api_view(['GET'])
@@ -18,7 +17,7 @@ def view__get_kong_routes(request):
 @api_view(['GET'])
 def view__get_registred_endpoints(request):
     """Filter end-point to expose to frontend."""
-    all_sevices = KongService.objects.all()
+    all_sevices = KongService.objects.order_by("description").all()
     all_sevices_data = KongServiceSerializer(
         all_sevices, many=True).data
 
