@@ -56,9 +56,8 @@ class RestKongRoute(PumpWoodRestService):
     service_model = KongRoute
     serializer = KongRouteSerializer
     list_fields = [
-        "pk", "model_class", "service_id", "route_url", "route_name",
-        "route_kong_id", "route_type", "description", "notes", "dimentions",
-        "icon"]
+        "pk", "model_class", "service_id", "route_name", "route_type",
+        "description", "icon"]
     foreign_keys = {
         'service_id': {'model_class': 'KongService', 'many': False}
     }
@@ -92,9 +91,8 @@ class RestKongService(PumpWoodRestService):
     serializer = KongServiceSerializer
 
     list_fields = [
-        "pk", "model_class", "service_url", "service_name", "service_kong_id",
-        "description", "notes", "healthcheck_route", "dimentions", "icon",
-        "route_set"]
+        "pk", "model_class", "service_name", "service_kong_id",
+        "description", "icon"]
     foreign_keys = {
         'route_set': {'model_class': 'KongRoute', 'many': True}
     }
