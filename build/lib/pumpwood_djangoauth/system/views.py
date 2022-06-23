@@ -55,6 +55,8 @@ def view__dummy_raise(request):
 
     request_data = request.data
     exception_class = request_data.pop("exception_class")
+
+    print("exception_class: ", exception_class)
     if exception_class is None:
         msg = "dummy_raise endpoint must specify exception_class in payload"
         raise PumpWoodException(message=msg)
@@ -63,7 +65,7 @@ def view__dummy_raise(request):
     if not type(exception_class) == list:
         msg = "exception_class must be a list: %s" % str(type(exception_class))
         raise PumpWoodException(message=msg)
-    if 3 <= len(exception_class):
+    if 3 < len(exception_class):
         msg = "exception_class len <= 3: %s" % str(
             len(exception_class))
         raise PumpWoodException(message=msg)

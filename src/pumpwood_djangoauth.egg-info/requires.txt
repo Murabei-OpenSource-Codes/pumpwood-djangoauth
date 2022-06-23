@@ -1,5 +1,5 @@
 djangorestframework
-pandas
-pumpwood-communication
-pumpwood-kong
 python-slugify
+pumpwood-communication
+pandas
+pumpwood-kong
