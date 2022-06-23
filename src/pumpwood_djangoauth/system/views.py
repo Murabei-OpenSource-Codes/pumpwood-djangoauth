@@ -6,6 +6,9 @@ from pumpwood_djangoauth.system.models import KongService, KongRoute
 from pumpwood_djangoauth.system.serializers import (
     KongServiceSerializer, KongRouteSerializer)
 from pumpwood_djangoauth.kong.singleton import kong_api
+from pumpwood_communication.exceptions import (
+    exceptions_dict, PumpWoodException)
+from pumpwood_djangoauth.microservice.singleton import microservice
 
 
 @api_view(['GET'])
@@ -40,6 +43,43 @@ def view__dummy_call(request):
         "headers": request.headers,
         "data": request.data
     })
+
+
+@api_view(['POST'])
+def view__dummy_raise(request):
+    """End-point to test error handling in Pumpwood."""
+    # Get auth header for recursive error test
+    auth_header = {
+        "Authorization": request.headers.get("Authorization")
+    }
+
+    request_data = request.data
+    exception_class = request_data.pop("exception_class")
+    if exception_class is None:
+        msg = "dummy_raise endpoint must specify exception_class in payload"
+        raise PumpWoodException(message=msg)
+
+    # Checking if data is with the correct type
+    if not type(exception_class) == list:
+        msg = "exception_class must be a list: %s" % str(type(exception_class))
+        raise PumpWoodException(message=msg)
+    if 3 <= len(exception_class):
+        msg = "exception_class len <= 3: %s" % str(
+            len(exception_class))
+        raise PumpWoodException(message=msg)
+
+    if len(exception_class) != 1:
+        microservice.dummy_raise(
+            exception_class=exception_class[1:],
+            auth_header=auth_header)
+    else:
+        TempException = exceptions_dict.get(exception_class[0])
+        if TempException is None:
+            msg = "Error class not implemented: %s" % exception_class
+            raise PumpWoodException(message=msg)
+        raise TempException(
+            message="This is a dummy raise!!",
+            payload=request_data)
 
 
 class RestKongRoute(PumpWoodRestService):

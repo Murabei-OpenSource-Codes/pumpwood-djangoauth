@@ -15,6 +15,8 @@ urlpatterns = [
         name='rest__pumpwood_endpoits'),
     url(r'^pumpwood/dummy-call/$', views.view__dummy_call,
         name='rest__dummy_call'),
+    url(r'^pumpwood/dummy-raise/$', views.view__dummy_raise,
+        name='rest__dummy_raise'),
 ]
 
 urlpatterns += pumpwoodrouter.urls
