@@ -80,8 +80,7 @@ def view__dummy_raise(request):
             msg = "Error class not implemented: %s" % exception_class
             raise PumpWoodException(message=msg)
         raise TempException(
-            message="This is a dummy raise!!",
-            payload=request_data)
+            message="This is a dummy raise!!")
 
 
 class RestKongRoute(PumpWoodRestService):
