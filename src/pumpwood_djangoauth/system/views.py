@@ -74,6 +74,9 @@ def view__dummy_raise(request):
             exception_class=exception_class,
             exception_deep=exception_deep - 1,
             auth_header=auth_header)
+    elif exception_class == "ServerError":
+        # Raise a simple server error
+        raise Exception("Server error my friend!")
     else:
         TempException = exceptions_dict.get(exception_class)
         if TempException is None:
