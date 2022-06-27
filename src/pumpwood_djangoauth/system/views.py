@@ -54,8 +54,8 @@ def view__dummy_raise(request):
     }
 
     request_data = request.data
-    exception_deep = request_data.get("exception_deep", 1)
-    exception_class = request_data.get("exception_class", 1)
+    exception_deep = request_data.get("exception_deep")
+    exception_class = request_data.get("exception_class")
 
     print("exception_deep: ", exception_deep)
     # Checking if data is with the correct type
