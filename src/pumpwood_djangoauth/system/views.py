@@ -57,7 +57,6 @@ def view__dummy_raise(request):
     exception_deep = request_data.get("exception_deep")
     exception_class = request_data.get("exception_class")
 
-    print("exception_deep: ", exception_deep)
     # Checking if data is with the correct type
     if not type(exception_class) == str:
         msg = "exception_class must be a str: %s" % str(type(exception_class))
