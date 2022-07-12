@@ -28,7 +28,7 @@ class KongService(models.Model):
     healthcheck_route = models.TextField(
         null=True, unique=True,
         help_text="path to health check if the service is avaiable.")
-    dimentions = models.JSONField(
+    dimensions = models.JSONField(
         default=dict, help_text="dictionary of tags to help organization",
         encoder=PumpWoodJSONEncoder)
     icon = models.TextField(
@@ -75,7 +75,7 @@ class KongService(models.Model):
                 notes=s.notes,
                 icon=s.icon,
                 healthcheck_route=s.healthcheck_route,
-                dimentions=s.dimentions,
+                dimensions=s.dimensions,
                 extra_info=s.extra_info)
 
             for r in s.route_set.all():
@@ -87,7 +87,7 @@ class KongService(models.Model):
                     description=r.description,
                     notes=r.notes,
                     icon=r.icon,
-                    dimentions=r.dimentions,
+                    dimensions=r.dimensions,
                     extra_info=r.extra_info)
         return True
 
@@ -131,7 +131,7 @@ class KongService(models.Model):
     def create_service(cls, service_url: str, service_name: str,
                        description: str, notes: str, icon: str = None,
                        healthcheck_route: str = None,
-                       dimentions: dict = {}, extra_info: dict = {}) -> dict:
+                       dimensions: dict = {}, extra_info: dict = {}) -> dict:
         """
         Create a Kong service to redirect calls.
 
@@ -146,7 +146,7 @@ class KongService(models.Model):
         Kwargs:
             healthcheck_route [str] = None: A health check end-point for the
                 service.
-            dimentions [dict] = {}: A dimentions for the service to help
+            dimensions [dict] = {}: A dimensions for the service to help
                 quering.
             extra_info [dict] = {}: Extra information to be saved with service.
             icon [str] = None: An icon associated with the service.
@@ -173,7 +173,7 @@ class KongService(models.Model):
                 description=description,
                 notes=notes,
                 healthcheck_route=healthcheck_route,
-                dimentions=dimentions,
+                dimensions=dimensions,
                 icon=icon,
                 extra_info=extra_info)
             registred_service.save()
@@ -184,7 +184,7 @@ class KongService(models.Model):
             registred_service.description = description
             registred_service.notes = notes
             registred_service.healthcheck_route = healthcheck_route
-            registred_service.dimentions = dimentions
+            registred_service.dimensions = dimensions
             registred_service.icon = icon
             registred_service.extra_info = extra_info
             registred_service.save()
@@ -223,7 +223,7 @@ class KongRoute(models.Model):
     notes = models.TextField(
         null=False, default="", blank=True,
         help_text="a long description of the route.")
-    dimentions = models.JSONField(
+    dimensions = models.JSONField(
         default=dict, help_text="dictionary of tags to help organization",
         encoder=PumpWoodJSONEncoder)
     icon = models.TextField(
@@ -247,7 +247,7 @@ class KongRoute(models.Model):
     def create_route(cls, service_id: int, route_url: str, route_name: str,
                      route_type: str, description: str, notes: str,
                      icon: str = None, strip_path: bool = False,
-                     dimentions: dict = {}, extra_info: dict = {}) -> dict:
+                     dimensions: dict = {}, extra_info: dict = {}) -> dict:
         """
         Create a Kong route to redirect calls.
 
@@ -265,7 +265,7 @@ class KongRoute(models.Model):
         Kwargs:
             strip_path [bool]: If kong will strip path when routing downstream.
             icon [str] = None: An icon associated with the service.
-            dimentions [dict] = {}: A dimentions for the service to help
+            dimensions [dict] = {}: A dimensions for the service to help
                 quering.
             extra_info [dict] = {}: Extra information to be saved with
                 service.
@@ -303,7 +303,7 @@ class KongRoute(models.Model):
                 description=description,
                 notes=notes,
                 icon=icon,
-                dimentions=dimentions,
+                dimensions=dimensions,
                 extra_info=extra_info)
             registred_route.save()
         else:
@@ -315,7 +315,7 @@ class KongRoute(models.Model):
             registred_route.description = description
             registred_route.notes = notes
             registred_route.icon = icon
-            registred_route.dimentions = dimentions
+            registred_route.dimensions = dimensions
             registred_route.extra_info = extra_info
             registred_route.save()
         return KongRouteSerializer(registred_route, many=False).data

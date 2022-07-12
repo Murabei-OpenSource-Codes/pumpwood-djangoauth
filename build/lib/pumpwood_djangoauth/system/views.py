@@ -87,7 +87,7 @@ def view__dummy_raise(request):
 
 class RestKongRoute(PumpWoodRestService):
     endpoint_description = "Kong Route"
-    dimentions = {
+    dimensions = {
         "microservice": "pumpwood-auth-app",
         "service_type": "core",
         "service": "auth",
@@ -115,13 +115,13 @@ class RestKongRoute(PumpWoodRestService):
             description=request_data["description"],
             notes=request_data["notes"],
             icon=request_data.get("icon", None),
-            dimentions=request_data.get("dimentions", {}),
+            dimensions=request_data.get("dimensions", {}),
             extra_info=request_data.get("extra_info", {})))
 
 
 class RestKongService(PumpWoodRestService):
     endpoint_description = "Kong Services"
-    dimentions = {
+    dimensions = {
         "microservice": "pumpwood-auth-app",
         "service_type": "core",
         "service": "auth",
@@ -150,5 +150,5 @@ class RestKongService(PumpWoodRestService):
             icon=request_data.get("icon", None),
             healthcheck_route=request_data.get(
                 "healthcheck_route", None),
-            dimentions=request_data.get("dimentions", {}),
+            dimensions=request_data.get("dimensions", {}),
             extra_info=request_data.get("extra_info", {})))

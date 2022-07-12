@@ -22,7 +22,7 @@ class UserProfile(models.Model):
     is_microservice = models.BooleanField(
         default=False,
         help_text="If user is a service user to comnicate programatically.")
-    dimentions = models.JSONField(
+    dimensions = models.JSONField(
         default=dict, blank=True, encoder=PumpWoodJSONEncoder,
         help_text="Dictionary to help query users on database.")
     extra_fields = models.JSONField(

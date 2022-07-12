@@ -85,7 +85,7 @@ class RestUser(PumpWoodRestService):
 
     endpoint_description = "Users"
     notes = "End-point with user information"
-    dimentions = {
+    dimensions = {
         "microservice": "pumpwood-auth-app",
         "service_type": "core",
         "service": "auth",
@@ -98,6 +98,6 @@ class RestUser(PumpWoodRestService):
     list_fields = [
         "pk", "model_class", 'username', 'email', 'first_name',
         'last_name', 'last_login', 'date_joined', 'is_active', 'is_staff',
-        'is_superuser', 'is_microservice', 'dimentions', 'extra_fields',
+        'is_superuser', 'is_microservice', 'dimensions', 'extra_fields',
         'all_permissions', 'group_permissions', 'user_profile']
     foreign_keys = {}
