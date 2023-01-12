@@ -7,11 +7,9 @@ from pumpwood_djangoviews.views import PumpWoodRestService
 from django.contrib.auth import authenticate, login, logout
 from rest_framework.authtoken.models import Token
 from django.contrib.auth.models import User
-from django.views.decorators.csrf import csrf_exempt
 from pumpwood_djangoauth.registration.serializers import SerializerUser
 
 
-@csrf_exempt
 @api_view(['POST'])
 @permission_classes((permissions.AllowAny, ))
 def login_view(request):
