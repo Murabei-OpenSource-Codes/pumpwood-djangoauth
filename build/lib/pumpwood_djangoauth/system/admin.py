@@ -10,7 +10,7 @@ class KongServiceAdmin(admin.ModelAdmin):
         "healthcheck_route")
 
 
-class KongRouteAdmin(UserAdmin):
+class KongRouteAdmin(admin.ModelAdmin):
     list_display = (
         "id", "service", "route_name", "route_url", "route_type",
         "description")
