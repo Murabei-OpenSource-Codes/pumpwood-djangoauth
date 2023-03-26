@@ -13,7 +13,7 @@ class SerializerUserProfile(DynamicFieldsModelSerializer):
     class Meta:
         model = UserProfile
         fields = (
-            'pk', 'model_class', 'is_microservice', 'dimentions',
+            'pk', 'model_class', 'is_microservice', 'dimensions',
             'extra_fields')
 
 

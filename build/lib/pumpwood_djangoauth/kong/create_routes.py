@@ -12,7 +12,7 @@ from pumpwood_communication.serializers import pumpJsonDump
 
 def register_auth_kong_objects(service_url: str, service_description: str,
                                service_notes: str, service_name: str,
-                               service_dimentions: dict,
+                               service_dimensions: dict,
                                healthcheck_route: str, routes: list = [],
                                viewsets: list = [], service_icon: str = None,
                                service_extra_info: dict = {}):
@@ -34,7 +34,7 @@ def register_auth_kong_objects(service_url: str, service_description: str,
                     "notes": (
                         "Routes registred on Pumpwood, each one is associated "
                         "with a microservice service."),
-                    "dimentions": {
+                    "dimensions": {
                         "microservice": "pumpwood-auth-app",
                         "service_type": "core",
                         "function": "system",
@@ -48,7 +48,7 @@ def register_auth_kong_objects(service_url: str, service_description: str,
                     "description": "Pumpwood Auth Admin",
                     "notes": (
                         "Admin for pumpwood-auth-app microservice."),
-                    "dimentions": {
+                    "dimensions": {
                         "microservice": "pumpwood-auth-app",
                         "service_type": "core",
                         "function": "gui",
@@ -77,7 +77,7 @@ def register_auth_kong_objects(service_url: str, service_description: str,
         description = view.endpoint_description
         notes = textwrap.dedent(
             getattr(view.service_model, "__doc__", "")).strip()
-        dimentions = view.dimentions
+        dimensions = view.dimensions
 
         # Checking unique constraints
         unique_docs = ""
@@ -101,7 +101,7 @@ def register_auth_kong_objects(service_url: str, service_description: str,
             "route_type": "endpoint",
             "description": description,
             "notes": notes,
-            "dimentions": dimentions,
+            "dimensions": dimensions,
             "icon": icon,
             "extra_info": {
                 "view_type": view._view_type,
@@ -118,7 +118,7 @@ def register_auth_kong_objects(service_url: str, service_description: str,
         description=service_description,
         notes=service_notes,
         healthcheck_route=healthcheck_route,
-        dimentions=service_dimentions,
+        dimensions=service_dimensions,
         icon=service_icon,
         extra_info=service_extra_info)
 
@@ -132,6 +132,6 @@ def register_auth_kong_objects(service_url: str, service_description: str,
             strip_path=route.get("strip_path", False),
             description=route["description"],
             notes=route["notes"],
-            dimentions=route["dimentions"],
+            dimensions=route["dimensions"],
             icon=route["icon"],
             extra_info=route["extra_info"])

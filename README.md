@@ -15,9 +15,22 @@ Kong. It integrates with
   </a> which has a symbiotic relation with ants (Murabei)
 </p>
 
-## Setup
+## Environment variables
+Some environment variables are used to configuration features at the package:
+
+### Kong integration (API_GATEWAY_URL)
 To set the Kong Api host, use the environment variable `API_GATEWAY_URL`.
 Calling system end-point without setting the variable may lead to errors.
+
+### Pumpwood Microservice Integration
+It is possible to use microservice objects to call other Pumpwood end-points,
+or even make a self call in multi-process architecture (more than one
+instance of the authentication application). For at it is necessary to set:
+
+- `MICROSERVICE_NAME`: microservice object name, used for debug pourposes.
+- `MICROSERVICE_URL`: Full path of the Pumpwood Api Gateway or Service Mesh.
+- `MICROSERVICE_USERNAME`: Username to be used at login.
+- `MICROSERVICE_PASSWORD`: Password to be used at login.
 
 ## Quick start
 Crate basic models and end-points to integrate with pumpwood communication

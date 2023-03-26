@@ -54,37 +54,40 @@ def view__dummy_raise(request):
     }
 
     request_data = request.data
-    exception_class = request_data.pop("exception_class")
-    if exception_class is None:
-        msg = "dummy_raise endpoint must specify exception_class in payload"
-        raise PumpWoodException(message=msg)
+    exception_deep = request_data.get("exception_deep")
+    exception_class = request_data.get("exception_class")
 
     # Checking if data is with the correct type
-    if not type(exception_class) == list:
-        msg = "exception_class must be a list: %s" % str(type(exception_class))
+    if not type(exception_class) == str:
+        msg = "exception_class must be a str: %s" % str(type(exception_class))
         raise PumpWoodException(message=msg)
-    if 3 <= len(exception_class):
-        msg = "exception_class len <= 3: %s" % str(
-            len(exception_class))
+    if not type(exception_deep) == int:
+        msg = "exception_deep must be a int: %s" % str(type(exception_deep))
+        raise PumpWoodException(message=msg)
+    if 3 < exception_deep:
+        msg = "exception_deep <= 3: %s" % str(exception_deep)
         raise PumpWoodException(message=msg)
 
-    if len(exception_class) != 1:
+    if 1 < exception_deep:
         microservice.dummy_raise(
-            exception_class=exception_class[1:],
+            exception_class=exception_class,
+            exception_deep=exception_deep - 1,
             auth_header=auth_header)
+    elif exception_class == "ServerError":
+        # Raise a simple server error
+        raise Exception("Server error my friend!")
     else:
-        TempException = exceptions_dict.get(exception_class[0])
+        TempException = exceptions_dict.get(exception_class)
         if TempException is None:
             msg = "Error class not implemented: %s" % exception_class
-            raise PumpWoodException(message=msg)
+            raise PumpWoodException(message=msg, payload=request_data)
         raise TempException(
-            message="This is a dummy raise!!",
-            payload=request_data)
+            message="This is a dummy raise!!", payload=request_data)
 
 
 class RestKongRoute(PumpWoodRestService):
     endpoint_description = "Kong Route"
-    dimentions = {
+    dimensions = {
         "microservice": "pumpwood-auth-app",
         "service_type": "core",
         "service": "auth",
@@ -112,13 +115,13 @@ class RestKongRoute(PumpWoodRestService):
             description=request_data["description"],
             notes=request_data["notes"],
             icon=request_data.get("icon", None),
-            dimentions=request_data.get("dimentions", {}),
+            dimensions=request_data.get("dimensions", {}),
             extra_info=request_data.get("extra_info", {})))
 
 
 class RestKongService(PumpWoodRestService):
     endpoint_description = "Kong Services"
-    dimentions = {
+    dimensions = {
         "microservice": "pumpwood-auth-app",
         "service_type": "core",
         "service": "auth",
@@ -147,5 +150,5 @@ class RestKongService(PumpWoodRestService):
             icon=request_data.get("icon", None),
             healthcheck_route=request_data.get(
                 "healthcheck_route", None),
-            dimentions=request_data.get("dimentions", {}),
+            dimensions=request_data.get("dimensions", {}),
             extra_info=request_data.get("extra_info", {})))
