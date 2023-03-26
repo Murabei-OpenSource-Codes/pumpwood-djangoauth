@@ -2,7 +2,7 @@
 from django.db import models
 from django.db.models import Q
 from pumpwood_djangoviews.action import action
-from pumpwood_djangoauth.kong.singleton import kong_api
+from pumpwood_djangoauth.config import kong_api
 from pumpwood_communication import exceptions
 from pumpwood_communication.serializers import PumpWoodJSONEncoder
 

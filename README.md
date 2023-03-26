@@ -32,6 +32,21 @@ instance of the authentication application). For at it is necessary to set:
 - `MICROSERVICE_USERNAME`: Username to be used at login.
 - `MICROSERVICE_PASSWORD`: Password to be used at login.
 
+### Pumpwood Storage Integration
+- `STORAGE_TYPE`: storage type to be used serving media files [google_bucket, aws_s3, azure_storage]
+- `STORAGE_BUCKET_NAME`: Name of the bucket, blog or S3 to be used.
+- `STORAGE_BASE_PATH`: Base path to be used when saving files with auth microservice.
+
+#### Pumpwood Storage cloud configuration
+Depending on the storage back-end, it must be provided credentials and other information.
+- aws_s3
+  -  `AWS_ACCESS_KEY_ID`: Access Key for the service user to access s3.
+  - `AWS_SECRET_ACCESS_KEY`:  Secret Key for the service user to access s3.
+- azure_storage
+  - `AZURE_STORAGE_CONNECTION_STRING`: Storage connection string to access storage account.
+- google_bucket
+  - `GOOGLE_APPLICATION_CREDENTIALS`: Path for the google application credentials.
+
 ## Quick start
 Crate basic models and end-points to integrate with pumpwood communication
 and views. To incorporate in project add to `settings.py`.

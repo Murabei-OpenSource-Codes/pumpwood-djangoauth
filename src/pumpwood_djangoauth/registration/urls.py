@@ -6,13 +6,13 @@ pumpwoodrouter = PumpWoodRouter()
 pumpwoodrouter.register(viewset=views.RestUser)
 
 urlpatterns = [
-    url(r'^registration/login/$', views.login_view,
+    url(r'^rest/registration/login/$', views.login_view,
         name='rest__registration__login'),
-    url(r'^registration/logout/$', views.logout_view,
+    url(r'^rest/registration/logout/$', views.logout_view,
         name='rest__registration__logout'),
-    url(r'^registration/check/$', views.check_logged,
+    url(r'^rest/registration/check/$', views.check_logged,
         name='rest__registration__checklogged'),
-    url(r'^registration/retrieveauthenticateduser/$',
+    url(r'^rest/registration/retrieveauthenticateduser/$',
         views.retrieve_authenticated_user,
         name='rest__registration__retrieveauthenticateduser'),
 ]

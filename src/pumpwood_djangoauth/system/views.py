@@ -1,14 +1,16 @@
 """Create views for system end-points."""
+import os
+from django.http import StreamingHttpResponse
+from django.contrib.auth.decorators import login_required
 from rest_framework.response import Response
-from rest_framework.decorators import api_view
+from rest_framework.decorators import permission_classes, api_view
 from pumpwood_djangoviews.views import PumpWoodRestService
 from pumpwood_djangoauth.system.models import KongService, KongRoute
 from pumpwood_djangoauth.system.serializers import (
     KongServiceSerializer, KongRouteSerializer)
-from pumpwood_djangoauth.kong.singleton import kong_api
+from pumpwood_djangoauth.config import kong_api, microservice_no_login
 from pumpwood_communication.exceptions import (
     exceptions_dict, PumpWoodException)
-from pumpwood_djangoauth.microservice.singleton import microservice
 
 
 @api_view(['GET'])
@@ -69,7 +71,7 @@ def view__dummy_raise(request):
         raise PumpWoodException(message=msg)
 
     if 1 < exception_deep:
-        microservice.dummy_raise(
+        microservice_no_login.dummy_raise(
             exception_class=exception_class,
             exception_deep=exception_deep - 1,
             auth_header=auth_header)
@@ -152,3 +154,26 @@ class RestKongService(PumpWoodRestService):
                 "healthcheck_route", None),
             dimensions=request_data.get("dimensions", {}),
             extra_info=request_data.get("extra_info", {})))
+
+
+class ServeMediaFiles:
+    """
+    Class to serve files using Pumpwood Storage Object and checking user
+    authentication.
+    """
+
+    def __init__(self, storage_object):
+        self.storage_object = storage_object
+
+    def as_view(self):
+        """Return a view function using storage_object set on object."""
+        @login_required
+        def download_from_storage_view(request, file_path):
+            file_interator = self.storage_object.get_read_file_iterator(
+                file_path)
+            file_name = os.path.basename(file_path)
+            content_disposition = 'attachment; filename="{}"'.format(
+                file_name)
+            return StreamingHttpResponse(file_interator, headers={
+                'Content-Disposition': content_disposition})
+        return download_from_storage_view
