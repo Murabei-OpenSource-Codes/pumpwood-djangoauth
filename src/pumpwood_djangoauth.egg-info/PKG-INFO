@@ -47,6 +47,11 @@ instance of the authentication application). For at it is necessary to set:
 - `MICROSERVICE_USERNAME`: Username to be used at login.
 - `MICROSERVICE_PASSWORD`: Password to be used at login.
 
+=======
+## Setup
+To set the Kong Api host, use the environment variable `API_GATEWAY_URL`.
+Calling system end-point without setting the variable may lead to errors.
+
 ## Quick start
 Crate basic models and end-points to integrate with pumpwood communication
 and views. To incorporate in project add to `settings.py`.
@@ -186,5 +191,3 @@ register_auth_kong_objects(
         RestKongRoute, RestKongService, RestUser,
         RestPeople, RestCats])
 ```
-
-
