@@ -1,12 +1,11 @@
 Metadata-Version: 2.1
 Name: pumpwood-djangoauth
-Version: 0.8
+Version: 0.9
 Summary: Assist creating views for Django using Pumpwood pattern.
 Home-page: https://github.com/Murabei-OpenSource-Codes/pumpwood-djangoauth
 Author: Murabei Data Science
 Author-email: a.baceti@murabei.com
 License: BSD-3-Clause License
-Platform: UNKNOWN
 Classifier: Programming Language :: Python :: 3
 Classifier: Operating System :: OS Independent
 Requires-Python: >=3.6
@@ -46,11 +45,6 @@ instance of the authentication application). For at it is necessary to set:
 - `MICROSERVICE_URL`: Full path of the Pumpwood Api Gateway or Service Mesh.
 - `MICROSERVICE_USERNAME`: Username to be used at login.
 - `MICROSERVICE_PASSWORD`: Password to be used at login.
-
-=======
-## Setup
-To set the Kong Api host, use the environment variable `API_GATEWAY_URL`.
-Calling system end-point without setting the variable may lead to errors.
 
 ## Quick start
 Crate basic models and end-points to integrate with pumpwood communication
