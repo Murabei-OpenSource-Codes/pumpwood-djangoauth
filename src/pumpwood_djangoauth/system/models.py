@@ -199,7 +199,9 @@ class KongRoute(models.Model):
         ('aux', 'Auxiliar End-Point'),
         ('gui', 'User Interface'),
         ('static', 'Static Files'),
-        ('admin', 'Admin site')]
+        ('admin', 'Admin site'),
+        ('media', 'Media Files')
+    ]
 
     service = models.ForeignKey(
         KongService, on_delete=models.CASCADE, related_name="route_set",

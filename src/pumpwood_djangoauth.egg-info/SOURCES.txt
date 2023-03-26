@@ -33,4 +33,5 @@ src/pumpwood_djangoauth/system/tests.py
 src/pumpwood_djangoauth/system/urls.py
 src/pumpwood_djangoauth/system/views.py
 src/pumpwood_djangoauth/system/migrations/0001_initial.py
+src/pumpwood_djangoauth/system/migrations/0002_alter_kongroute_route_type.py
 src/pumpwood_djangoauth/system/migrations/__init__.py
