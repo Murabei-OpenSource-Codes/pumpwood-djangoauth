@@ -198,6 +198,7 @@ class KongRoute(models.Model):
         ('endpoint', 'Object End-Point'),
         ('aux', 'Auxiliar End-Point'),
         ('gui', 'User Interface'),
+        ('datavis', 'Data Visualization'),
         ('static', 'Static Files'),
         ('admin', 'Admin site'),
         ('media', 'Media Files')
