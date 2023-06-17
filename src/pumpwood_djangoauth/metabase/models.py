@@ -67,10 +67,9 @@ class MetabaseDashboard(models.Model):
     class Meta:
         db_table = 'metabase__dashboard'
 
-    @classmethod
     @action(info='Generate url to embed with iframe.',
             auth_header="auth_header")
-    def generate_url(self, auth_header: dict, parameters: dict = {},
+    def generate_url(self, auth_header: dict, dashboard_parameters: dict = {},
                      theme: str = None, bordered: bool = None,
                      titled: bool = None) -> str:
         """
@@ -99,8 +98,11 @@ class MetabaseDashboard(models.Model):
         # List parameters associated with dashboard
         parameter_dict = {}
         parameter_dict_error = {}
+        print("self:", self)
+        print("type(self):", type(self))
         for o in self.parameter_set.all():
-            paramenter_value = parameters.get(o.name, o.default_value)
+            paramenter_value = dashboard_parameters.get(
+                o.name, o.default_value)
             if paramenter_value is None:
                 if o.type == 'user_id':
                     pass
