@@ -8,6 +8,7 @@ from django.conf import settings
 from pumpwood_djangoviews.action import action
 from pumpwood_communication.serializers import PumpWoodJSONEncoder
 from pumpwood_communication.exceptions import PumpWoodActionArgsException
+from pumpwood_djangoauth.config import microservice_no_login
 
 
 class MetabaseDashboard(models.Model):
@@ -103,7 +104,9 @@ class MetabaseDashboard(models.Model):
                 o.name, o.default_value)
             if paramenter_value is None:
                 if o.type == 'user_id':
-                    pass
+                    user_info = microservice_no_login.get_user_info(
+                        auth_header=auth_header)
+                    parameter_dict[o.name] = user_info["pk"]
                 else:
                     parameter_dict_error[o.name] = (
                         "Missing and without default value")

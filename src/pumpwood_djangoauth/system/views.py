@@ -158,8 +158,10 @@ class RestKongService(PumpWoodRestService):
 
 class ServeMediaFiles:
     """
-    Class to serve files using Pumpwood Storage Object and checking user
-    authentication.
+    Class to serve files using Pumpwood Storage Object.
+
+    It checks for user authentication and serve files using streaming
+    request.
     """
 
     def __init__(self, storage_object):
