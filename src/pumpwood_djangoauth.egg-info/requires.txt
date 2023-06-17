@@ -3,3 +3,4 @@ python-slugify
 pumpwood-communication
 pandas
 pumpwood-kong
+django-flat-json-widget>=0.1.3

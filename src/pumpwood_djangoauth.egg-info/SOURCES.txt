@@ -12,6 +12,17 @@ src/pumpwood_djangoauth.egg-info/requires.txt
 src/pumpwood_djangoauth.egg-info/top_level.txt
 src/pumpwood_djangoauth/kong/__init__.py
 src/pumpwood_djangoauth/kong/create_routes.py
+src/pumpwood_djangoauth/metabase/__init__.py
+src/pumpwood_djangoauth/metabase/admin.py
+src/pumpwood_djangoauth/metabase/apps.py
+src/pumpwood_djangoauth/metabase/forms.py
+src/pumpwood_djangoauth/metabase/models.py
+src/pumpwood_djangoauth/metabase/serializers.py
+src/pumpwood_djangoauth/metabase/tests.py
+src/pumpwood_djangoauth/metabase/urls.py
+src/pumpwood_djangoauth/metabase/views.py
+src/pumpwood_djangoauth/metabase/migrations/0001_initial.py
+src/pumpwood_djangoauth/metabase/migrations/__init__.py
 src/pumpwood_djangoauth/registration/__init__.py
 src/pumpwood_djangoauth/registration/admin.py
 src/pumpwood_djangoauth/registration/apps.py
