@@ -2,10 +2,12 @@
 import jwt
 import os
 import time
+import pandas as pd
 from django.db import models
 from django.conf import settings
 from pumpwood_djangoviews.action import action
 from pumpwood_communication.serializers import PumpWoodJSONEncoder
+from pumpwood_communication.exceptions import PumpWoodActionArgsException
 
 
 class MetabaseDashboard(models.Model):
@@ -66,9 +68,11 @@ class MetabaseDashboard(models.Model):
         db_table = 'metabase__dashboard'
 
     @classmethod
-    @action(info='Generate url to embed with iframe.')
-    def generate_url(self, parameters: dict = {}, bordered: bool = False,
-                     titled: bool = False) -> str:
+    @action(info='Generate url to embed with iframe.',
+            auth_header="auth_header")
+    def generate_url(self, auth_header: dict, parameters: dict = {},
+                     theme: str = None, bordered: bool = None,
+                     titled: bool = None) -> str:
         """
         Generate url to embed graph and dash with iframe.
 
@@ -92,18 +96,82 @@ class MetabaseDashboard(models.Model):
         METABASE_SITE_URL = os.getenv("METABASE_SITE_URL")
         METABASE_SECRET_KEY = os.getenv("METABASE_SECRET_KEY")
 
+        # List parameters associated with dashboard
+        parameter_dict = {}
+        parameter_dict_error = {}
+        for o in self.parameter_set.all():
+            paramenter_value = parameters.get(o.name, o.default_value)
+            if paramenter_value is None:
+                if o.type == 'user_id':
+                    pass
+                else:
+                    parameter_dict_error[o.name] = (
+                        "Missing and without default value")
+            else:
+                try:
+                    if o.type == 'int':
+                        parameter_dict[o.name] = str(int(paramenter_value))
+                    elif o.type == 'str':
+                        parameter_dict[o.name] = str(paramenter_value)
+                    elif o.type == 'datetime':
+                        parameter_dict[o.name] = pd.to_datetime(
+                            paramenter_value).isoformat()
+                    elif o.type == 'float':
+                        parameter_dict[o.name] = str(float(paramenter_value))
+                    else:
+                        msg = (
+                            "It was not possible to convert type [{}]"
+                        ).format(o.type)
+                        raise Exception(msg)
+                except Exception as e:
+                    msg = (
+                        "Error parsing to [{type}] value [{value}]:\n"
+                        "{error}").format(
+                            type=o.type, value=paramenter_value,
+                            error=str(e))
+                    parameter_dict_error[o.name] = msg
+
+        if len(parameter_dict_error.keys()) != 0:
+            raise PumpWoodActionArgsException(
+                message="Error parsing dashboard parameters",
+                payload=parameter_dict_error)
+
+        ##########################################
+        # Covert bordered and titled paramenters #
+        bordered = bordered or self.default_is_bordered
+        titled = titled or self.default_is_titled
         str_bordered = "true" if bordered else "false"
         str_titled = "true" if titled else "false"
+
+        # Covert theme
+        str_theme = None
+        theme = theme or self.default_theme
+        if self.default_theme == 'light':
+            str_theme = ""
+        elif self.default_theme == 'night':
+            str_theme = "theme=night&"
+        elif self.default_theme == 'transparent':
+            str_theme = "theme=transparent&"
+        else:
+            raise PumpWoodActionArgsException(
+                message=(
+                    "Theme not implemented, must be in [light, night, "
+                    "transparent]"),
+                payload=parameter_dict_error)
+
+        #####################################
+        # Crate payload to define dashboard #
         payload = {
-          "resource": {"dashboard": self.dashboard_id},
-          "params": parameters,
+          "resource": {"dashboard": self.metabase_id},
+          "params": parameter_dict,
           "exp": round(time.time()) + (60 * self.expire_in_min)
         }
         token = jwt.encode(payload, METABASE_SECRET_KEY, algorithm="HS256")
         iframe_url = (
-            "{site}/embed/dashboard/{token}#"
+            "{site}/embed/dashboard/{token}#{theme}"
             "bordered={bordered}&titled={titled}").format(
-                site=METABASE_SITE_URL, token=token, bordered=str_bordered,
+                site=METABASE_SITE_URL, token=token,
+                theme=str_theme, bordered=str_bordered,
                 titled=str_titled)
         return iframe_url
 
