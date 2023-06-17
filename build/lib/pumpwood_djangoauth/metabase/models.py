@@ -98,8 +98,6 @@ class MetabaseDashboard(models.Model):
         # List parameters associated with dashboard
         parameter_dict = {}
         parameter_dict_error = {}
-        print("self:", self)
-        print("type(self):", type(self))
         for o in self.parameter_set.all():
             paramenter_value = dashboard_parameters.get(
                 o.name, o.default_value)
