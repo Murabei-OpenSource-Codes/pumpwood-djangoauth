@@ -1,12 +1,11 @@
 Metadata-Version: 2.1
 Name: pumpwood-djangoauth
-Version: 0.18
+Version: 0.19
 Summary: Assist creating views for Django using Pumpwood pattern.
 Home-page: https://github.com/Murabei-OpenSource-Codes/pumpwood-djangoauth
 Author: Murabei Data Science
 Author-email: a.baceti@murabei.com
 License: BSD-3-Clause License
-Platform: UNKNOWN
 Classifier: Programming Language :: Python :: 3
 Classifier: Operating System :: OS Independent
 Requires-Python: >=3.6
@@ -201,5 +200,3 @@ register_auth_kong_objects(
         RestKongRoute, RestKongService, RestUser,
         RestPeople, RestCats])
 ```
-
-

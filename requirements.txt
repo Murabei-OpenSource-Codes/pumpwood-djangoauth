@@ -5,3 +5,4 @@ pumpwood-communication
 pandas
 pumpwood-kong
 django-flat-json-widget>=0.1.3
+PyJWT>=2.7.0
