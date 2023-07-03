@@ -1,6 +1,6 @@
 """Create views for metabase end-points."""
 from pumpwood_djangoviews.views import PumpWoodRestService
-from pumpwood_djangoviews.config import storage_object, microservice, rabbitmq_api
+from pumpwood_djangoauth.config import storage_object, microservice, rabbitmq_api
 from pumpwood_djangoauth.metabase.models import (
     MetabaseDashboard, MetabaseDashboardParameter)
 from pumpwood_djangoauth.metabase.serializers import (
