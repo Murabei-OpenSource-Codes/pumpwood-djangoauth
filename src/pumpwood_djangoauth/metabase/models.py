@@ -40,11 +40,13 @@ class MetabaseDashboard(models.Model):
         null=False, default="", blank=True,
         help_text="a long description of the dashboard.")
     model_class = models.CharField(
-        null=True, max_length=50, unique=False,
+        null=True, max_length=50, unique=False, blank=True,
         help_text="Model class associated with dashboard")
+    object_pk = models.IntegerField(
+        null=True, unique=False, blank=True,
+        help_text="Object PK associated with dashboard.")
     is_static = models.BooleanField(
-        null=True,
-        help_text="If dashboard associated with model is static.")
+        null=True, help_text="If dashboard associated with model is static.")
     metabase_id = models.IntegerField(
         null=False, help_text="Metabase Dashboard Id.")
     expire_in_min = models.IntegerField(

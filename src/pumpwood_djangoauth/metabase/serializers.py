@@ -18,7 +18,7 @@ class MetabaseDashboardSerializer(DynamicFieldsModelSerializer):
             "metabase_id", "expire_in_min", "default_theme",
             "default_is_bordered", "default_is_titled", "dimensions",
             "extra_info", "updated_by", "updated_at",
-            "alias", "model_class", "is_static")
+            "alias", "model_class", "is_static", "object_pk")
         read_only = ["updated_by", "updated_at"]
 
     def create(self, validated_data):
