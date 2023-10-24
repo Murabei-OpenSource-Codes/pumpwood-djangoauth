@@ -7,7 +7,8 @@ from django.db import models
 from django.conf import settings
 from pumpwood_djangoviews.action import action
 from pumpwood_communication.serializers import PumpWoodJSONEncoder
-from pumpwood_communication.exceptions import PumpWoodActionArgsException
+from pumpwood_communication.exceptions import (
+    PumpWoodActionArgsException, PumpWoodObjectDoesNotExist)
 from pumpwood_djangoauth.config import microservice_no_login
 
 
@@ -29,12 +30,21 @@ class MetabaseDashboard(models.Model):
     status = models.CharField(
         choices=STATUS, max_length=15, verbose_name="Status",
         help_text="Status")
+    alias = models.CharField(
+        null=False, max_length=100, unique=True,
+        help_text="Alias to identify dashboard")
     description = models.CharField(
         null=False, max_length=100, unique=True,
         help_text="service url to redirect the http calls.")
     notes = models.TextField(
         null=False, default="", blank=True,
         help_text="a long description of the dashboard.")
+    model_class = models.CharField(
+        null=True, max_length=50, unique=False,
+        help_text="Model class associated with dashboard")
+    is_static = models.BooleanField(
+        null=True,
+        help_text="If dashboard associated with model is static.")
     metabase_id = models.IntegerField(
         null=False, help_text="Metabase Dashboard Id.")
     expire_in_min = models.IntegerField(
@@ -67,6 +77,44 @@ class MetabaseDashboard(models.Model):
 
     class Meta:
         db_table = 'metabase__dashboard'
+
+    @classmethod
+    @action(info='Generate url to embed with iframe using dashboard alias.',
+            auth_header="auth_header")
+    def generate_url_from_alias(cls, alias: str, auth_header: dict,
+                                dashboard_parameters: dict = {},
+                                theme: str = None, bordered: bool = None,
+                                titled: bool = None) -> str:
+        """
+        Generate url to embed graph and dash with iframe using alias.
+
+        Use dashboard alias to create iframe link. This might help when
+        replicating enviroments and dashboards.
+
+        Create a url to embedded dashboard or graph on front end using
+        iframe. Ex.:
+            <iframe
+                src="{% metabase_dash_url 1 %}"
+                frameborder="0"
+                width="800"
+                height="600"
+                allowtransparency
+            ></iframe>
+        Args
+            No Args.
+        Kwargs:
+            list_service_id [list]: List of ids to reload routes on Kong.
+        Return [bool]:
+            Return true.
+        """
+        try:
+            obj = cls.objects.get(alias=alias)
+        except Exception:
+            msg = "Alias [{}] not found on database".format(alias)
+            raise PumpWoodObjectDoesNotExist(msg)
+        return obj.generate_url(
+            auth_header=auth_header, dashboard_parameters=dashboard_parameters,
+            theme=theme, bordered=bordered, titled=titled)
 
     @action(info='Generate url to embed with iframe.',
             auth_header="auth_header")
