@@ -17,6 +17,7 @@ class MetabaseDashboard(models.Model):
 
     STATUS = (
         ("inactive", "Archived"),
+        ("dev", "Development"),
         ("homolog", "Homologation"),
         ("production", "Production"),
     )

@@ -27,6 +27,7 @@ src/pumpwood_djangoauth/metabase/migrations/0003_update_alias.py
 src/pumpwood_djangoauth/metabase/migrations/0004_alter_metabasedashboard_alias.py
 src/pumpwood_djangoauth/metabase/migrations/0005_metabasedashboard_is_static.py
 src/pumpwood_djangoauth/metabase/migrations/0006_auto_20231024_2129.py
+src/pumpwood_djangoauth/metabase/migrations/0007_alter_metabasedashboard_status.py
 src/pumpwood_djangoauth/metabase/migrations/__init__.py
 src/pumpwood_djangoauth/registration/__init__.py
 src/pumpwood_djangoauth/registration/admin.py
