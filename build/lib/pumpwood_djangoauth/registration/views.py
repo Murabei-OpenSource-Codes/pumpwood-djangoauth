@@ -23,7 +23,8 @@ class LoginView(KnoxLoginView):
 
         Check if header have indication that the request came from "outside"
         """
-        is_ingress_request = request.headers.get("Ingress-Request", False)
+        is_ingress_request = request.headers.get(
+            "Ingress-Request", 'not-ingress')
         request_data = request.data
 
         # Validating Request
@@ -61,52 +62,6 @@ class LoginView(KnoxLoginView):
             msg = ("Username/Password incorrect")
             raise exceptions.PumpWoodUnauthorized(
                 message=msg)
-
-
-@api_view(['POST'])
-@permission_classes((permissions.AllowAny, ))
-def login_view(request):
-    """
-    Login user using its password and username.
-
-    Check if header have indication that the request came from "outside"
-    """
-    is_ingress_request = request.headers.get("Ingress-Request")
-    request_data = request.data
-    validate_keys = set(request_data.keys())
-    if validate_keys != {'username', 'password'}:
-        msg = (
-            "Login payload must have just username and password:\n"
-            "espected: ['username', 'password']"
-            "\npayload:{validate_keys}").format(
-                validate_keys=validate_keys)
-        raise exceptions.PumpWoodException(
-            message=msg)
-
-    user = authenticate(
-        username=request_data["username"],
-        password=request_data["password"])
-    if user is not None:
-        login(request, user)
-        token = Token.objects.get_or_create(user=user)[0]
-        return Response({
-            'token': token.key,
-            'user': SerializerUser(request.user, many=False).data,
-            "ingress-call": is_ingress_request})
-    else:
-        msg = ("Username/Password incorrect")
-        raise exceptions.PumpWoodException(
-            message=msg)
-
-
-@api_view(['GET'])
-def logout_view(request):
-    """Logout user from pumpwood and refresh token."""
-    token = Token.objects.get(user=request.user)
-    token.delete()
-    Token.objects.create(user=request.user)
-    logout(request)
-    return Response('logged out')
 
 
 @api_view(['GET'])
