@@ -1,16 +1,20 @@
 """Views for authentication and user end-point."""
+from urllib.parse import urlparse
 from rest_framework import permissions
+from rest_framework.views import APIView
 from rest_framework.response import Response
-from rest_framework.decorators import api_view, permission_classes
-from rest_framework.authtoken.models import Token
+from rest_framework.decorators import api_view
+from django.contrib.auth import authenticate, login
+from django.contrib.auth.models import User
 from pumpwood_communication import exceptions
 from pumpwood_djangoviews.views import PumpWoodRestService
-from django.contrib.auth import authenticate, login, logout
-from django.contrib.auth.models import User
 from pumpwood_djangoauth.registration.serializers import SerializerUser
 
 # Knox Views
 from knox.views import LoginView as KnoxLoginView
+
+# Loging API calls
+from pumpwood_djangoauth.log.functions import log_api_request
 
 
 class LoginView(KnoxLoginView):
@@ -24,7 +28,7 @@ class LoginView(KnoxLoginView):
         Check if header have indication that the request came from "outside"
         """
         is_ingress_request = request.headers.get(
-            "Ingress-Request", 'not-ingress')
+            "X-PUMPWOOD-Ingress-Request", 'NOT-EXTERNAL')
         request_data = request.data
 
         # Validating Request
@@ -64,21 +68,100 @@ class LoginView(KnoxLoginView):
                 message=msg)
 
 
-@api_view(['GET'])
-def check_logged(request):
-    """Check if user is logged and have the permission."""
-    permission = request.GET.get('permission', '')
-    if permission:
-        has_perm = request.user.has_perm(permission)
+class CheckAuthentication(APIView):
+    """API to validate login token and permission."""
+
+    def get(self, request):
+        """Authenticate call legacy."""
+        permission = request.GET.get('permission', '')
+        has_perm = True
+        if permission:
+            has_perm = request.user.has_perm(permission)
+
+        # Do not log calls from outside of the cluster, calls from outside
+        # of pumpwood cluster receive a X-PUMPWOOD-Ingress-Request=INGRESS
+        # when passing trought NGINX termination.
+        ingress_request = request.headers.get(
+            "X-PUMPWOOD-Ingress-Request", 'NOT-EXTERNAL')
+
+        # Do not log service users calls
+        is_service_user = request.user.user_profile.is_service_user
+        if not is_service_user and ingress_request == 'EXTERNAL':
+            print("not is_service_user and ingress_request == 'NOT-EXTERNAL'")
+            str_has_perm = 'ok' if has_perm else 'failed'
+            log_api_request(
+                user_id=request.user.id,
+                permission_check=str_has_perm,
+                request_method=None, path=None,
+                model_class=None, end_point=None,
+                first_arg=None, second_arg=None,
+                payload=None)
+
         if not has_perm:
             msg = (
                 "User does not have permission to exectute this action:\n"
                 "expected permission: {permission}").format(
                     permission=permission)
             raise exceptions.PumpWoodUnauthorized(
-                message=msg, payload={
-                    "permission": permission})
-    return Response(True)
+                message=msg, payload={"permission": permission})
+        return Response(True)
+
+    def post(self, request):
+        """
+        Log API calls.
+
+        New end-point that sets setting user_id and other information of the
+        requested API.
+        """
+        request_data = request.data
+        request_method = request_data.get("request_method")
+        path = request_data.get("path")
+
+        # Geting modelo class of Pumpwood calls
+        model_class = None
+        path_split = path.split("rest/", maxsplit=2)
+        if 1 < len(path_split):
+            rest_url = path_split[1]
+            model_class = rest_url.split("/", maxsplit=2)[0]
+
+        end_point = request_data.get("end_point")
+        first_arg = request_data.get("first_arg")
+        second_arg = request_data.get("second_arg")
+        payload = request_data.get("payload")
+
+        # TODO: Create permission name from API call and check if user
+        # can make this call.
+        permission = ''
+        has_perm = True
+        if permission:
+            has_perm = request.user.has_perm(permission)
+
+        # Do not log calls from outside of the cluster, calls from outside
+        # of pumpwood cluster receive a X-PUMPWOOD-Ingress-Request=INGRESS
+        # when passing trought NGINX termination.
+        ingress_request = request.headers.get(
+            "X-PUMPWOOD-Ingress-Request", 'NOT-EXTERNAL')
+
+        # Do not log service users calls
+        is_service_user = request.user.user_profile.is_service_user
+        if not is_service_user and ingress_request == 'EXTERNAL':
+            str_has_perm = 'ok' if has_perm else 'failed'
+            log_api_request(
+                user_id=request.user.id,
+                permission_check=str_has_perm,
+                request_method=request_method,
+                path=path, model_class=model_class, end_point=end_point,
+                first_arg=first_arg, second_arg=second_arg, payload=payload)
+
+        # Raise error if user does not have permissions
+        if not has_perm:
+            msg = (
+                "User does not have permission to exectute this action:\n"
+                "expected permission: {permission}").format(
+                    permission=permission)
+            raise exceptions.PumpWoodUnauthorized(
+                message=msg, payload={"permission": permission})
+        return Response(True)
 
 
 @api_view(['GET'])
@@ -106,6 +189,6 @@ class RestUser(PumpWoodRestService):
     list_fields = [
         "pk", "model_class", 'username', 'email', 'first_name',
         'last_name', 'last_login', 'date_joined', 'is_active', 'is_staff',
-        'is_superuser', 'is_microservice', 'dimensions', 'extra_fields',
+        'is_superuser', 'is_service_user', 'dimensions', 'extra_fields',
         'all_permissions', 'group_permissions', 'user_profile']
     foreign_keys = {}

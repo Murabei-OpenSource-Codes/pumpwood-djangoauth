@@ -13,7 +13,7 @@ urlpatterns = [
         name='rest__registration__logout'),
     url(r'^rest/registration/logoutall/$', knox_views.LogoutAllView.as_view(),
         name='rest__registration__logoutall'),
-    url(r'^rest/registration/check/$', views.check_logged,
+    url(r'^rest/registration/check/$', views.CheckAuthentication.as_view(),
         name='rest__registration__checklogged'),
     url(r'^rest/registration/retrieveauthenticateduser/$',
         views.retrieve_authenticated_user,

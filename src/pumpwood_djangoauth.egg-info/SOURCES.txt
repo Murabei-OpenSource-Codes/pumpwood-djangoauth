@@ -12,6 +12,8 @@ src/pumpwood_djangoauth.egg-info/requires.txt
 src/pumpwood_djangoauth.egg-info/top_level.txt
 src/pumpwood_djangoauth/kong/__init__.py
 src/pumpwood_djangoauth/kong/create_routes.py
+src/pumpwood_djangoauth/log/__init__.py
+src/pumpwood_djangoauth/log/functions.py
 src/pumpwood_djangoauth/metabase/__init__.py
 src/pumpwood_djangoauth/metabase/admin.py
 src/pumpwood_djangoauth/metabase/apps.py
@@ -39,6 +41,7 @@ src/pumpwood_djangoauth/registration/views.py
 src/pumpwood_djangoauth/registration/migrations/0001_initial.py
 src/pumpwood_djangoauth/registration/migrations/0002_create_UserProfile.py
 src/pumpwood_djangoauth/registration/migrations/0003_ajust_misspelling.py
+src/pumpwood_djangoauth/registration/migrations/0004_change_is_service_user.py
 src/pumpwood_djangoauth/registration/migrations/__init__.py
 src/pumpwood_djangoauth/system/__init__.py
 src/pumpwood_djangoauth/system/admin.py

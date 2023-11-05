@@ -17,7 +17,7 @@ class UserProfile(models.Model):
         settings.AUTH_USER_MODEL, on_delete=models.CASCADE,
         related_name="user_profile")
 
-    is_microservice = models.BooleanField(
+    is_service_user = models.BooleanField(
         default=False,
         help_text="If user is a service user to comnicate programatically.")
     dimensions = models.JSONField(

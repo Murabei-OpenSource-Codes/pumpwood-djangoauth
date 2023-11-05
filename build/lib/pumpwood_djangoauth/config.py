@@ -27,14 +27,14 @@ else:
     print("PumpWoodMicroService not set")
 
 # Storage Object
-storage_type = os.environ.get('STORAGE_TYPE')
-bucket_name = os.environ.get('STORAGE_BUCKET_NAME')
-base_path = os.environ.get('STORAGE_BASE_PATH', 'pumpwood_auth')
+STORAGE_TYPE = os.environ.get('STORAGE_TYPE')
+STORAGE_BUCKET_NAME = os.environ.get('STORAGE_BUCKET_NAME')
+STORAGE_BASE_PATH = os.environ.get('STORAGE_BASE_PATH', 'pumpwood_auth')
 storage_object = None
-if storage_type is not None:
+if STORAGE_TYPE is not None:
     storage_object = PumpWoodStorage(
-        storage_type=storage_type, bucket_name=bucket_name,
-        base_path=base_path)
+        storage_type=STORAGE_TYPE, bucket_name=STORAGE_BUCKET_NAME,
+        base_path=STORAGE_BASE_PATH)
 else:
     print("PumpWoodStorage not set")
 
@@ -42,14 +42,14 @@ else:
 MEDIA_URL = os.environ.get('MEDIA_URL', 'media/')
 
 # RabbitMQ
-username = os.getenv('RABBITMQ_USERNAME')
-password = os.getenv('RABBITMQ_PASSWORD')
-host = os.getenv('RABBITMQ_HOST')
-port = int(os.getenv('RABBITMQ_PORT', "5672"))
+RABBITMQ_USERNAME = os.getenv('RABBITMQ_USERNAME')
+RABBITMQ_PASSWORD = os.getenv('RABBITMQ_PASSWORD')
+RABBITMQ_HOST = os.getenv('RABBITMQ_HOST')
+RABBITMQ_PORT = int(os.getenv('RABBITMQ_PORT', "5672"))
 rabbitmq_api = None
-if rabbitmq_api is not None:
+if RABBITMQ_HOST is not None:
     rabbitmq_api = PumpWoodRabbitMQ(
-        username=username, password=password,
-        host=host, port=port)
+        username=RABBITMQ_USERNAME, password=RABBITMQ_PASSWORD,
+        host=RABBITMQ_HOST, port=RABBITMQ_PORT)
 else:
     print("PumpWoodRabbitMQ not set")
