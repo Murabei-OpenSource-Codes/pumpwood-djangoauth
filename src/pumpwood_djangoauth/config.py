@@ -53,3 +53,7 @@ if RABBITMQ_HOST is not None:
         host=RABBITMQ_HOST, port=RABBITMQ_PORT)
 else:
     print("PumpWoodRabbitMQ not set")
+
+# Loggin using RabbitMQ and consumer container
+PUMPWOOD_AUTH_IS_RABBITMQ_LOG = os.getenv(
+    'PUMPWOOD_AUTH_IS_RABBITMQ_LOG', "FALSE") == 'TRUE'
