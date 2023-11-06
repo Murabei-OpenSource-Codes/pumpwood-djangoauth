@@ -47,6 +47,18 @@ Depending on the storage back-end, it must be provided credentials and other inf
 - google_bucket
   - `GOOGLE_APPLICATION_CREDENTIALS`: Path for the google application credentials.
 
+### Logging user activity
+It is possible to log consumer activify using RabbitMQ and a cosumer process
+this option is activated using `PUMPWOOD_AUTH_IS_RABBITMQ_LOG` parameter.
+All call that has `X-PUMPWOOD-Ingress-Request` header (that may be set using
+a NGINX termination container) and user that request is not a a service user
+(`UserProfile.is_service_user == False`) will be sent to `auth__api_request_log`
+RabbitMQ queue.
+- `PUMPWOOD_AUTH_IS_RABBITMQ_LOG [TRUE, FALSE]`: Set if authentication logs
+  should be sent to RabbitMQ (TRUE) or just printed on stdout (FALSE).
+  If `PUMPWOOD_AUTH_IS_RABBITMQ_LOG` is `TRUE`, but RabbitMQ credentials are not
+  set authentication logs will be sent to stdout anyway.
+
 ## Quick start
 Crate basic models and end-points to integrate with pumpwood communication
 and views. To incorporate in project add to `settings.py`.
