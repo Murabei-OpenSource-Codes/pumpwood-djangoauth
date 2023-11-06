@@ -1,9 +1,9 @@
 """Functions to log activity at rest APIs."""
-import os
 import datetime
 import simplejson as json
-from pumpwood_djangoauth.config import rabbitmq_api
-from config import PUMPWOOD_AUTH_IS_RABBITMQ_LOG
+from pumpwood_djangoauth.config import (
+    rabbitmq_api, PUMPWOOD_AUTH_IS_RABBITMQ_LOG)
+from pumpwood_communication.serializers import PumpWoodJSONEncoder
 
 
 def log_api_request(user_id: int, permission_check: str, request_method: str,
@@ -52,11 +52,13 @@ def log_api_request(user_id: int, permission_check: str, request_method: str,
         'second_arg': second_arg,
         'payload': payload[:300]}
 
-    if rabbitmq_api is None and PUMPWOOD_AUTH_IS_RABBITMQ_LOG:
-        str_log_dict = json.dumps(log_dict)
+    if rabbitmq_api is None or not PUMPWOOD_AUTH_IS_RABBITMQ_LOG:
+        str_log_dict = json.dumps(
+            log_dict, cls=PumpWoodJSONEncoder, ignore_nan=True)
         msg = "## api_request_log ## {}".format(str_log_dict)
         print(msg)
     else:
+        print("## api_request_log ## RabbitMQ")
         rabbitmq_api.send(
             queue="auth__api_request_log",
             data=log_dict)
