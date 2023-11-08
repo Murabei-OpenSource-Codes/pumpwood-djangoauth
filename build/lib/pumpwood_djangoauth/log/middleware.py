@@ -95,8 +95,12 @@ class RequestLogMiddleware:
         try:
             auth_resp = self.knox_auth_token.authenticate(request)
             print("auth_resp:", auth_resp)
-            user, auth_token = self.knox_auth_token.authenticate(request)
-            # Do not log anonymous calls, they will return unauthenticated
+            if auth_resp is None:
+                return None
+            user, auth_token = auth_resp
+
+            ################################################################
+            # Do not log anonymous calls, they will return unauthenticated #
             # they will return error
             if not user.is_anonymous:
                 return None
