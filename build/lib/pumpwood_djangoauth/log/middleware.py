@@ -26,19 +26,18 @@ class RequestLogMiddleware:
         content_type = request.content_type
         full_path = request.get_full_path().strip("/")
         splited_full_path = full_path.split("/")
+
         root_path = list_get_or_none(splited_full_path, 0)
         media_path = MEDIA_URL.strip("/")
         if content_type == "application/json":
             if root_path == 'rest':
                 self.log_rest_calls(request)
-        if full_path.startswith(media_path):
+        elif full_path.startswith(media_path):
             self.log_media_calls(request)
         else:
             if (root_path == 'admin') and ('jsi18n' not in full_path):
                 self.log_admin_calls(request)
-
-        response = self.get_response(request)
-        return response
+        return self.get_response(request)
 
     def log_admin_calls(self, request):
         """Log admin calls on Pumpwood Backends."""
@@ -100,6 +99,10 @@ class RequestLogMiddleware:
 
         # Do not log service users calls and internal calls
         is_service_user = request.user.user_profile.is_service_user
+        msg = (
+            "# log_rest_calls: is_service_user [{}] | "
+            "ingress_request [{}]").format(is_service_user, ingress_request)
+        print(msg)
         if not is_service_user and ingress_request == 'EXTERNAL':
             if self.knox_auth_token is None:
                 self.knox_auth_token = TokenAuthentication()
