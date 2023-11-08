@@ -43,7 +43,6 @@ def log_api_request(user_id: int, permission_check: str, request_method: str,
     elif payload is None:
         payload = ''
 
-    print("payload:", payload)
     log_dict = {
         'time': datetime.datetime.utcnow(),
         'user_id': user_id,
@@ -54,7 +53,7 @@ def log_api_request(user_id: int, permission_check: str, request_method: str,
         'end_point': (end_point or '').lower(),
         'first_arg': str(first_arg or '').lower(),
         'second_arg': str(second_arg or '').lower(),
-        'payload': str(payload[:300] or '').lower(),
+        'payload': payload[:300],
         'ingress_request': ingress_request}
 
     if rabbitmq_api is None or not PUMPWOOD_AUTH_IS_RABBITMQ_LOG:
