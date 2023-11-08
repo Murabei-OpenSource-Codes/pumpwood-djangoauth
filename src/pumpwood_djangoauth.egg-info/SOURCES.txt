@@ -14,6 +14,7 @@ src/pumpwood_djangoauth/kong/__init__.py
 src/pumpwood_djangoauth/kong/create_routes.py
 src/pumpwood_djangoauth/log/__init__.py
 src/pumpwood_djangoauth/log/functions.py
+src/pumpwood_djangoauth/log/middleware.py
 src/pumpwood_djangoauth/metabase/__init__.py
 src/pumpwood_djangoauth/metabase/admin.py
 src/pumpwood_djangoauth/metabase/apps.py

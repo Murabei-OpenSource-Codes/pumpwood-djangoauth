@@ -1,5 +1,4 @@
 """Views for authentication and user end-point."""
-from urllib.parse import urlparse
 from rest_framework import permissions
 from rest_framework.views import APIView
 from rest_framework.response import Response
@@ -144,6 +143,12 @@ class CheckAuthentication(APIView):
 
         # Do not log service users calls
         is_service_user = request.user.user_profile.is_service_user
+        msg = (
+            "# check registration: ingress_request[{ingress_request}]; "
+            "is_service_user[{is_service_user}]").format(
+                ingress_request=ingress_request,
+                is_service_user=is_service_user)
+        print(msg)
         if not is_service_user and ingress_request == 'EXTERNAL':
             str_has_perm = 'ok' if has_perm else 'failed'
             log_api_request(
