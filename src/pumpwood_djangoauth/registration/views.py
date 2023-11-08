@@ -53,6 +53,18 @@ class LoginView(KnoxLoginView):
         user = authenticate(
             username=request_data["username"],
             password=request_data["password"])
+
+        # Loging authentication attempts
+        user_id = None
+        if user is not None:
+            user_id = user.id
+        log_api_request(
+            user_id=user_id,
+            permission_check='failed' if user_id is None else 'ok',
+            request_method='post', path=request.get_full_path(),
+            model_class='registration', end_point='login',
+            first_arg=request_data["username"], second_arg=is_ingress_request,
+            payload=None)
         if user is not None:
             login(request, user)
             resp = super(LoginView, self).post(request, format=None).data
