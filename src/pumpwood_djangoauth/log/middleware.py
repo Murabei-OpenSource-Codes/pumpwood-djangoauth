@@ -93,6 +93,8 @@ class RequestLogMiddleware:
         print("log_rest_calls")
         # Get user from Django Knox token
         try:
+            auth_resp = self.knox_auth_token.authenticate(request)
+            print("auth_resp:", auth_resp)
             user, auth_token = self.knox_auth_token.authenticate(request)
             # Do not log anonymous calls, they will return unauthenticated
             # they will return error
