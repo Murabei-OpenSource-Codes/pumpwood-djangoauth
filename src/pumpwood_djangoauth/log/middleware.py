@@ -87,6 +87,9 @@ class RequestLogMiddleware:
 
     def log_rest_calls(self, request):
         """Log rest calls on Pumpwood Backends."""
+        if self.knox_auth_token is None:
+            self.knox_auth_token = TokenAuthentication()
+
         print("log_rest_calls")
         # Get user from Django Knox token
         try:
