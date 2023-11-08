@@ -31,7 +31,8 @@ class RequestLogMiddleware:
         media_path = MEDIA_URL.strip("/")
         if content_type == "application/json":
             if root_path == 'rest':
-                self.log_rest_calls(request)
+                if 'rest/registration/check' not in full_path:
+                    self.log_rest_calls(request)
         elif full_path.startswith(media_path):
             self.log_media_calls(request)
         else:

@@ -8,7 +8,8 @@ from pumpwood_communication.serializers import PumpWoodJSONEncoder
 
 def log_api_request(user_id: int, permission_check: str, request_method: str,
                     path: str, model_class: str, end_point: str,
-                    first_arg: str, second_arg: str, payload: str) -> dict:
+                    first_arg: str, second_arg: str, payload: str,
+                    ingress_request: str = '') -> dict:
     """
     Log API request using a RabbitMQ queue, if rabbitmq_api is not None.
 
@@ -30,6 +31,8 @@ def log_api_request(user_id: int, permission_check: str, request_method: str,
         second_arg [str]: Second argument of the end-point.
         payload [str]: Payload of POST request, it will be limited to 300
             characters avoiding overload during database uploads.
+        ingress_request [str]: Log if call came througth ingress or was
+            cluster internal.
     Kwargs:
         No Kwargs.
     Return [dict]:
@@ -50,7 +53,8 @@ def log_api_request(user_id: int, permission_check: str, request_method: str,
         'end_point': end_point,
         'first_arg': first_arg,
         'second_arg': second_arg,
-        'payload': payload[:300]}
+        'payload': payload[:300],
+        'ingress_request': ingress_request}
 
     if rabbitmq_api is None or not PUMPWOOD_AUTH_IS_RABBITMQ_LOG:
         str_log_dict = json.dumps(

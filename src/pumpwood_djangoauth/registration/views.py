@@ -103,7 +103,7 @@ class CheckAuthentication(APIView):
                 ingress_request=ingress_request,
                 is_service_user=is_service_user)
         print(msg)
-        if not is_service_user and ingress_request == 'EXTERNAL':
+        if not is_service_user and ingress_request != 'EXTERNAL':
             str_has_perm = 'ok' if has_perm else 'failed'
             log_api_request(
                 user_id=request.user.id,
@@ -144,6 +144,7 @@ class CheckAuthentication(APIView):
         first_arg = request_data.get("first_arg")
         second_arg = request_data.get("second_arg")
         payload = request_data.get("payload")
+        ingress_request_check = request_data.get("ingress_request")
 
         # TODO: Create permission name from API call and check if user
         # can make this call.
@@ -166,14 +167,20 @@ class CheckAuthentication(APIView):
                 ingress_request=ingress_request,
                 is_service_user=is_service_user)
         print(msg)
-        if not is_service_user and ingress_request == 'EXTERNAL':
+
+        ############################################################
+        # Do not log External permission check not to inflate logs #
+        # with just check and not calls to other APIs
+        # !! check if logic make sense...!!
+        if not is_service_user and ingress_request != 'EXTERNAL':
             str_has_perm = 'ok' if has_perm else 'failed'
             log_api_request(
                 user_id=request.user.id,
                 permission_check=str_has_perm,
                 request_method=request_method,
                 path=path, model_class=model_class, end_point=end_point,
-                first_arg=first_arg, second_arg=second_arg, payload=payload)
+                first_arg=first_arg, second_arg=second_arg, payload=payload,
+                ingress_request=ingress_request_check)
 
         # Raise error if user does not have permissions
         if not has_perm:
