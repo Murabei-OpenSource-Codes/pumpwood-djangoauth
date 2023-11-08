@@ -85,8 +85,13 @@ class CheckAuthentication(APIView):
 
         # Do not log service users calls
         is_service_user = request.user.user_profile.is_service_user
+        msg = (
+            "# check registration [GET]: ingress_request[{ingress_request}]; "
+            "is_service_user[{is_service_user}]").format(
+                ingress_request=ingress_request,
+                is_service_user=is_service_user)
+        print(msg)
         if not is_service_user and ingress_request == 'EXTERNAL':
-            print("not is_service_user and ingress_request == 'NOT-EXTERNAL'")
             str_has_perm = 'ok' if has_perm else 'failed'
             log_api_request(
                 user_id=request.user.id,
@@ -144,7 +149,7 @@ class CheckAuthentication(APIView):
         # Do not log service users calls
         is_service_user = request.user.user_profile.is_service_user
         msg = (
-            "# check registration: ingress_request[{ingress_request}]; "
+            "# check registration [POST]: ingress_request[{ingress_request}]; "
             "is_service_user[{is_service_user}]").format(
                 ingress_request=ingress_request,
                 is_service_user=is_service_user)
