@@ -87,11 +87,13 @@ class RequestLogMiddleware:
 
     def log_rest_calls(self, request):
         """Log rest calls on Pumpwood Backends."""
+        print("log_rest_calls")
         # Get user from Django Knox token
         try:
             user, auth_token = self.knox_auth_token.authenticate(request)
             user_id = user.id
-        except Exception:
+        except Exception as e:
+            print("log_rest_calls; Exception", e)
             return None
 
         ingress_request = request.headers.get(
