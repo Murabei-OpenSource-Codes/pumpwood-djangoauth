@@ -110,17 +110,6 @@ class RequestLogMiddleware:
         user_id = user.id
         is_service_user = user.user_profile.is_service_user
         if not is_service_user and ingress_request == 'EXTERNAL':
-            if self.knox_auth_token is None:
-                self.knox_auth_token = TokenAuthentication()
-
-            # Get user from Django Knox token
-            user_id = None
-            try:
-                user, auth_token = self.knox_auth_token.authenticate(request)
-                user_id = user.id
-            except Exception:
-                pass
-
             full_path = request.get_full_path()
             splited_full_path = full_path.split("/")
             request_method = request.method.lower()
