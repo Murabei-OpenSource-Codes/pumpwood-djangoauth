@@ -94,7 +94,10 @@ class RequestLogMiddleware:
         # Get user from Django Knox token
         try:
             user, auth_token = self.knox_auth_token.authenticate(request)
-            user_id = user.id
+            # Do not log anonymous calls, they will return unauthenticated
+            # they will return error
+            if not user.is_anonymous:
+                return None
         except Exception as e:
             print("log_rest_calls; Exception", e)
             return None
@@ -103,6 +106,7 @@ class RequestLogMiddleware:
             "X-PUMPWOOD-Ingress-Request", 'NOT-EXTERNAL')
 
         # Do not log service users calls and internal calls
+        user_id = user.id
         is_service_user = request.user.user_profile.is_service_user
         msg = (
             "# log_rest_calls: is_service_user [{}] | "
