@@ -90,20 +90,15 @@ class RequestLogMiddleware:
         if self.knox_auth_token is None:
             self.knox_auth_token = TokenAuthentication()
 
-        print("log_rest_calls")
         # Get user from Django Knox token
         try:
             auth_resp = self.knox_auth_token.authenticate(request)
-            print("auth_resp:", auth_resp)
-            if auth_resp is None:
-                return None
-            user, auth_token = auth_resp
-
             ################################################################
             # Do not log anonymous calls, they will return unauthenticated #
             # they will return error
-            if not user.is_anonymous:
+            if auth_resp is None:
                 return None
+            user, auth_token = auth_resp
         except Exception as e:
             print("log_rest_calls; Exception", e)
             return None
@@ -113,11 +108,7 @@ class RequestLogMiddleware:
 
         # Do not log service users calls and internal calls
         user_id = user.id
-        is_service_user = request.user.user_profile.is_service_user
-        msg = (
-            "# log_rest_calls: is_service_user [{}] | "
-            "ingress_request [{}]").format(is_service_user, ingress_request)
-        print(msg)
+        is_service_user = user.user_profile.is_service_user
         if not is_service_user and ingress_request == 'EXTERNAL':
             if self.knox_auth_token is None:
                 self.knox_auth_token = TokenAuthentication()
