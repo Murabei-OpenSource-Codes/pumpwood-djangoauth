@@ -46,15 +46,15 @@ def log_api_request(user_id: int, permission_check: str, request_method: str,
     log_dict = {
         'time': datetime.datetime.utcnow(),
         'user_id': user_id,
-        'permission_check': permission_check,
-        'request_method': request_method,
-        'path': path,
-        'model_class': model_class,
-        'end_point': end_point,
-        'first_arg': first_arg,
-        'second_arg': second_arg,
-        'payload': payload[:300],
-        'ingress_request': ingress_request}
+        'permission_check': str(permission_check or '').lower(),
+        'request_method': str(request_method or '').lower(),
+        'path': str(path or '').lower(),
+        'model_class': str(model_class or '').lower(),
+        'end_point': (end_point or '').lower(),
+        'first_arg': str(first_arg or '').lower(),
+        'second_arg': str(second_arg or '').lower(),
+        'payload': str(payload[:300] or '').lower(),
+        'ingress_request': str(ingress_request or '').lower()}
 
     if rabbitmq_api is None or not PUMPWOOD_AUTH_IS_RABBITMQ_LOG:
         str_log_dict = json.dumps(
