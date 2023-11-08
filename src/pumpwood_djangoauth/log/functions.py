@@ -43,6 +43,7 @@ def log_api_request(user_id: int, permission_check: str, request_method: str,
     elif payload is None:
         payload = ''
 
+    print("payload:", payload)
     log_dict = {
         'time': datetime.datetime.utcnow(),
         'user_id': user_id,
