@@ -26,6 +26,7 @@ class LoginView(KnoxLoginView):
 
         Check if header have indication that the request came from "outside"
         """
+        print("request.headers:", request.headers)
         is_ingress_request = request.headers.get(
             "X-PUMPWOOD-Ingress-Request", 'NOT-EXTERNAL')
         request_data = request.data
