@@ -54,8 +54,11 @@ class RequestLogMiddleware:
         model_class = list_get_or_none(splited_full_path, 5)
         end_point = list_get_or_none(splited_full_path, 7)
         first_arg = list_get_or_none(splited_full_path, 6)
+
+        # Do not log payload with multipart
         payload = None
-        if request_method == 'post':
+        is_multipart = request.content_type == "multipart/form-data"
+        if request_method == 'post' and not is_multipart:
             payload = request.body[:300]
 
         log_api_request(
@@ -123,7 +126,8 @@ class RequestLogMiddleware:
             first_arg = list_get_or_none(splited_full_path, 4)
             second_arg = list_get_or_none(splited_full_path, 5)
             payload = None
-            if request_method == 'post':
+            is_multipart = request.content_type == "multipart/form-data"
+            if request_method == 'post' and not is_multipart:
                 payload = request.body[:300]
 
             log_api_request(
