@@ -5,9 +5,7 @@ import time
 import textwrap
 from copy import deepcopy
 from django.core.wsgi import get_wsgi_application
-from pumpwood_djangoauth.config import kong_api
 from slugify import slugify
-from pumpwood_communication.serializers import pumpJsonDump
 
 
 def register_auth_kong_objects(service_url: str, service_description: str,
