@@ -116,8 +116,6 @@ class RequestLogMiddleware:
         # Do not log service users calls and internal calls
         user_id = user.id
         is_service_user = user.user_profile.is_service_user
-        print("is_service_user:", is_service_user)
-        print("ingress_request:", ingress_request)
         if not is_service_user and ingress_request == 'EXTERNAL':
             full_path = request.get_full_path()
             splited_full_path = full_path.split("/")
