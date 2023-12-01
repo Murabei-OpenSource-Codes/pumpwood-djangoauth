@@ -16,7 +16,7 @@ class MetabaseDashboardAdmin(admin.ModelAdmin):
     form = MetabaseDashboardForm
 
     list_display = (
-        "id", "status", "metabase_id", "description", "notes",
+        "id", "status", "metabase_id", "alias", "description", "notes",
         "updated_by", "updated_at")
     readonly_fields = ['updated_by', 'updated_at']
 
