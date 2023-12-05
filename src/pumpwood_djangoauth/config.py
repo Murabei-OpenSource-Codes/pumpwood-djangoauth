@@ -15,14 +15,16 @@ MICROSERVICE_URL = os.environ.get("MICROSERVICE_URL")
 MICROSERVICE_USERNAME = os.environ.get("MICROSERVICE_USERNAME")
 MICROSERVICE_PASSWORD = os.environ.get("MICROSERVICE_PASSWORD")
 microservice = None
-if MICROSERVICE_USERNAME is not None:
-    microservice = PumpWoodMicroService(
-        name=MICROSERVICE_NAME, server_url=MICROSERVICE_URL,
-        username=MICROSERVICE_USERNAME, password=MICROSERVICE_PASSWORD,
-        verify_ssl=False)
+microservice_no_login = None
+if MICROSERVICE_URL is not None:
     microservice_no_login = PumpWoodMicroService(
         name=MICROSERVICE_NAME, server_url=MICROSERVICE_URL,
         verify_ssl=False)
+    if MICROSERVICE_USERNAME is not None:
+        microservice = PumpWoodMicroService(
+            name=MICROSERVICE_NAME, server_url=MICROSERVICE_URL,
+            username=MICROSERVICE_USERNAME, password=MICROSERVICE_PASSWORD,
+            verify_ssl=False)
 else:
     print("PumpWoodMicroService not set")
 
