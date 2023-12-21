@@ -69,6 +69,12 @@ class LoginView(KnoxLoginView):
             payload=None)
         if user is not None:
             login(request, user)
+            is_service_user = user.user_profile.is_service_user
+            is_external_call = is_ingress_request == "EXTERNAL"
+            if is_external_call and is_service_user:
+                msg = ("EXTERNAL call using serice users is not allowed")
+                raise exceptions.PumpWoodUnauthorized(message=msg)
+
             resp = super(LoginView, self).post(request, format=None).data
             return Response({
                 'expiry': resp['expiry'],
