@@ -46,8 +46,6 @@ class MetabaseDashboard(models.Model):
     object_pk = models.IntegerField(
         null=True, unique=False, blank=True,
         help_text="Object PK associated with dashboard.")
-    is_static = models.BooleanField(
-        null=True, help_text="If dashboard associated with model is static.")
     metabase_id = models.IntegerField(
         null=False, help_text="Metabase Dashboard Id.")
     expire_in_min = models.IntegerField(

@@ -18,8 +18,7 @@ class RestMetabaseDashboard(PumpWoodRestService):
 
     list_fields = [
         "pk", "model_class", "status", "alias", "description",
-        "is_static", "object_model_class", "object_pk",
-        "updated_by", "updated_at"]
+        "object_model_class", "object_pk", "updated_by", "updated_at"]
 
     foreign_keys = {
         "updated_by": {"model_class": "User", "many": False},

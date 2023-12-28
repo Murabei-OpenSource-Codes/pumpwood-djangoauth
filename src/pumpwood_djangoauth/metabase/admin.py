@@ -17,8 +17,8 @@ class MetabaseDashboardAdmin(admin.ModelAdmin):
 
     list_display = (
         "id", "status", "metabase_id", "alias", "description",
-        "is_static", "object_model_class", "object_pk",
-        "updated_by", "updated_at")
+        "object_model_class", "object_pk", "updated_by",
+        "updated_at")
     readonly_fields = ['updated_by', 'updated_at']
 
     inlines = [

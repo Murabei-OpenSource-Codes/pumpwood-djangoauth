@@ -15,7 +15,7 @@ class MetabaseDashboardSerializer(DynamicFieldsModelSerializer):
         model = MetabaseDashboard
         fields = (
             "pk", "model_class", "status", "alias", "description", "notes",
-            "object_model_class", "object_pk", "is_static", "metabase_id",
+            "object_model_class", "object_pk", "metabase_id",
             "expire_in_min", "default_theme", "default_is_bordered",
             "default_is_titled", "dimensions", "extra_info",
             "updated_by", "updated_at")
