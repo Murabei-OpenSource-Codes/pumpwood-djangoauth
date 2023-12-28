@@ -14,11 +14,11 @@ class MetabaseDashboardSerializer(DynamicFieldsModelSerializer):
     class Meta:
         model = MetabaseDashboard
         fields = (
-            "pk", "model_class", "status", "description", "notes",
-            "metabase_id", "expire_in_min", "default_theme",
-            "default_is_bordered", "default_is_titled", "dimensions",
-            "extra_info", "updated_by", "updated_at",
-            "alias", "model_class", "is_static", "object_pk")
+            "pk", "model_class", "status", "alias", "description", "notes",
+            "object_model_class", "object_pk", "is_static", "metabase_id",
+            "expire_in_min", "default_theme", "default_is_bordered",
+            "default_is_titled", "dimensions", "extra_info",
+            "updated_by", "updated_at")
         read_only = ["updated_by", "updated_at"]
 
     def create(self, validated_data):

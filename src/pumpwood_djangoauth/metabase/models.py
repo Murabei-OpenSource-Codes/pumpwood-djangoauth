@@ -40,7 +40,7 @@ class MetabaseDashboard(models.Model):
     notes = models.TextField(
         null=False, default="", blank=True,
         help_text="a long description of the dashboard.")
-    model_class = models.CharField(
+    object_model_class = models.CharField(
         null=True, max_length=50, unique=False, blank=True,
         help_text="Model class associated with dashboard")
     object_pk = models.IntegerField(
