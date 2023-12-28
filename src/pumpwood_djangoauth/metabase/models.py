@@ -40,6 +40,7 @@ class MetabaseDashboard(models.Model):
     notes = models.TextField(
         null=False, default="", blank=True,
         help_text="a long description of the dashboard.")
+    auto_embedding = models.BooleanField(default=False)
     object_model_class = models.CharField(
         null=True, max_length=50, unique=False, blank=True,
         help_text="Model class associated with dashboard")
@@ -78,6 +79,8 @@ class MetabaseDashboard(models.Model):
 
     class Meta:
         db_table = 'metabase__dashboard'
+
+
 
     @classmethod
     @action(info='Generate url to embed with iframe using dashboard alias.',
