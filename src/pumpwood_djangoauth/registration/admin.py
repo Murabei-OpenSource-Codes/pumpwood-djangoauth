@@ -1,7 +1,9 @@
 from django.contrib import admin
 
 # Register your models here.
-from .models import UserProfile
+from pumpwood_djangoauth.registration.models import (
+    UserProfile, PumpwoodMFAMethod, PumpwoodMFAToken, PumpwoodMFACode,
+    PumpwoodMFARecoveryCode)
 from django.contrib.auth.admin import UserAdmin
 from django.contrib.auth.forms import UserChangeForm
 from django.contrib.auth.models import User
@@ -13,6 +15,12 @@ class UserProfileInline(admin.TabularInline):
     model = UserProfile
 
 
+class PumpwoodMFAMethodInline(admin.TabularInline):
+    model = PumpwoodMFAMethod
+    extra = 0
+    read_only = ['is_validated']
+
+
 class CustomUserChangeForm(UserChangeForm):
     class Meta(UserChangeForm.Meta):
         model = User
@@ -21,8 +29,8 @@ class CustomUserChangeForm(UserChangeForm):
 class CustomUserAdmin(UserAdmin):
     form = CustomUserChangeForm
     fieldsets = UserAdmin.fieldsets
-    inlines = UserAdmin.inlines + [UserProfileInline, ]
-######################
+    inlines = UserAdmin.inlines + [
+        UserProfileInline, PumpwoodMFAMethodInline]
 
 
 ##############
