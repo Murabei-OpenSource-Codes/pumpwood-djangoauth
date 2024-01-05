@@ -190,6 +190,40 @@ def create_new_mfa_code(request, pk=None):
     return Response(True)
 
 
+class MFALoginView(KnoxLoginView):
+    permission_classes = (permissions.AllowAny,)
+
+    def post(self, request, format=None):
+        """Login user with MFA Token and MFA Code."""
+        request_data = request.data
+        print('request_data:', request_data)
+        if "mfa_code" not in request_data.keys():
+            msg = "Missing 'code' on resquest data"
+            raise exceptions.PumpWoodWrongParameters(
+                message=msg, payload={"mfa_code": ['missing']})
+
+        # Validate MFA token
+        mfa_token_obj = validate_mfa_token(request)
+        is_ingress_request = request.headers.get(
+            "X-PUMPWOOD-Ingress-Request", 'NOT-EXTERNAL')
+
+        mfa_code = PumpwoodMFACode.objects.filter(
+            token=mfa_token_obj, code=request_data["mfa_code"]).first()
+        if mfa_code is None:
+            msg = 'MFA code incorrect'
+            raise exceptions.PumpWoodUnauthorized(
+                message=msg, payload={"error": "mfa_code_not_found"})
+
+        user = mfa_token_obj.user
+        login(request, user)
+
+        resp = super(MFALoginView, self).post(request, format=None).data
+        return Response({
+            'expiry': resp['expiry'], 'token': resp['token'],
+            'user': SerializerUser(request.user, many=False).data,
+            "ingress-call": is_ingress_request})
+
+
 class CheckAuthentication(APIView):
     """API to validate login token and permission."""
 

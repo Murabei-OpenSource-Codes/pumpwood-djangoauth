@@ -21,7 +21,10 @@ urlpatterns = [
         name='rest__registration__mfa_list_user_methods'),
     url(r'^rest/registration/mfa-generate-code/(?P<pk>\d+)/$',
         views.create_new_mfa_code,
-        name='rest__registration__mfa_list_user_methods'),
+        name='rest__registration__mfa_generate_code'),
+    url(r'^rest/registration/mfa-validate-code/$',
+        views.MFALoginView.as_view(),
+        name='rest__registration__mfa_validate_code'),
 
     url(r'^rest/registration/check/$', views.CheckAuthentication.as_view(),
         name='rest__registration__checklogged'),
