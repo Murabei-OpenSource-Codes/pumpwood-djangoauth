@@ -138,7 +138,7 @@ class PumpwoodMFACode(models.Model):
     def save(self, *args, **kwargs):
         """Create MFA Code."""
         if self.pk is None:
-            self.code = str(random.randint(0, 999999999)).zfill(6)
+            self.code = str(random.randint(0, 999999)).zfill(6)
 
         # Do not let update MFA codes
         else:
