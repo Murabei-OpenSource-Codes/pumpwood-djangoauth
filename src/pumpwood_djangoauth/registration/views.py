@@ -106,7 +106,8 @@ class LoginView(KnoxLoginView):
 
                 resp = super(LoginView, self).post(request, format=None).data
                 return Response({
-                    'expiry': resp['expiry'], 'token': resp['token'],
+                    'expiry': resp['expiry'],
+                    'token': resp['token'],
                     'user': SerializerUser(request.user, many=False).data,
                     "ingress-call": is_ingress_request})
         else:
@@ -159,8 +160,6 @@ def get_user_mfa_methods(request):
     return Response(mfa_method_set_data)
 
 
-#########################################################################
-# TODO: Terminar o end-point que faz a criação de um novo código de MFA #
 @api_view(['GET'])
 @permission_classes([permissions.AllowAny])
 def create_new_mfa_code(request, pk=None):
@@ -172,15 +171,23 @@ def create_new_mfa_code(request, pk=None):
     Return [bool]:
         Return True if code sent to MFA.
     """
+    # Validate MFA token
     mfa_token_obj = validate_mfa_token(request)
-    mfa_code = PumpwoodMFACode(
-        token=new_mfa_token, mfa_method=mfa_token_obj)
-    mfa_code.save()
 
-    mfa_method_set = mfa_object.user.mfa_method_set.all()
-    mfa_method_set_data = SerializerPumpwoodMFAMethod(
-        mfa_method_set, many=True).data
-    return Response(mfa_method_set_data)
+    #############################################################
+    # Fetch MFA method, used argument pk, but also filter by user
+    # to not let user spoffing
+    mfa_method = PumpwoodMFAMethod.objects.filter(
+        user=mfa_token_obj.user, pk=pk).first()
+    if mfa_method is None:
+        msg = (
+            'MFA code with pk[{pk}] does not exists or is not '
+            'associated with current user').format(pk=pk)
+        raise exceptions.PumpWoodObjectDoesNotExist(msg)
+
+    mfa_code = PumpwoodMFACode(token=mfa_token_obj, mfa_method=mfa_method)
+    mfa_code.save()
+    return Response(True)
 
 
 class CheckAuthentication(APIView):

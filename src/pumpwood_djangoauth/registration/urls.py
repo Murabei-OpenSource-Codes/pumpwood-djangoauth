@@ -19,6 +19,9 @@ urlpatterns = [
     url(r'^rest/registration/mfa-list-user-methods/$',
         views.get_user_mfa_methods,
         name='rest__registration__mfa_list_user_methods'),
+    url(r'^rest/registration/mfa-generate-code/(?P<pk>\d+)/$',
+        views.create_new_mfa_code,
+        name='rest__registration__mfa_list_user_methods'),
 
     url(r'^rest/registration/check/$', views.CheckAuthentication.as_view(),
         name='rest__registration__checklogged'),

@@ -126,8 +126,8 @@ class PumpwoodMFACode(models.Model):
         related_name="mfa_code_set",
         help_text="PumpwoodMFAMethod foreign key")
     code = models.CharField(
-        max_length=9, null=False, blank=True,
-        help_text="9 digit MFA code")
+        max_length=6, null=False, blank=True,
+        help_text="6 digit MFA code")
     created_at = models.DateTimeField(
         null=False, blank=True, auto_now=True,
         help_text="Time was created at")
@@ -138,7 +138,7 @@ class PumpwoodMFACode(models.Model):
     def save(self, *args, **kwargs):
         """Create MFA Code."""
         if self.pk is None:
-            self.code = str(random.randint(0, 999999999)).zfill(9)
+            self.code = str(random.randint(0, 999999999)).zfill(6)
 
         # Do not let update MFA codes
         else:
@@ -153,8 +153,8 @@ class PumpwoodMFARecoveryCode(models.Model):
         related_name="recovery_codes_set",
         help_text="User foreign key")
     code = models.CharField(
-        max_length=6, null=False, blank=True,
-        help_text="6 digit MFA code")
+        max_length=8, null=False, blank=True,
+        help_text="8 digits recovery code")
     created_at = models.DateTimeField(
         null=False, blank=True, auto_now=True,
         help_text="Time was created at")
