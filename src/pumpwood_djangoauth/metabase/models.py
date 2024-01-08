@@ -40,14 +40,13 @@ class MetabaseDashboard(models.Model):
     notes = models.TextField(
         null=False, default="", blank=True,
         help_text="a long description of the dashboard.")
-    model_class = models.CharField(
+    auto_embedding = models.BooleanField(default=False)
+    object_model_class = models.CharField(
         null=True, max_length=50, unique=False, blank=True,
         help_text="Model class associated with dashboard")
     object_pk = models.IntegerField(
         null=True, unique=False, blank=True,
         help_text="Object PK associated with dashboard.")
-    is_static = models.BooleanField(
-        null=True, help_text="If dashboard associated with model is static.")
     metabase_id = models.IntegerField(
         null=False, help_text="Metabase Dashboard Id.")
     expire_in_min = models.IntegerField(
@@ -80,6 +79,39 @@ class MetabaseDashboard(models.Model):
 
     class Meta:
         db_table = 'metabase__dashboard'
+
+    def save(self, *args, **kwargs):
+        """Ovewrite save to add output_modeling_unit_id."""
+        super(MetabaseDashboard, self).save(*args, **kwargs)
+
+        ###########################################################
+        # Crating parameters necessary to dashboard associated with
+        # model_class and specific objects
+        if self.object_model_class is not None:
+            parameter = self.parameter_set.filter(
+                name="model_class").first()
+            parameter_id = None if parameter is None else parameter.id
+            parameter = MetabaseDashboardParameter(
+                id=parameter_id,
+                dashboard=self, type="str", name="model_class",
+                notes=(
+                    "**Dashboard with object_model_class not null, must"
+                    "have model_class parameter. Please do not delete!**"),
+                default_value=None)
+            parameter.save()
+
+        if self.object_pk is not None:
+            parameter = self.parameter_set.filter(
+                name="pk").first()
+            parameter_id = None if parameter is None else parameter.id
+            parameter = MetabaseDashboardParameter(
+                id=parameter_id,
+                dashboard=self, type="int", name="pk",
+                notes=(
+                    "**Dashboard with object_pk not null, must"
+                    "have pk parameter. Please do not delete!**"),
+                default_value=None)
+            parameter.save()
 
     @classmethod
     @action(info='Generate url to embed with iframe using dashboard alias.',
