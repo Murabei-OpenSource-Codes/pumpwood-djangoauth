@@ -198,3 +198,16 @@ register_auth_kong_objects(
         RestKongRoute, RestKongService, RestUser,
         RestPeople, RestCats])
 ```
+
+### Login MFA
+Enviroment variables:
+- **PUMPWOOD__MFA__TOKEN_EXPIRATION_INTERVAL:** Set expiration interval of the
+  MFA token sent to user, it is in seconds.
+- **PUMPWOOD__MFA__APPLICATION_NAME:** Set application name to be used on
+  MFA messages.
+
+#### Twilio SMS Message
+To send SMS using Twilio back-end it is necessary to set these Environment
+variables.
+- **PUMPWOOD__MFA__TWILIO_ACCOUNT_SID:** Twilio Account SID.
+- **PUMPWOOD__MFA__TWILIO_AUTH_TOKEN:** Twilio Auth Token.

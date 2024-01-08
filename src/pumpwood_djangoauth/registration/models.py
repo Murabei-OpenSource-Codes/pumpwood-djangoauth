@@ -10,6 +10,7 @@ from django.db.models.signals import post_save
 from django.dispatch import receiver
 from pumpwood_communication.serializers import PumpWoodJSONEncoder
 from pumpwood_communication.exceptions import PumpWoodForbidden
+from pumpwood_djangoauth.registration.mfa_aux.main import send_mfa_code
 
 
 @receiver(post_save, sender=settings.AUTH_USER_MODEL)
@@ -144,6 +145,8 @@ class PumpwoodMFACode(models.Model):
         else:
             msg = "It is not possible to update MFA codes, only create."
             raise PumpWoodForbidden(msg)
+
+        send_mfa_code(mfa_method=self.mfa_method, code=self.code)
         super(PumpwoodMFACode, self).save(*args, **kwargs)
 
 
