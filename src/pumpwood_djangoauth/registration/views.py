@@ -196,7 +196,6 @@ class MFALoginView(KnoxLoginView):
     def post(self, request, format=None):
         """Login user with MFA Token and MFA Code."""
         request_data = request.data
-        print('request_data:', request_data)
         if "mfa_code" not in request_data.keys():
             msg = "Missing 'code' on resquest data"
             raise exceptions.PumpWoodWrongParameters(

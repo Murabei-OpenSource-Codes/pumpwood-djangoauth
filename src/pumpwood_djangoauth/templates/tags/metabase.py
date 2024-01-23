@@ -46,7 +46,6 @@ def metabase_dash_url_alias(dashboard_alias, variable_name=None,
     if dashboard_alias is None:
         return "O objeto ainda não foi criado"
     else:
-        print("dashboard_alias:", dashboard_alias)
         microservice.login()
         dashboard_parameters = {
             "alias": dashboard_alias,

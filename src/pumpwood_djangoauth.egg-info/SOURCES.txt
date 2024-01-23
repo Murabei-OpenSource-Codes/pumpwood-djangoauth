@@ -45,7 +45,6 @@ src/pumpwood_djangoauth/mfaadmin/views.py
 src/pumpwood_djangoauth/registration/__init__.py
 src/pumpwood_djangoauth/registration/admin.py
 src/pumpwood_djangoauth/registration/apps.py
-src/pumpwood_djangoauth/registration/forms.py
 src/pumpwood_djangoauth/registration/models.py
 src/pumpwood_djangoauth/registration/serializers.py
 src/pumpwood_djangoauth/registration/urls.py
