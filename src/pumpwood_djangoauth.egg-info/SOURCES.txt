@@ -10,7 +10,6 @@ src/pumpwood_djangoauth.egg-info/SOURCES.txt
 src/pumpwood_djangoauth.egg-info/dependency_links.txt
 src/pumpwood_djangoauth.egg-info/requires.txt
 src/pumpwood_djangoauth.egg-info/top_level.txt
-src/pumpwood_djangoauth/admin/__init__.py
 src/pumpwood_djangoauth/admin/password_validation.py
 src/pumpwood_djangoauth/kong/__init__.py
 src/pumpwood_djangoauth/kong/create_routes.py
@@ -37,9 +36,16 @@ src/pumpwood_djangoauth/metabase/migrations/0008_model_class_column_name.py
 src/pumpwood_djangoauth/metabase/migrations/0009_drop_is_static.py
 src/pumpwood_djangoauth/metabase/migrations/0010_auto_embedding.py
 src/pumpwood_djangoauth/metabase/migrations/__init__.py
+src/pumpwood_djangoauth/mfaadmin/__init__.py
+src/pumpwood_djangoauth/mfaadmin/admin.py
+src/pumpwood_djangoauth/mfaadmin/apps.py
+src/pumpwood_djangoauth/mfaadmin/forms.py
+src/pumpwood_djangoauth/mfaadmin/urls.py
+src/pumpwood_djangoauth/mfaadmin/views.py
 src/pumpwood_djangoauth/registration/__init__.py
 src/pumpwood_djangoauth/registration/admin.py
 src/pumpwood_djangoauth/registration/apps.py
+src/pumpwood_djangoauth/registration/forms.py
 src/pumpwood_djangoauth/registration/models.py
 src/pumpwood_djangoauth/registration/serializers.py
 src/pumpwood_djangoauth/registration/urls.py

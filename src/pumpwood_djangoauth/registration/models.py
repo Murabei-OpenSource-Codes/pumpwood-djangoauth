@@ -146,6 +146,7 @@ class PumpwoodMFACode(models.Model):
             msg = "It is not possible to update MFA codes, only create."
             raise PumpWoodForbidden(msg)
 
+        print("mfa_method:", self)
         send_mfa_code(mfa_method=self.mfa_method, code=self.code)
         super(PumpwoodMFACode, self).save(*args, **kwargs)
 

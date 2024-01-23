@@ -63,10 +63,12 @@ def send_code(code: str, mfa_method):
             raise PumpWoodException(
                 msg, payload={"mfa_code": "delivery_timeout"})
 
-        if message.status == 'delivered':
+        if message.status in ['delivered', 'sent']:
             return True
 
-        print("### Waiting 1 second to check if MFA Twilio SMS was "
-              "delivered ###")
+        print_msg = (
+            "### Waiting 1 second to check if MFA Twilio SMS was "
+            "delivered or queued [{status}]###").format(status=message.status)
+        print(print_msg)
         time.sleep(1)
         i = i + 1
