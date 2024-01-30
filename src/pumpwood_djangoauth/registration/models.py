@@ -85,6 +85,7 @@ class PumpwoodMFAMethod(models.Model):
                 token=validation_mfa, mfa_method=self)
             validation_mfacode.save()
             self.is_validated = True
+            self.msg = "MFA validated"
             super(PumpwoodMFAMethod, self).save(*args, **kwargs)
 
         except PumpWoodMFAError as e:
