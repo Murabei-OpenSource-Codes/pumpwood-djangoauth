@@ -21,6 +21,7 @@ class MFAAuthenticationForm(AuthenticationForm):
 
             self.confirm_login_allowed(self.user_cache)
             priority_mfa = self.user_cache.mfa_method_set.\
+                filter(is_enabled=True, is_validated=True).\
                 order_by('priority').first()
             is_service_user = self.user_cache.user_profile.is_service_user
             if (priority_mfa is not None) and (not is_service_user):
@@ -37,8 +38,7 @@ class MFAAuthenticationForm(AuthenticationForm):
 
         user [User]: Autenticated user.
         """
-        from pumpwood_djangoauth.registration.models import (
-            PumpwoodMFAToken, PumpwoodMFACode)
+        from pumpwood_djangoauth.registration.models import PumpwoodMFACode
         new_mfa_token = PumpwoodMFAToken(user=user)
         new_mfa_token.save()
 
@@ -59,26 +59,14 @@ class MFATokenValidationForm(forms.Form):
         super().__init__(*args, **kwargs)
 
     def clean(self):
-        mfa_token = self.request.COOKIES.get('mfa_token')
-        mfa_token_obj = PumpwoodMFAToken.objects.\
-            filter(token=mfa_token).first()
-
-        if mfa_token_obj is None:
-            raise ValidationError(
-                _("MFA Token is incorrect, please login again."))
-
-        now = timezone.now()
-        if mfa_token_obj.expire_at < now:
-            raise ValidationError(_("MFA Token is expired"))
-
         mfa_code = self.cleaned_data.get('mfa_code')
-        code_obj = mfa_token_obj.mfa_code_set.filter(
+        code_obj = self.request.mfa_token.mfa_code_set.filter(
             code=mfa_code).first()
         if code_obj is None:
             raise ValidationError(_("MFA Code is incorrect"))
 
         self.cleaned_data = {
-            "mfa_token_obj": mfa_token_obj,
-            "user": mfa_token_obj.user,
+            "mfa_token_obj": self.request.mfa_token,
+            "user": self.request.mfa_token.user,
             "code_obj": code_obj}
         return self.cleaned_data

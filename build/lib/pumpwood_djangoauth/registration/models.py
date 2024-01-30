@@ -9,7 +9,8 @@ from django.conf import settings
 from django.db.models.signals import post_save
 from django.dispatch import receiver
 from pumpwood_communication.serializers import PumpWoodJSONEncoder
-from pumpwood_communication.exceptions import PumpWoodForbidden
+from pumpwood_communication.exceptions import (
+    PumpWoodForbidden, PumpWoodMFAError)
 from pumpwood_djangoauth.registration.mfa_aux.main import send_mfa_code
 
 
@@ -41,13 +42,15 @@ class PumpwoodMFAMethod(models.Model):
     """Set MFA associated with user."""
 
     TYPES = [
-        ('app_log', 'APP Log'),
         ('sms', 'SMS'),
     ]
     is_enabled = models.BooleanField(
         default=True, help_text="If MFA is enabled")
     is_validated = models.BooleanField(
         default=False, help_text="If MFA is enabled")
+    msg = models.TextField(
+        help_text="Message from MFA validation", default="",
+        null=False, blank=True)
     priority = models.PositiveIntegerField(
         null=False, help_text="MFA method priority")
     user = models.ForeignKey(
@@ -69,6 +72,28 @@ class PumpwoodMFAMethod(models.Model):
             ['user_id', 'type'],
             ['user_id', 'priority']
         ]
+
+    def save(self, *args, **kwargs):
+        """Validate creation of MFA when saving object."""
+        # Validate MFA Method for user
+        validation_mfa = PumpwoodMFAToken(user=self.user)
+        validation_mfa.save()
+        try:
+            # Check if it is possible to create a MFACode
+            super(PumpwoodMFAMethod, self).save(*args, **kwargs)
+            validation_mfacode = PumpwoodMFACode(
+                token=validation_mfa, mfa_method=self)
+            validation_mfacode.save()
+            self.is_validated = True
+            super(PumpwoodMFAMethod, self).save(*args, **kwargs)
+
+        except PumpWoodMFAError as e:
+            # If creation of a MFA Code leads to a PumpWoodMFAError
+            # than set method as not validated and will be not used
+            # on loging
+            self.is_validated = False
+            self.msg = e.message
+            super(PumpwoodMFAMethod, self).save(*args, **kwargs)
 
 
 class PumpwoodMFAToken(models.Model):

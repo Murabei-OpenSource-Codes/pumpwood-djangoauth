@@ -73,7 +73,9 @@ class LoginView(KnoxLoginView):
 
         if user is not None:
             is_service_user = user.user_profile.is_service_user
-            priority_mfa = user.mfa_method_set.order_by('priority').first()
+            priority_mfa = user.mfa_method_set.filter(
+                is_enabled=True, is_validated=True).\
+                order_by('priority').first()
 
             ###############################################################
             # If user is not a service and a MFA associated it will get a

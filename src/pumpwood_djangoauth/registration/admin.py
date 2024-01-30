@@ -18,7 +18,10 @@ class UserProfileInline(admin.TabularInline):
 class PumpwoodMFAMethodInline(admin.TabularInline):
     model = PumpwoodMFAMethod
     extra = 0
-    read_only = ['is_validated']
+    readonly_fields = ('is_validated', 'msg')
+    fields = [
+        "is_enabled", "is_validated", "priority", "type", "mfa_parameter",
+        "msg"]
 
 
 class CustomUserChangeForm(UserChangeForm):

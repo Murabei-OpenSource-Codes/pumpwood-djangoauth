@@ -2,7 +2,9 @@
 import os
 import time
 from twilio.rest import Client
-from pumpwood_communication.exceptions import PumpWoodException
+from pumpwood_communication.exceptions import (
+    PumpWoodException, PumpWoodMFAError)
+from twilio.base.exceptions import TwilioRestException
 
 
 def send_code(code: str, mfa_method):
@@ -40,9 +42,13 @@ def send_code(code: str, mfa_method):
 
     client = Client(TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN)
     to_phone_number = mfa_method.mfa_parameter
-    message = client.messages.create(
-      to=to_phone_number, body=msg,
-      from_=TWILIO_SENDER_PHONE_NUMBER)
+    try:
+        message = client.messages.create(
+          to=to_phone_number, body=msg,
+          from_=TWILIO_SENDER_PHONE_NUMBER)
+    except TwilioRestException as e:
+        print("TwilioRestException as e")
+        raise PumpWoodMFAError(message=e.msg)
 
     # Check if SMS was delivered to user, it will wait
     # PUMPWOOD__MFA__TWILIO_DELIVERY_TIMEOUT 1 second sleep cicle for SMS
@@ -52,7 +58,7 @@ def send_code(code: str, mfa_method):
         message = message.fetch()
         if message.status == 'failed':
             msg = "MFA Twilio SMS received a 'failed' status"
-            raise PumpWoodException(
+            raise PumpWoodMFAError(
                 msg, payload={"mfa_code": "failed_status"})
 
         if TWILIO_DELIVERY_TIMEOUT <= i:
@@ -60,7 +66,7 @@ def send_code(code: str, mfa_method):
                 "Waited for {} seconds and message did not receive "
                 "'delivered' status. It is possible to use the MFA code for "
                 "login, but we just gave up waiting for it to be delivered")
-            raise PumpWoodException(
+            raise PumpWoodMFAError(
                 msg, payload={"mfa_code": "delivery_timeout"})
 
         if message.status in ['delivered', 'sent']:

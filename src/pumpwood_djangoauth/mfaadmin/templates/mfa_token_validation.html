@@ -45,33 +45,44 @@
     {{ form.media }}
 {% endblock %}
 
-{% block bodyclass %}{{ block.super }} login{% endblock %}
+<!-- {% block bodyclass %}{{ block.super }} login {% endblock %}
 {% block usertools %}{% endblock %}
 {% block nav-global %}{% endblock %}
 {% block nav-sidebar %}{% endblock %}
 {% block content_title %}{% endblock %}
-{% block breadcrumbs %}{% endblock %}
+{% block breadcrumbs %}{% endblock %} -->
 
 {% block content %}
-    {% if form.errors and not form.non_field_errors %}
-        <p class="errornote">
-            {% if form.errors.items|length == 1 %}{% translate "Please correct the error below." %}{% else %}
-                {% translate "Please correct the errors below." %}{% endif %}
-        </p>
-    {% endif %}
-
-    {% if form.non_field_errors %}
-        {% for error in form.non_field_errors %}
-            <p class="errornote">
-                {{ error }}
-            </p>
-        {% endfor %}
-    {% endif %}
-
     <div id="content-main">
+        {% if messages %}
+            <ul class="messages">
+                {% for message in messages %}
+                    <li{% if message.tags %} class="{{ message.tags }}"{% endif %}>{{ message }}</li>
+                {% endfor %}
+            </ul>
+        {% endif %}
+
+        {% if form.errors and not form.non_field_errors %}
+            <p class="errornote">
+                {% if form.errors.items|length == 1 %}
+                  {% translate "Please correct the error below." %}
+                {% else %}
+                  {% translate "Please correct the errors below." %}
+                {% endif %}
+            </p>
+        {% endif %}
+
+        {% if form.non_field_errors %}
+            {% for error in form.non_field_errors %}
+                <p class="errornote">
+                    {{ error }}
+                </p>
+            {% endfor %}
+        {% endif %}
+
         <form action="{{ app_path }}" method="post" id="validate-token-form">{% csrf_token %}
             <div class="form-row">
-                <img src="{% static 'images/insigths-logo.png' %}" class="center"/>
+                <img src="{% static 'images/login-logo.png' %}" class="center"/>
             </div>
             <div class="form-row">
                 {{ form.mfa_code.errors }}

@@ -62,6 +62,7 @@ src/pumpwood_djangoauth/registration/migrations/0003_ajust_misspelling.py
 src/pumpwood_djangoauth/registration/migrations/0004_change_is_service_user.py
 src/pumpwood_djangoauth/registration/migrations/0005_initial_mfa_migration.py
 src/pumpwood_djangoauth/registration/migrations/0006_adjust_string_size.py
+src/pumpwood_djangoauth/registration/migrations/0007_add_msg.py
 src/pumpwood_djangoauth/registration/migrations/__init__.py
 src/pumpwood_djangoauth/system/__init__.py
 src/pumpwood_djangoauth/system/admin.py

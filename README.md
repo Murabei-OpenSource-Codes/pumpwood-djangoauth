@@ -206,7 +206,7 @@ Enviroment variables:
 - **PUMPWOOD__MFA__APPLICATION_NAME:** Set application name to be used on
   MFA messages.
 
-#### Twilio SMS Message
+### Twilio SMS Message
 To send SMS using Twilio back-end it is necessary to set these Environment
 variables.
 - **PUMPWOOD__MFA__TWILIO_ACCOUNT_SID:** Twilio Account SID.

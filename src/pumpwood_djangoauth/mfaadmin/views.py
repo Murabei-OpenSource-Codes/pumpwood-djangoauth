@@ -1,10 +1,11 @@
 """Views for MFA Autentication."""
-from django.conf import settings
-from django.urls import reverse
-from django.shortcuts import resolve_url
-from django.http import HttpResponseRedirect
+from django.contrib import messages
 from django.contrib.auth.views import LoginView
 from django.contrib.auth import login
+from django.http import HttpResponseRedirect
+from django.shortcuts import resolve_url
+from django.urls import reverse
+from django.utils import timezone
 from django.utils.decorators import method_decorator
 from django.views.generic.edit import FormView
 from django.views.decorators.csrf import csrf_protect
@@ -12,6 +13,8 @@ from django.views.decorators.debug import sensitive_post_parameters
 from django.views.decorators.cache import never_cache
 from pumpwood_djangoauth.mfaadmin.forms import (
     MFAAuthenticationForm, MFATokenValidationForm)
+from pumpwood_djangoauth.registration.models import PumpwoodMFAToken
+from django.utils.translation import gettext as _
 
 
 class MFALoginView(LoginView):
@@ -72,7 +75,27 @@ class MFATokenValidationView(FormView):
     @method_decorator(csrf_protect)
     @method_decorator(never_cache)
     def dispatch(self, request, *args, **kwargs):
-        """."""
+        """Ovewrite dispatch to check for MFA header."""
+        mfa_token = self.request.COOKIES.get('mfa_token')
+        mfa_token_obj = PumpwoodMFAToken.objects.\
+            filter(token=mfa_token).first()
+
+        if mfa_token_obj is None:
+            messages.error(
+                request, _('MFA Token does not exists, loging again.'))
+            login_url = reverse('admin:login')
+            return HttpResponseRedirect(login_url)
+
+        now = timezone.now()
+        if mfa_token_obj.expire_at < now:
+            messages.error(
+                request, _('MFA Token is expired, loging again.'))
+            login_url = reverse('admin:login')
+            return HttpResponseRedirect(login_url)
+
+        # Add MFA logged user to request
+        request.user = mfa_token_obj.user
+        request.mfa_token = mfa_token_obj
         return super().dispatch(request, *args, **kwargs)
 
     def get_form_kwargs(self):
