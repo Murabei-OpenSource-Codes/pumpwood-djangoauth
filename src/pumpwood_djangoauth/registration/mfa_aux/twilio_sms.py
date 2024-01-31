@@ -47,7 +47,6 @@ def send_code(code: str, mfa_method):
           to=to_phone_number, body=msg,
           from_=TWILIO_SENDER_PHONE_NUMBER)
     except TwilioRestException as e:
-        print("TwilioRestException as e")
         raise PumpWoodMFAError(message=e.msg)
 
     # Check if SMS was delivered to user, it will wait

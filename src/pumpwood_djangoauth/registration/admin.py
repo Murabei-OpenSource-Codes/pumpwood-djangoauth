@@ -1,6 +1,5 @@
 from django.contrib import admin
-
-# Register your models here.
+from django.contrib import messages
 from pumpwood_djangoauth.registration.models import (
     UserProfile, PumpwoodMFAMethod, PumpwoodMFAToken, PumpwoodMFACode,
     PumpwoodMFARecoveryCode)
@@ -35,6 +34,24 @@ class CustomUserAdmin(UserAdmin):
     inlines = UserAdmin.inlines + [
         UserProfileInline, PumpwoodMFAMethodInline]
 
+    def save_formset(self, request, form, formset, change):
+        instances = formset.save(commit=False)
+        for instance in instances:
+            if isinstance(instance, PumpwoodMFAMethod):
+                print("before instance:", instance)
+                # Do something with `instance`
+                instance.save()
+                print("after instance.is_validated:", instance.is_validated)
+                if not instance.is_validated:
+                    msg = (
+                        "O MFA {type} {mfa_parameter} não pode ser validado "
+                        "e não será utilizado para validação do login").format(
+                            type=instance.type,
+                            mfa_parameter=instance.mfa_parameter)
+                    messages.error(request, msg)
+            else:
+                print("not PumpwoodMFAMethod")
+        super().save_formset(request, form, formset, change)
 
 ##############
 # User Admin #
