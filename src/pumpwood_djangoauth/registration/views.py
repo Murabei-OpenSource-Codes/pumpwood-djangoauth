@@ -361,9 +361,29 @@ class RestUser(PumpWoodRestService):
 
     service_model = User
     serializer = SerializerUser
-    list_fields = [
-        "pk", "model_class", 'username', 'email', 'first_name',
-        'last_name', 'last_login', 'date_joined', 'is_active', 'is_staff',
-        'is_superuser', 'is_service_user', 'dimensions', 'extra_fields',
-        'all_permissions', 'group_permissions', 'user_profile']
     foreign_keys = {}
+
+    #######
+    # GUI #
+    list_fields = [
+        "pk", "model_class", 'is_active', 'is_service_user', 'is_superuser',
+        'is_staff', 'username', 'email', 'last_login']
+    gui_retrieve_fieldset = [{
+            "name": "main",
+            "fields": [
+                'is_active', 'is_service_user', 'is_superuser',
+                'is_staff', 'username', 'email', 'dimensions', 'last_login']
+        }, {
+            "name": "user info/permissions",
+            "fields": [
+                'first_name', 'last_name', 'date_joined', 'all_permissions',
+                'group_permissions'
+            ]
+        }, {
+            "name": "extra_fields",
+            "fields": ['extra_fields']
+        }
+    ]
+    gui_readonly = ['last_login']
+    gui_verbose_field = '{pk} | {username}'
+    #######
