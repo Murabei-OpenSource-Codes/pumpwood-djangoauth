@@ -1,12 +1,16 @@
 """Views for authentication and user end-point."""
+from django.utils import timezone
 from rest_framework import permissions
 from rest_framework.views import APIView
 from rest_framework.response import Response
-from rest_framework.decorators import api_view
+from rest_framework.decorators import api_view, permission_classes
 from django.contrib.auth import authenticate, login
 from django.contrib.auth.models import User
 from pumpwood_communication import exceptions
 from pumpwood_djangoviews.views import PumpWoodRestService
+from pumpwood_djangoauth.registration.models import (
+    PumpwoodMFAMethod, PumpwoodMFAToken, PumpwoodMFACode,
+    PumpwoodMFARecoveryCode)
 from pumpwood_djangoauth.registration.serializers import SerializerUser
 
 # Knox Views
@@ -53,7 +57,6 @@ class LoginView(KnoxLoginView):
         user = authenticate(
             username=request_data["username"],
             password=request_data["password"])
-
         # Loging authentication attempts
         user_id = None
         if user is not None:
@@ -67,24 +70,159 @@ class LoginView(KnoxLoginView):
             second_arg='',
             ingress_request=is_ingress_request,
             payload=None)
-        if user is not None:
-            login(request, user)
-            is_service_user = user.user_profile.is_service_user
-            is_external_call = is_ingress_request == "EXTERNAL"
-            if is_external_call and is_service_user:
-                msg = ("EXTERNAL call using serice users is not allowed")
-                raise exceptions.PumpWoodUnauthorized(message=msg)
 
-            resp = super(LoginView, self).post(request, format=None).data
-            return Response({
-                'expiry': resp['expiry'],
-                'token': resp['token'],
-                'user': SerializerUser(request.user, many=False).data,
-                "ingress-call": is_ingress_request})
+        if user is not None:
+            is_service_user = user.user_profile.is_service_user
+            priority_mfa = user.mfa_method_set.filter(
+                is_enabled=True, is_validated=True).\
+                order_by('priority').first()
+
+            ###############################################################
+            # If user is not a service and a MFA associated it will get a
+            # MFA token, not the authentication token
+            if (priority_mfa is not None) and (not is_service_user):
+                # Create a token to validate MFA login and creation
+                new_mfa_token = PumpwoodMFAToken(user=user)
+                new_mfa_token.save()
+
+                # Create MFA token using primary mfa
+                mfa_code = PumpwoodMFACode(
+                    token=new_mfa_token, mfa_method=priority_mfa)
+                mfa_code.save()
+
+                return Response({
+                    'expiry': new_mfa_token.expire_at,
+                    'mfa_token': new_mfa_token.token,
+                    'user': None,
+                    "ingress-call": is_ingress_request})
+
+            # Users without priority_mfa will receive authentication token
+            # when loging with username/password
+            else:
+                login(request, user)
+                is_service_user = user.user_profile.is_service_user
+                is_external_call = is_ingress_request == "EXTERNAL"
+                if is_external_call and is_service_user:
+                    msg = ("EXTERNAL call using service users is not allowed")
+                    raise exceptions.PumpWoodUnauthorized(message=msg)
+
+                resp = super(LoginView, self).post(request, format=None).data
+                return Response({
+                    'expiry': resp['expiry'],
+                    'token': resp['token'],
+                    'user': SerializerUser(request.user, many=False).data,
+                    "ingress-call": is_ingress_request})
         else:
             msg = ("Username/Password incorrect")
             raise exceptions.PumpWoodUnauthorized(
-                message=msg)
+                message=msg, payload={"error": "incorrect_login"})
+
+
+# Fuction to validate MFA Token
+def validate_mfa_token(request):
+    """
+    Validate MFA Token and return user if possible.
+
+    Args:
+        request: Django Rest request.
+    Return [User]:
+        Return user associated with MFA Token.
+    """
+    mfa_autorization = request.headers.get("X-PUMPWOOD-MFA-Autorization")
+    try:
+        mfa_object = PumpwoodMFAToken.objects.get(token=mfa_autorization)
+    except Exception:
+        msg = 'MFA Token was not found'
+        raise exceptions.PumpWoodUnauthorized(
+            msg, payload={"error": "mfa_token_not_found"})
+
+    now_time = timezone.now()
+    if mfa_object.expire_at <= now_time:
+        msg = 'MFA Token has expired, loging again'
+        mfa_object.delete()
+        raise exceptions.PumpWoodUnauthorized(
+            msg, payload={"error": "mfa_token_expired"})
+
+    # Cleaning expired tokens
+    PumpwoodMFAToken.objects.filter(expire_at__lte=now_time).delete()
+    return mfa_object
+
+
+@api_view(['GET'])
+@permission_classes([permissions.AllowAny])
+def get_user_mfa_methods(request):
+    """Retrieve information about the authenticated user."""
+    from pumpwood_djangoauth.registration.serializers import (
+        SerializerPumpwoodMFAMethod)
+
+    mfa_object = validate_mfa_token(request)
+    mfa_method_set = mfa_object.user.mfa_method_set.all()
+    mfa_method_set_data = SerializerPumpwoodMFAMethod(
+        mfa_method_set, many=True).data
+    return Response(mfa_method_set_data)
+
+
+@api_view(['GET'])
+@permission_classes([permissions.AllowAny])
+def create_new_mfa_code(request, pk=None):
+    """
+    Create a new MFA code.
+
+    Args:
+        request: Django Rest request.
+    Return [bool]:
+        Return True if code sent to MFA.
+    """
+    # Validate MFA token
+    mfa_token_obj = validate_mfa_token(request)
+
+    #############################################################
+    # Fetch MFA method, used argument pk, but also filter by user
+    # to not let user spoffing
+    mfa_method = PumpwoodMFAMethod.objects.filter(
+        user=mfa_token_obj.user, pk=pk).first()
+    if mfa_method is None:
+        msg = (
+            'MFA code with pk[{pk}] does not exists or is not '
+            'associated with current user').format(pk=pk)
+        raise exceptions.PumpWoodObjectDoesNotExist(msg)
+
+    mfa_code = PumpwoodMFACode(token=mfa_token_obj, mfa_method=mfa_method)
+    mfa_code.save()
+    return Response(True)
+
+
+class MFALoginView(KnoxLoginView):
+    permission_classes = (permissions.AllowAny,)
+
+    def post(self, request, format=None):
+        """Login user with MFA Token and MFA Code."""
+        request_data = request.data
+        if "mfa_code" not in request_data.keys():
+            msg = "Missing 'code' on resquest data"
+            raise exceptions.PumpWoodWrongParameters(
+                message=msg, payload={"mfa_code": ['missing']})
+
+        # Validate MFA token
+        mfa_token_obj = validate_mfa_token(request)
+        is_ingress_request = request.headers.get(
+            "X-PUMPWOOD-Ingress-Request", 'NOT-EXTERNAL')
+
+        mfa_code = PumpwoodMFACode.objects.filter(
+            token=mfa_token_obj, code=request_data["mfa_code"]).first()
+        if mfa_code is None:
+            msg = 'MFA code incorrect'
+            raise exceptions.PumpWoodUnauthorized(
+                message=msg, payload={"error": "mfa_code_not_found"})
+
+        user = mfa_token_obj.user
+        login(request, user)
+
+        resp = super(MFALoginView, self).post(request, format=None).data
+        return Response({
+            'expiry': resp['expiry'], 'token': resp['token'],
+            'user': SerializerUser(request.user, many=False).data,
+            "ingress-call": is_ingress_request})
 
 
 class CheckAuthentication(APIView):
@@ -223,9 +361,29 @@ class RestUser(PumpWoodRestService):
 
     service_model = User
     serializer = SerializerUser
-    list_fields = [
-        "pk", "model_class", 'username', 'email', 'first_name',
-        'last_name', 'last_login', 'date_joined', 'is_active', 'is_staff',
-        'is_superuser', 'is_service_user', 'dimensions', 'extra_fields',
-        'all_permissions', 'group_permissions', 'user_profile']
     foreign_keys = {}
+
+    #######
+    # GUI #
+    list_fields = [
+        "pk", "model_class", 'is_active', 'is_service_user', 'is_superuser',
+        'is_staff', 'username', 'email', 'last_login']
+    gui_retrieve_fieldset = [{
+            "name": "main",
+            "fields": [
+                'is_active', 'is_service_user', 'is_superuser',
+                'is_staff', 'username', 'email', 'dimensions', 'last_login']
+        }, {
+            "name": "user info/permissions",
+            "fields": [
+                'first_name', 'last_name', 'date_joined', 'all_permissions',
+                'group_permissions'
+            ]
+        }, {
+            "name": "extra_fields",
+            "fields": ['extra_fields']
+        }
+    ]
+    gui_readonly = ['last_login']
+    gui_verbose_field = '{pk} | {username}'
+    #######

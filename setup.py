@@ -24,7 +24,7 @@ os.chdir(os.path.normpath(os.path.join(os.path.abspath(__file__), os.pardir)))
 
 setuptools.setup(
     name='pumpwood-djangoauth',
-    version='1.21',
+    version='1.28',
     include_package_data=True,
     license='BSD-3-Clause License',
     description='Assist creating views for Django using Pumpwood pattern.',
@@ -38,6 +38,7 @@ setuptools.setup(
         "Operating System :: OS Independent",
     ],
     package_dir={"": "src"},
+    package_data={"": ['*.html']},
     install_requires=requirements,
     packages=setuptools.find_packages(where="src"),
     python_requires=">=3.6",

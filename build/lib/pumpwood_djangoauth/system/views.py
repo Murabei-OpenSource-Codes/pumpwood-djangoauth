@@ -100,12 +100,32 @@ class RestKongRoute(PumpWoodRestService):
 
     service_model = KongRoute
     serializer = KongRouteSerializer
-    list_fields = [
-        "pk", "model_class", "service_id", "route_name", "route_type",
-        "description", "icon"]
     foreign_keys = {
         'service_id': {'model_class': 'KongService', 'many': False}
     }
+
+    #######
+    # GUI #
+    list_fields = [
+        "pk", "model_class", "service_id", "route_name", "route_type",
+        "description"]
+    gui_retrieve_fieldset = [{
+            "name": "main",
+            "fields": [
+                "route_type", "service_id", "route_name", "description",
+                "notes", "dimensions"]
+        }, {
+            "name": "kong info",
+            "fields": [
+                "route_url", "route_name", "route_kong_id"]
+        }, {
+            "name": "extra_info",
+            "fields": ['extra_info']
+        }
+    ]
+    gui_readonly = ['last_login']
+    gui_verbose_field = '{pk} | {route_name}'
+    #######
 
     def save(self, request):
         request_data = request.data
@@ -134,13 +154,32 @@ class RestKongService(PumpWoodRestService):
 
     service_model = KongService
     serializer = KongServiceSerializer
-
-    list_fields = [
-        "pk", "model_class", "service_name", "service_kong_id",
-        "description", "icon"]
     foreign_keys = {
         'route_set': {'model_class': 'KongRoute', 'many': True}
     }
+
+    #######
+    # GUI #
+    list_fields = [
+        "pk", "model_class", "service_name", "description"]
+
+    gui_retrieve_fieldset = [{
+            "name": "main",
+            "fields": [
+                "service_name", "description", "notes", "description",
+                "dimensions"]
+        }, {
+            "name": "kong info",
+            "fields": [
+                "service_kong_id", "service_url", "healthcheck_route"]
+        }, {
+            "name": "extra_info",
+            "fields": ['extra_info']
+        }
+    ]
+    gui_readonly = ['extra_info']
+    gui_verbose_field = '{pk} | {service_name}'
+    #######
 
     def save(self, request):
         request_data = request.data

@@ -3,7 +3,9 @@ from pumpwood_djangoviews.serializers import (
     ClassNameField, CustomChoiceTypeField, CustomNestedSerializer,
     DynamicFieldsModelSerializer)
 from django.contrib.auth.models import User
-from .models import UserProfile
+from pumpwood_djangoauth.registration.models import (
+    UserProfile, PumpwoodMFAMethod, PumpwoodMFAToken, PumpwoodMFACode,
+    PumpwoodMFARecoveryCode)
 
 
 class SerializerUserProfile(DynamicFieldsModelSerializer):
@@ -48,3 +50,46 @@ class SerializerUser(DynamicFieldsModelSerializer):
         group_permissions = list(obj.get_group_permissions())
         group_permissions.sort()
         return group_permissions
+
+
+class SerializerPumpwoodMFAMethod(DynamicFieldsModelSerializer):
+    pk = serializers.IntegerField(source='id', allow_null=True)
+    model_class = ClassNameField()
+    user_id = serializers.IntegerField(allow_null=False, required=True)
+
+    class Meta:
+        model = PumpwoodMFAMethod
+        fields = (
+            'pk', 'model_class', 'is_enabled', 'priority', 'user_id',
+            'type', 'mfa_parameter', 'extra_info')
+
+
+class SerializerPumpwoodMFAToken(DynamicFieldsModelSerializer):
+    pk = serializers.IntegerField(source='token', allow_null=True)
+    model_class = ClassNameField()
+
+    class Meta:
+        model = PumpwoodMFAToken
+        fields = (
+            'pk', 'model_class', "token", "user", "created_at", "expire_at")
+
+
+class SerializerPumpwoodMFACode(DynamicFieldsModelSerializer):
+    pk = serializers.IntegerField(source='id', allow_null=True)
+    model_class = ClassNameField()
+
+    class Meta:
+        model = PumpwoodMFACode
+        fields = (
+            'pk', 'model_class', 'token', 'mfa_method', 'code',
+            'created_at')
+
+
+class SerializerPumpwoodMFARecoveryCode(DynamicFieldsModelSerializer):
+    pk = serializers.IntegerField(source='id', allow_null=True)
+    model_class = ClassNameField()
+
+    class Meta:
+        model = PumpwoodMFARecoveryCode
+        fields = (
+            'pk', 'model_class', 'user_id', 'code', 'created_at')
