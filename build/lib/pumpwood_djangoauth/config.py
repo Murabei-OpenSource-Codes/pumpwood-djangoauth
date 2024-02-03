@@ -4,7 +4,7 @@ from pumpwood_communication.microservices import PumpWoodMicroService
 from pumpwood_miscellaneous.storage import PumpWoodStorage
 from pumpwood_miscellaneous.rabbitmq import PumpWoodRabbitMQ
 from pumpwood_kong.kong_api import KongAPI
-# from pumpwood_i8n.singletons import pumpwood_i8n
+from pumpwood_i8n.singletons import pumpwood_i8n
 
 
 # Create an Kong api using API_GATEWAY_URL enviroment variable
@@ -64,4 +64,4 @@ PUMPWOOD_AUTH_IS_RABBITMQ_LOG = os.getenv(
 
 
 # # Initiante I8n using django model as backend
-# pumpwood_i8n.init(microservice=microservice)
+pumpwood_i8n.init(microservice=microservice)
