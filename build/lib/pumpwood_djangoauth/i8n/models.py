@@ -27,7 +27,7 @@ class PumpwoodI8nTranslation(models.Model):
         null=True, unique=False, blank=True,
         help_text="sentence translation")
     do_not_remove = models.BooleanField(
-        null=False, verbose_name="Do not remove?",
+        null=False, verbose_name="Do not remove?", default=False,
         help_text="Do not remove idle translation?")
     last_used_at = models.DateTimeField(
         null=False, blank=True, auto_now=True,
@@ -75,8 +75,7 @@ class PumpwoodI8nTranslation(models.Model):
             same sentence.
         """
         translation_obj = cls.objects.filter(
-            sentence=sentence, tag=tag,
-            plural=plural, language=language,
+            sentence=sentence, tag=tag, plural=plural, language=language,
             user_type=user_type).first()
         if translation_obj is None:
             translation_obj = cls(

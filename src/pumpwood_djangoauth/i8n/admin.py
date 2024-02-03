@@ -6,9 +6,10 @@ from pumpwood_djangoauth.i8n.models import PumpwoodI8nTranslation
 class PumpwoodI8nTranslationAdmin(admin.ModelAdmin):
     list_display = (
         "id", "sentence", "tag", "plural", "language", "user_type",
-        "translation")
+        "do_not_remove", "translation")
     search_fields = ('sentence', "translation")
     list_filter = ["tag", "plural", "language", "user_type"]
+    read_only = ["last_used_at"]
 
 
 ##############

@@ -22,6 +22,7 @@ src/pumpwood_djangoauth/i8n/migrations/0001_initial.py
 src/pumpwood_djangoauth/i8n/migrations/0002_auto_20240202_1249.py
 src/pumpwood_djangoauth/i8n/migrations/0003_alter_pumpwoodi8ntranslation_tag.py
 src/pumpwood_djangoauth/i8n/migrations/0004_auto_20240203_2013.py
+src/pumpwood_djangoauth/i8n/migrations/0005_alter_pumpwoodi8ntranslation_do_not_remove.py
 src/pumpwood_djangoauth/i8n/migrations/__init__.py
 src/pumpwood_djangoauth/kong/__init__.py
 src/pumpwood_djangoauth/kong/create_routes.py

@@ -64,4 +64,4 @@ PUMPWOOD_AUTH_IS_RABBITMQ_LOG = os.getenv(
 
 
 # # Initiante I8n using django model as backend
-# pumpwood_i8n.init(microservice=microservice)
+pumpwood_i8n.init(microservice=microservice)
