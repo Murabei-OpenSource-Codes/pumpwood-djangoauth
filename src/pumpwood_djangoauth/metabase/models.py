@@ -10,6 +10,7 @@ from pumpwood_communication.serializers import PumpWoodJSONEncoder
 from pumpwood_communication.exceptions import (
     PumpWoodActionArgsException, PumpWoodObjectDoesNotExist)
 from pumpwood_djangoauth.config import microservice_no_login
+from pumpwood_djangoauth.i8n.models import PumpwoodI8nTranslation as t
 
 
 class MetabaseDashboard(models.Model):
@@ -29,50 +30,72 @@ class MetabaseDashboard(models.Model):
     )
 
     status = models.CharField(
-        choices=STATUS, max_length=15, verbose_name="Status",
-        help_text="Status")
+        choices=STATUS, max_length=15,
+        verbose_name=t.translate("Status"),
+        help_text=t.translate("Status"))
     alias = models.CharField(
         null=False, max_length=100, unique=True,
-        help_text="Alias to identify dashboard")
+        verbose_name=t.translate("Alias"),
+        help_text=t.translate("Alias to identify dashboard"))
     description = models.CharField(
         null=False, max_length=100, unique=True,
-        help_text="service url to redirect the http calls.")
+        verbose_name=t.translate("Description"),
+        help_text=t.translate("Dashboard description."))
     notes = models.TextField(
         null=False, default="", blank=True,
-        help_text="a long description of the dashboard.")
-    auto_embedding = models.BooleanField(default=False)
+        verbose_name=t.translate("Notes"),
+        help_text=t.translate("A long description of the dashboard."))
+    auto_embedding = models.BooleanField(
+        default=False,
+        verbose_name=t.translate("Auto embedding"),
+        help_text=t.translate("Auto embedd dashboard at front-end."),)
     object_model_class = models.CharField(
         null=True, max_length=50, unique=False, blank=True,
-        help_text="Model class associated with dashboard")
+        verbose_name=t.translate("Model class"),
+        help_text=t.translate("Model class associated with dashboard"))
     object_pk = models.IntegerField(
         null=True, unique=False, blank=True,
-        help_text="Object PK associated with dashboard.")
+        verbose_name=t.translate("Object PK"),
+        help_text=t.translate("Object PK associated with dashboard."))
     metabase_id = models.IntegerField(
-        null=False, help_text="Metabase Dashboard Id.")
+        null=False,
+        verbose_name=t.translate("Metabase ID"),
+        help_text=t.translate("Metabase Dashboard Id."))
     expire_in_min = models.IntegerField(
-        null=False, default=10, help_text="Minutes to expire url.")
+        null=False, default=10,
+        verbose_name=t.translate("Expiration period"),
+        help_text=t.translate("Minutes to expire url."))
     default_theme = models.CharField(
         choices=THEME, max_length=15, default="light",
-        verbose_name="Theme", help_text="Theme")
+        verbose_name=t.translate("Theme"),
+        help_text=t.translate("Dashboard Theme"))
     default_is_bordered = models.BooleanField(
-        default=False, verbose_name="Is bordered?", help_text="Is Bordered?")
+        default=False,
+        verbose_name=t.translate("Is bordered?"),
+        help_text=t.translate("Is bordered?"))
     default_is_titled = models.BooleanField(
-        default=False, verbose_name="Is titled?", help_text="Is titled?")
+        default=False,
+        verbose_name=t.translate("Is titled?"),
+        help_text=t.translate("Is titled?"))
     dimensions = models.JSONField(
         encoder=PumpWoodJSONEncoder, null=False, default=dict,
-        blank=True, verbose_name="Dimentions",
-        help_text="Key/Value Dimentions")
+        blank=True,
+        verbose_name=t.translate("Dimentions"),
+        help_text=t.translate("Key/Value Dimentions"))
     extra_info = models.JSONField(
         encoder=PumpWoodJSONEncoder, null=False, default=dict,
-        blank=True, verbose_name="Extra information",
-        help_text="Extra information")
+        blank=True,
+        verbose_name=t.translate("Extra information"),
+        help_text=t.translate("Extra information"))
     updated_by = models.ForeignKey(
         settings.AUTH_USER_MODEL, on_delete=models.CASCADE,
         null=False, blank=True, related_name='metabase_dash_set',
-        verbose_name="Created By", help_text="Created By")
+        verbose_name=t.translate("Created By"),
+        help_text=t.translate("Created By"))
     updated_at = models.DateTimeField(
-        null=False, blank=True, verbose_name="Created At",
-        help_text="Created At", auto_now=True)
+        null=False, blank=True, auto_now=True,
+        verbose_name=t.translate("Created At"),
+        help_text=t.translate("Created At"))
 
     def __str__(self):
         return '[%s] %s' % (self.id, self.description)
