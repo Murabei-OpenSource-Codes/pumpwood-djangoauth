@@ -8,7 +8,7 @@ class PumpwoodI8nTranslationAdmin(admin.ModelAdmin):
         "id", "sentence", "tag", "plural", "language", "user_type",
         "translation")
     search_fields = ('sentence', "translation")
-    list_filter = ["plural", "language", "user_type"]
+    list_filter = ["tag", "plural", "language", "user_type"]
 
 
 ##############

@@ -13,4 +13,6 @@ class PumpwoodI8nTranslationSerializer(DynamicFieldsModelSerializer):
         model = PumpwoodI8nTranslation
         fields = (
             "pk", "model_class", "sentence", "tag", "plural",
-            "language", "user_type", "translation")
+            "language", "user_type", "translation", "do_not_remove",
+            "last_used_at")
+        read_only = ["updated_by", "last_used_at"]

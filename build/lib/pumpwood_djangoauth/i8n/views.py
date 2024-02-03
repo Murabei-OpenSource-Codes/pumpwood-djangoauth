@@ -5,13 +5,10 @@ from pumpwood_djangoauth.i8n.models import PumpwoodI8nTranslation
 from pumpwood_djangoauth.i8n.serializers import (
     PumpwoodI8nTranslationSerializer)
 
-# I8N
-from pumpwood_djangoauth.i8n.models import PumpwoodI8nTranslation as t
-
 
 class RestPumpwoodI8nTranslation(PumpWoodRestService):
-    endpoint_description = t.translate("I8n Translations")
-    notes = t.translate("Model to perform I8n on Pumpwood")
+    endpoint_description = "I8n Translations"
+    notes = "Model to perform I8n on Pumpwood"
 
     service_model = PumpwoodI8nTranslation
     serializer = PumpwoodI8nTranslationSerializer

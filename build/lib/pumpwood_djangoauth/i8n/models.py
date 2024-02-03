@@ -1,11 +1,7 @@
 """Manage Kong routes for Pumpwood."""
-import jwt
-import os
-import time
-import pandas as pd
 from django.db import models
-from django.conf import settings
 from pumpwood_djangoviews.action import action
+from django.utils import timezone
 
 
 class PumpwoodI8nTranslation(models.Model):
@@ -15,7 +11,7 @@ class PumpwoodI8nTranslation(models.Model):
         null=False, unique=False,
         help_text="sentence for i8n.")
     tag = models.CharField(
-        max_length=30, null=False, unique=False, blank=True, default="",
+        max_length=154, null=False, unique=False, blank=True, default="",
         help_text=(
             "tag to differenciate same sentences, but different contexts"))
     plural = models.BooleanField(
@@ -30,6 +26,13 @@ class PumpwoodI8nTranslation(models.Model):
     translation = models.TextField(
         null=True, unique=False, blank=True,
         help_text="sentence translation")
+    do_not_remove = models.BooleanField(
+        null=False, verbose_name="Do not remove?",
+        help_text="Do not remove idle translation?")
+    last_used_at = models.DateTimeField(
+        null=False, blank=True, auto_now=True,
+        verbose_name='Last used at',
+        help_text="Time translation was last used.")
 
     def __str__(self):
         return '[%s] %s' % (self.id, self.sentence)
@@ -68,7 +71,8 @@ class PumpwoodI8nTranslation(models.Model):
                 depending of the user type. If not necessary can be set
                 as empty string.
         Return [str | None]:
-            Return the translated string.
+            Return the translated string. If no translation found, return
+            same sentence.
         """
         translation_obj = cls.objects.filter(
             sentence=sentence, tag=tag,
@@ -79,4 +83,10 @@ class PumpwoodI8nTranslation(models.Model):
                 sentence=sentence, tag=tag, plural=plural,
                 language=language, user_type=user_type)
             translation_obj.save()
+        else:
+            # Update once a day not to over request backend
+            now_time = timezone.now()
+            diff_timeused = now_time - translation_obj.last_used_at
+            if 1 <= diff_timeused.days:
+                translation_obj.last_used_at = now_time
         return translation_obj.translation or sentence
