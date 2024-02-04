@@ -5,7 +5,7 @@ from pumpwood_djangoviews.action import action
 from pumpwood_djangoauth.config import kong_api
 from pumpwood_communication import exceptions
 from pumpwood_communication.serializers import PumpWoodJSONEncoder
-from pumpwood_djangoauth.i8n.models import PumpwoodI8nTranslation as t
+from pumpwood_djangoauth.i8n.translate import t
 
 
 class KongService(models.Model):
@@ -13,41 +13,77 @@ class KongService(models.Model):
 
     service_url = models.CharField(
         null=False, max_length=100, unique=True,
-        verbose_name="Service URL",
-        help_text="service url to redirect the http calls")
+        verbose_name=t(
+            "Service URL",
+            tag="KongService__admin__service_url"),
+        help_text=t(
+            "service url to redirect the http calls",
+            tag="KongService__admin__service_url"),)
     service_name = models.TextField(
         null=False, max_length=100, unique=True,
-        verbose_name="Service name",
-        help_text="Name of the service (must be unique)")
+        verbose_name=t(
+            "Service name",
+            tag="KongService__admin__service_name"),
+        help_text=t(
+            "Name of the service (must be unique)",
+            tag="KongService__admin__service_name"))
     service_kong_id = models.TextField(
         null=False, unique=True,
-        verbose_name="Kong ID",
-        help_text="ID of the service on kong.")
+        verbose_name=t(
+            "Kong ID",
+            tag="KongService__admin__service_kong_id"),
+        help_text=t(
+            "ID of the service on kong",
+            tag="KongService__admin__service_kong_id"))
     description = models.TextField(
         null=False, unique=False,
-        verbose_name="Description",
-        help_text="short description for the service (must be unique)")
+        verbose_name=t(
+            "Description",
+            tag="KongService__admin__description"),
+        help_text=t(
+            "short description for the service (must be unique)",
+            tag="KongService__admin__description"))
     notes = models.TextField(
         null=False, default="", blank=True,
-        verbose_name="Notes",
-        help_text="Long description for the service")
+        verbose_name=t(
+            "Notes",
+            tag="KongService__admin__notes"),
+        help_text=t(
+            "Long description for the service",
+            tag="KongService__admin__notes"))
     healthcheck_route = models.TextField(
         null=True, unique=True,
-        verbose_name="Health-check route",
-        help_text="Path to health check if the service is avaiable")
+        verbose_name=t(
+            "Health-check route",
+            tag="KongService__admin__healthcheck_route"),
+        help_text=t(
+            "Path to health check if the service is avaiable",
+            tag="KongService__admin__healthcheck_route"))
     dimensions = models.JSONField(
         default=dict,
-        verbose_name="Dimentions",
-        help_text="Dictionary of tags to help organization",
+        verbose_name=t(
+            "Dimentions",
+            tag="KongService__admin__dimensions"),
+        help_text=t(
+            "Dictionary of tags to help organization",
+            tag="KongService__admin__dimensions"),
         encoder=PumpWoodJSONEncoder)
     icon = models.TextField(
         null=True, blank=True,
-        verbose_name="Icon",
-        help_text="Icon to be used on front-end.")
+        verbose_name=t(
+            "Icon",
+            tag="KongService__admin__icon"),
+        help_text=t(
+            "Icon to be used on front-end.",
+            tag="KongService__admin__icon"))
     extra_info = models.JSONField(
         default=dict, blank=True,
-        verbose_name="Extra-info",
-        help_text="Other information that can be usefull for this service",
+        verbose_name=t(
+            "Extra info.",
+            tag="KongService__admin__extra_info"),
+        help_text=t(
+            "Other information that can be usefull for this service",
+            tag="KongService__admin__extra_info"),
         encoder=PumpWoodJSONEncoder)
 
     def __str__(self):
@@ -59,6 +95,13 @@ class KongService(models.Model):
         unique_together = [
             ['service_url', 'service_name'],
         ]
+
+        verbose_name = t(
+            'Service',
+            tag="KongService__admin")
+        verbose_name_plural = t(
+            'Services',
+            tag="KongService__admin", plural=True)
 
     @classmethod
     @action(info='Load service/routes on Kong.')
@@ -221,50 +264,96 @@ class KongRoute(models.Model):
 
     service = models.ForeignKey(
         KongService, on_delete=models.CASCADE, related_name="route_set",
-        verbose_name="Service",
-        help_text="Service associated with the route.")
+        verbose_name=t(
+            "Service",
+            tag="KongRoute__admin__service"),
+        help_text=t(
+            "Service associated with the route.",
+            tag="KongRoute__admin__service"))
     route_url = models.CharField(
         null=False, max_length=100, unique=True,
-        verbose_name="Route URL",
-        help_text="Service associated with the route (must be unique).")
+        verbose_name=t(
+            "Route URL",
+            tag="KongRoute__admin__route_url"),
+        help_text=t(
+            "Service associated with the route (must be unique).",
+            tag="KongRoute__admin__route_url"))
     route_name = models.CharField(
         null=False, max_length=100, unique=True,
-        verbose_name="Route Name",
-        help_text="Name of the route (must be unique).")
+        verbose_name=t(
+            "Route Name",
+            tag="KongRoute__admin__route_name"),
+        help_text=t(
+            "Name of the route (must be unique)",
+            tag="KongRoute__admin__route_name"))
     route_kong_id = models.TextField(
         null=False, unique=True,
-        verbose_name="Kong ID",
-        help_text="Route identification on Kong")
+        verbose_name=t(
+            "Kong ID",
+            tag="KongRoute__admin__route_kong_id"),
+        help_text=t(
+            "Route identification on Kong",
+            tag="KongRoute__admin__route_kong_id"))
     route_type = models.CharField(
         max_length=10, choices=ROUTE_TYPES,
-        verbose_name="Route type",
-        help_text="Type of the route [endpoint, aux, gui, static, admin]")
+        verbose_name=t(
+            "Route type",
+            tag="KongRoute__admin__route_type"),
+        help_text=t(
+            "Type of the route [endpoint, aux, gui, static, admin]",
+            tag="KongRoute__admin__route_type"))
     description = models.TextField(
         null=False, unique=False,
-        verbose_name="Description",
-        help_text="A short description of the route.")
+        verbose_name=t(
+            "Description",
+            tag="KongRoute__admin__description"),
+        help_text=t(
+            "A short description of the route.",
+            tag="KongRoute__admin__description"))
     notes = models.TextField(
         null=False, default="", blank=True,
-        verbose_name="Notes",
-        help_text="A long description of the route.")
+        verbose_name=t(
+            "Notes",
+            tag="KongRoute__admin__notes"),
+        help_text=t(
+            "A long description of the route.",
+            tag="KongRoute__admin__notes"))
     dimensions = models.JSONField(
         default=dict,
-        verbose_name="Dimentions",
-        help_text="dictionary of tags to help organization",
+        verbose_name=t(
+            "Dimentions",
+            tag="KongRoute__admin__dimensions"),
+        help_text=t(
+            "dictionary of tags to help organization",
+            tag="KongRoute__admin__dimensions"),
         encoder=PumpWoodJSONEncoder)
     icon = models.TextField(
         null=True, blank=True,
-        verbose_name="Icon",
-        help_text="icon to be used on front-end.")
+        verbose_name=t(
+            "Icon",
+            tag="KongRoute__admin__icon"),
+        help_text=t(
+            "icon to be used on front-end.",
+            tag="KongRoute__admin__icon"))
     extra_info = models.JSONField(
         default=dict, blank=True,
-        verbose_name="Extra-info",
-        help_text="Other information that can be usefull for this route",
+        verbose_name=t(
+            "Extra-info",
+            tag="KongRoute__admin__extra_info"),
+        help_text=t(
+            "Other information that can be usefull for this route",
+            tag="KongRoute__admin__extra_info"),
         encoder=PumpWoodJSONEncoder)
 
     class Meta:
         db_table = 'pumpwood__route'
         unique_together = [['route_name', 'route_url']]
+        verbose_name = t(
+            'Route',
+            tag="UserProfile__admin")
+        verbose_name_plural = t(
+            'Routes',
+            tag="UserProfile__admin", plural=True)
 
     def __str__(self):
         return 'service: %s; route: %s; route name: %s' % (

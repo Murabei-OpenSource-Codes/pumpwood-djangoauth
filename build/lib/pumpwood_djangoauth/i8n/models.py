@@ -2,6 +2,7 @@
 from django.db import models
 from pumpwood_djangoviews.action import action
 from django.utils import timezone
+from pumpwood_djangoauth.i8n.translate import t
 
 
 class PumpwoodI8nTranslation(models.Model):
@@ -9,36 +10,79 @@ class PumpwoodI8nTranslation(models.Model):
 
     sentence = models.TextField(
         null=False, unique=False,
-        help_text="sentence for i8n.")
+        verbose_name=t(
+            "Sentence",
+            tag="PumpwoodI8nTranslation__admin__sentence"),
+        help_text=t(
+            "sentence for i8n.",
+            tag="PumpwoodI8nTranslation__admin__sentence"))
     tag = models.CharField(
         max_length=154, null=False, unique=False, blank=True, default="",
-        help_text=(
-            "tag to differenciate same sentences, but different contexts"))
+        verbose_name=t(
+            'Tag',
+            tag="PumpwoodI8nTranslation__admin__tag"),
+        help_text=t(
+            "tag to differenciate same sentences, but different contexts",
+            tag="PumpwoodI8nTranslation__admin__tag"))
     plural = models.BooleanField(
         null=False,
-        help_text="if sentence must be i8n on plural or not.")
+        verbose_name=t(
+            'Is Plural?',
+            tag="PumpwoodI8nTranslation__admin__plural"),
+        help_text=t(
+            "if sentence must be i8n on plural or not.",
+            tag="PumpwoodI8nTranslation__admin__plural"))
     language = models.CharField(
         null=False, max_length=10, unique=False, blank=True,
-        help_text="language of the corresponding i8n")
+        verbose_name=t(
+            "Language",
+            tag="PumpwoodI8nTranslation__admin__language"),
+        help_text=t(
+            "language of the corresponding i8n",
+            tag="PumpwoodI8nTranslation__admin__language"))
     user_type = models.CharField(
         null=False, max_length=10, unique=False, blank=True, default="",
+        verbose_name=t(
+            "User type",
+            tag="PumpwoodI8nTranslation__admin__user_type"),
         help_text="tag to diferenciate different user context")
     translation = models.TextField(
         null=True, unique=False, blank=True,
-        help_text="sentence translation")
+        verbose_name=t(
+            "Translation",
+            tag="PumpwoodI8nTranslation__admin__translation"),
+        help_text=t(
+            "sentence translation",
+            tag="PumpwoodI8nTranslation__admin__translation"))
     do_not_remove = models.BooleanField(
-        null=False, verbose_name="Do not remove?", default=False,
-        help_text="Do not remove idle translation?")
+        null=False,
+        default=False,
+        verbose_name=t(
+            "Do not remove?",
+            tag="PumpwoodI8nTranslation__admin__do_not_remove"),
+        help_text=t(
+            "Do not remove idle translation?",
+            tag="PumpwoodI8nTranslation__admin__do_not_remove"))
     last_used_at = models.DateTimeField(
         null=False, blank=True, auto_now=True,
-        verbose_name='Last used at',
-        help_text="Time translation was last used.")
+        verbose_name=t(
+            'Last used at',
+            tag="PumpwoodI8nTranslation__admin__last_used_at"),
+        help_text=t(
+            "Time translation was last used.",
+            tag="PumpwoodI8nTranslation__admin__last_used_at"))
 
     def __str__(self):
         return '[%s] %s' % (self.id, self.sentence)
 
     class Meta:
         db_table = 'i8n__translation'
+        verbose_name = t(
+            'Pumpwood I8n Translation',
+            tag="PumpwoodI8nTranslation__admin")
+        verbose_name_plural = t(
+            'Pumpwood I8n Translations',
+            tag="PumpwoodI8nTranslation__admin", plural=True)
         unique_together = [[
             'sentence', 'tag', 'plural', 'language', 'user_type']]
 

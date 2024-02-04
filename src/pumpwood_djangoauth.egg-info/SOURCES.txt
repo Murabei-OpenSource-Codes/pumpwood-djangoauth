@@ -16,6 +16,7 @@ src/pumpwood_djangoauth/i8n/admin.py
 src/pumpwood_djangoauth/i8n/apps.py
 src/pumpwood_djangoauth/i8n/models.py
 src/pumpwood_djangoauth/i8n/serializers.py
+src/pumpwood_djangoauth/i8n/translate.py
 src/pumpwood_djangoauth/i8n/urls.py
 src/pumpwood_djangoauth/i8n/views.py
 src/pumpwood_djangoauth/i8n/migrations/0001_initial.py

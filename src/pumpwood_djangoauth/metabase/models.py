@@ -10,7 +10,7 @@ from pumpwood_communication.serializers import PumpWoodJSONEncoder
 from pumpwood_communication.exceptions import (
     PumpWoodActionArgsException, PumpWoodObjectDoesNotExist)
 from pumpwood_djangoauth.config import microservice_no_login
-from pumpwood_djangoauth.i8n.models import PumpwoodI8nTranslation as t
+from pumpwood_djangoauth.i8n.translate import t
 
 
 class MetabaseDashboard(models.Model):
@@ -31,63 +31,147 @@ class MetabaseDashboard(models.Model):
 
     status = models.CharField(
         choices=STATUS, max_length=15,
-        verbose_name="Status", help_text="Status")
+        verbose_name=t(
+            "Status",
+            tag="MetabaseDashboard__admin__status"),
+        help_text=t(
+            "Status",
+            tag="MetabaseDashboard__admin__status"))
     alias = models.CharField(
         null=False, max_length=100, unique=True,
-        verbose_name="Alias", help_text="Alias to identify dashboard")
+        verbose_name=t(
+            "Alias",
+            tag="MetabaseDashboard__admin__alias"),
+        help_text=t(
+            "Alias to identify dashboard",
+            tag="MetabaseDashboard__admin__alias"))
     description = models.CharField(
         null=False, max_length=100, unique=True,
-        verbose_name="Description", help_text="Dashboard description.")
+        verbose_name=t(
+            "Description",
+            tag="MetabaseDashboard__admin__description"),
+        help_text=t(
+            "Dashboard description",
+            tag="MetabaseDashboard__admin__description"))
     notes = models.TextField(
         null=False, default="", blank=True,
-        verbose_name="Notes", help_text="A long description of the dashboard.")
+        verbose_name=t(
+            "Notes",
+            tag="MetabaseDashboard__admin__notes"),
+        help_text=t(
+            "A long description of the dashboard",
+            tag="MetabaseDashboard__admin__notes"))
     auto_embedding = models.BooleanField(
-        default=False, verbose_name="Auto embedding",
-        help_text="Auto embedd dashboard at front-end.")
+        default=False,
+        verbose_name=t(
+            "Auto embedding",
+            tag="MetabaseDashboard__admin__auto_embedding"),
+        help_text=t(
+            "Auto embedd dashboard at front-end",
+            tag="MetabaseDashboard__admin__auto_embedding"))
     object_model_class = models.CharField(
         null=True, max_length=50, unique=False, blank=True,
-        verbose_name="Model class",
-        help_text="Model class associated with dashboard")
+        verbose_name=t(
+            "Model class",
+            tag="MetabaseDashboard__admin__object_model_class"),
+        help_text=t(
+            "Model class associated with dashboard",
+            tag="MetabaseDashboard__admin__object_model_class"))
     object_pk = models.IntegerField(
         null=True, unique=False, blank=True,
-        verbose_name="Object PK",
-        help_text="Object PK associated with dashboard.")
+        verbose_name=t(
+            "Object PK",
+            tag="MetabaseDashboard__admin__object_pk"),
+        help_text=t(
+            "Object PK associated with dashboard",
+            tag="MetabaseDashboard__admin__object_pk"))
     metabase_id = models.IntegerField(
-        null=False, verbose_name="Metabase ID",
-        help_text="Metabase Dashboard Id.")
+        null=False,
+        verbose_name=t(
+            "Metabase ID",
+            tag="MetabaseDashboard__admin__metabase_id"),
+        help_text=t(
+            "Metabase Dashboard Id",
+            tag="MetabaseDashboard__admin__metabase_id"))
     expire_in_min = models.IntegerField(
-        null=False, default=10, verbose_name="Expiration period",
-        help_text="Minutes to expire url.")
+        null=False, default=10,
+        verbose_name=t(
+            "Expiration period",
+            tag="MetabaseDashboard__admin__expire_in_min"),
+        help_text=t(
+            "Minutes to expire url",
+            tag="MetabaseDashboard__admin__expire_in_min"))
     default_theme = models.CharField(
         choices=THEME, max_length=15, default="light",
-        verbose_name="Theme", help_text="Dashboard Theme")
+        verbose_name=t(
+            "Theme",
+            tag="MetabaseDashboard__admin__default_theme"),
+        help_text=t(
+            "Dashboard Theme",
+            tag="MetabaseDashboard__admin__default_theme"))
     default_is_bordered = models.BooleanField(
-        default=False, verbose_name="Is bordered?",
-        help_text="Is bordered?")
+        default=False,
+        verbose_name=t(
+            "Is bordered?",
+            tag="MetabaseDashboard__admin__default_is_bordered"),
+        help_text=t(
+            "Is bordered?",
+            tag="MetabaseDashboard__admin__default_is_bordered"))
     default_is_titled = models.BooleanField(
-        default=False, verbose_name="Is titled?",
-        help_text="Is titled?")
+        default=False,
+        verbose_name=t(
+            "Is titled?",
+            tag="MetabaseDashboard__admin__default_is_titled"),
+        help_text=t(
+            "Is titled?",
+            tag="MetabaseDashboard__admin__default_is_titled"))
     dimensions = models.JSONField(
         encoder=PumpWoodJSONEncoder, null=False, default=dict,
-        blank=True, verbose_name="Dimentions",
-        help_text="Key/Value Dimentions")
+        blank=True,
+        verbose_name=t(
+            "Dimentions",
+            tag="MetabaseDashboard__admin__dimensions"),
+        help_text=t(
+            "Key/Value Dimentions",
+            tag="MetabaseDashboard__admin__dimensions"))
     extra_info = models.JSONField(
         encoder=PumpWoodJSONEncoder, null=False, default=dict,
-        blank=True, verbose_name="Extra information",
-        help_text="Extra information")
+        blank=True,
+        verbose_name=t(
+            "Extra information",
+            tag="MetabaseDashboard__admin__extra_info"),
+        help_text=t(
+            "Extra information",
+            tag="MetabaseDashboard__admin__extra_info"))
     updated_by = models.ForeignKey(
         settings.AUTH_USER_MODEL, on_delete=models.CASCADE,
         null=False, blank=True, related_name='metabase_dash_set',
-        verbose_name="Created By", help_text="Created By")
+        verbose_name=t(
+            "Updated By",
+            tag="MetabaseDashboard__admin__updated_by"),
+        help_text=t(
+            "Updated By",
+            tag="MetabaseDashboard__admin__updated_by"))
     updated_at = models.DateTimeField(
         null=False, blank=True, auto_now=True,
-        verbose_name="Created At", help_text="Created At")
+        verbose_name=t(
+            "Updated At",
+            tag="MetabaseDashboard__admin__updated_at"),
+        help_text=t(
+            "Updated At",
+            tag="MetabaseDashboard__admin__updated_at"))
 
     def __str__(self):
         return '[%s] %s' % (self.id, self.description)
 
     class Meta:
         db_table = 'metabase__dashboard'
+        verbose_name = t(
+            'Pumpwood Metabase Dashbord',
+            tag="MetabaseDashboard__admin")
+        verbose_name_plural = t(
+            'Pumpwood Metabase Dashbords',
+            tag="MetabaseDashboard__admin", plural=True)
 
     def save(self, *args, **kwargs):
         """Ovewrite save to add output_modeling_unit_id."""
@@ -96,7 +180,7 @@ class MetabaseDashboard(models.Model):
         ###########################################################
         # Crating parameters necessary to dashboard associated with
         # model_class and specific objects
-        if self.object_model_class is not None:
+        if self.object_model_class is None:
             parameter = self.parameter_set.filter(
                 name="model_class").first()
             parameter_id = None if parameter is None else parameter.id
@@ -285,23 +369,54 @@ class MetabaseDashboardParameter(models.Model):
     dashboard = models.ForeignKey(
         MetabaseDashboard, on_delete=models.CASCADE,
         related_name="parameter_set",
-        help_text="Dashboard associated with paramenters.")
+        verbose_name=t(
+            'Pumpwood Metabase Dashbord',
+            tag="MetabaseDashboardParameter__admin__dashboard"),
+        help_text=t(
+            "Dashboard associated with paramenters",
+            tag="MetabaseDashboardParameter__admin__dashboard"))
     type = models.CharField(
-        choices=PARAMETER_TYPE, max_length=15, verbose_name="Type",
-        help_text="Type")
+        choices=PARAMETER_TYPE, max_length=15,
+        verbose_name=t(
+            "Type",
+            tag="MetabaseDashboardParameter__admin__type"),
+        help_text=t(
+            "Type",
+            tag="MetabaseDashboardParameter__admin__type"))
     name = models.CharField(
-        max_length=50, verbose_name="Parameter name",
-        help_text="Parameter name")
+        max_length=50,
+        verbose_name=t(
+            "Parameter name",
+            tag="MetabaseDashboardParameter__admin__name"),
+        help_text=t(
+            "Parameter name",
+            tag="MetabaseDashboardParameter__admin__name"))
     notes = models.TextField(
         null=False, default="", blank=True,
-        help_text="a long description of the parameter.")
+        verbose_name=t(
+            "a long description of the parameter",
+            tag="MetabaseDashboardParameter__admin__notes"),
+        help_text=t(
+            "a long description of the parameter",
+            tag="MetabaseDashboardParameter__admin__notes"))
     default_value = models.CharField(
         null=True, max_length=100, unique=False, blank=True,
-        verbose_name="Default value", help_text="Default value")
+        verbose_name=t(
+            "Default value",
+            tag="MetabaseDashboardParameter__admin__notes"),
+        help_text=t(
+            "Default value",
+            tag="MetabaseDashboardParameter__admin__notes"))
 
     class Meta:
         db_table = 'metabase__dashboard_parameter'
         unique_together = [['dashboard', 'name']]
+        verbose_name = t(
+            'Metabase Dashboard Parameter',
+            tag="MetabaseDashboardParameter__admin")
+        verbose_name_plural = t(
+            'Metabase Dashboard Parameters',
+            tag="MetabaseDashboardParameter__admin", plural=True)
 
     def __str__(self):
         return '%s: %s' % (self.dashboard, self.name)
