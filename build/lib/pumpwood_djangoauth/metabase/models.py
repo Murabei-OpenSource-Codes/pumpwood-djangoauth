@@ -180,7 +180,7 @@ class MetabaseDashboard(models.Model):
         ###########################################################
         # Crating parameters necessary to dashboard associated with
         # model_class and specific objects
-        if self.object_model_class is None:
+        if self.object_model_class is not None:
             parameter = self.parameter_set.filter(
                 name="model_class").first()
             parameter_id = None if parameter is None else parameter.id
