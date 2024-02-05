@@ -107,7 +107,7 @@ class RestKongRoute(PumpWoodRestService):
     #######
     # GUI #
     list_fields = [
-        "pk", "model_class", "service_id", "route_name", "route_type",
+        "pk", "service_id", "route_name", "route_type",
         "description"]
     gui_retrieve_fieldset = [{
             "name": "main",
