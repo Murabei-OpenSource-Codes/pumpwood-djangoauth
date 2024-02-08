@@ -25,6 +25,7 @@ src/pumpwood_djangoauth/i8n/migrations/0003_alter_pumpwoodi8ntranslation_tag.py
 src/pumpwood_djangoauth/i8n/migrations/0004_auto_20240203_2013.py
 src/pumpwood_djangoauth/i8n/migrations/0005_alter_pumpwoodi8ntranslation_do_not_remove.py
 src/pumpwood_djangoauth/i8n/migrations/0006_auto_20240205_1154.py
+src/pumpwood_djangoauth/i8n/migrations/0007_auto_20240208_1142.py
 src/pumpwood_djangoauth/i8n/migrations/__init__.py
 src/pumpwood_djangoauth/kong/__init__.py
 src/pumpwood_djangoauth/kong/create_routes.py
@@ -52,6 +53,7 @@ src/pumpwood_djangoauth/metabase/migrations/0009_drop_is_static.py
 src/pumpwood_djangoauth/metabase/migrations/0010_auto_embedding.py
 src/pumpwood_djangoauth/metabase/migrations/0011_auto_20240203_1627.py
 src/pumpwood_djangoauth/metabase/migrations/0012_auto_20240205_1154.py
+src/pumpwood_djangoauth/metabase/migrations/0013_auto_20240208_1142.py
 src/pumpwood_djangoauth/metabase/migrations/__init__.py
 src/pumpwood_djangoauth/mfaadmin/__init__.py
 src/pumpwood_djangoauth/mfaadmin/admin.py
@@ -82,6 +84,7 @@ src/pumpwood_djangoauth/registration/migrations/0006_adjust_string_size.py
 src/pumpwood_djangoauth/registration/migrations/0007_add_msg.py
 src/pumpwood_djangoauth/registration/migrations/0008_alter_pumpwoodmfamethod_type.py
 src/pumpwood_djangoauth/registration/migrations/0009_auto_20240205_1154.py
+src/pumpwood_djangoauth/registration/migrations/0010_auto_20240208_1142.py
 src/pumpwood_djangoauth/registration/migrations/__init__.py
 src/pumpwood_djangoauth/system/__init__.py
 src/pumpwood_djangoauth/system/admin.py
@@ -97,6 +100,7 @@ src/pumpwood_djangoauth/system/migrations/0003_alter_kongroute_route_type.py
 src/pumpwood_djangoauth/system/migrations/0004_alter_kongroute_route_type.py
 src/pumpwood_djangoauth/system/migrations/0005_auto_20240203_1627.py
 src/pumpwood_djangoauth/system/migrations/0006_auto_20240205_1154.py
+src/pumpwood_djangoauth/system/migrations/0007_auto_20240208_1142.py
 src/pumpwood_djangoauth/system/migrations/__init__.py
 src/pumpwood_djangoauth/templates/__init__.py
 src/pumpwood_djangoauth/templates/tags/__init__.py
