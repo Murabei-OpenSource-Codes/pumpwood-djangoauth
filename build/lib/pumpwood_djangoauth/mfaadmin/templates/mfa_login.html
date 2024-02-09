@@ -72,7 +72,7 @@
             {% endfor %}
         {% endif %} -->
 
-        <form action="{{ app_path }}" method="post" id="login-form">{% csrf_token %}
+        <form action="{{ app_path }}" method="post" id="login-form" autocomplete="off">{% csrf_token %}
             <div class="form-row">
                 <img src="{% static 'images/login-logo.png' %}" class="center"/>
             </div>

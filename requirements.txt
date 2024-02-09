@@ -8,3 +8,4 @@ django-rest-knox==4.2.0
 pumpwood-communication>=1.0
 pumpwood-kong==0.21
 twilio==8.11.0
+lazy-string==1.0.0

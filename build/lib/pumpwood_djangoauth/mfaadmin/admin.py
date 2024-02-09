@@ -1,13 +1,5 @@
 """Create an admin site using MFAAdmin."""
-import io
-import simplejson as json
-import pandas as pd
-from django.conf.urls import url
 from django.contrib import admin
-from django.contrib.auth.views import LoginView
-from django.shortcuts import redirect
-from django.contrib.auth import authenticate, login
-from django.shortcuts import render
 from pumpwood_djangoauth.mfaadmin.views import MFALoginView
 from django.views.decorators.cache import never_cache
 from django.contrib.auth import REDIRECT_FIELD_NAME

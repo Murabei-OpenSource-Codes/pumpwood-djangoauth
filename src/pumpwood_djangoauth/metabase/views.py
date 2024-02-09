@@ -55,7 +55,6 @@ class RestMetabaseDashboard(PumpWoodRestService):
 class RestMetabaseDashboardParameter(PumpWoodRestService):
     endpoint_description = "Metabase Dashboard parameters"
     notes = "Metabase Dashboard parameters"
-
     service_model = MetabaseDashboardParameter
     serializer = MetabaseDashboardParameterSerializer
     storage_object = storage_object

@@ -19,6 +19,9 @@ from knox.views import LoginView as KnoxLoginView
 # Loging API calls
 from pumpwood_djangoauth.log.functions import log_api_request
 
+# I8N
+from pumpwood_djangoauth.i8n.models import PumpwoodI8nTranslation as t
+
 
 class LoginView(KnoxLoginView):
     # login view extending KnoxLoginView

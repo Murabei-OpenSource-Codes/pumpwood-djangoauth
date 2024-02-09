@@ -5,6 +5,7 @@ from pumpwood_djangoviews.action import action
 from pumpwood_djangoauth.config import kong_api
 from pumpwood_communication import exceptions
 from pumpwood_communication.serializers import PumpWoodJSONEncoder
+from pumpwood_djangoauth.i8n.translate import t
 
 
 class KongService(models.Model):
@@ -12,30 +13,77 @@ class KongService(models.Model):
 
     service_url = models.CharField(
         null=False, max_length=100, unique=True,
-        help_text="service url to redirect the http calls.")
+        verbose_name=t(
+            "Service URL",
+            tag="KongService__admin__service_url"),
+        help_text=t(
+            "service url to redirect the http calls",
+            tag="KongService__admin__service_url"),)
     service_name = models.TextField(
         null=False, max_length=100, unique=True,
-        help_text="name of the service (must be unique).")
+        verbose_name=t(
+            "Service name",
+            tag="KongService__admin__service_name"),
+        help_text=t(
+            "Name of the service (must be unique)",
+            tag="KongService__admin__service_name"))
     service_kong_id = models.TextField(
         null=False, unique=True,
-        help_text="id of the service on kong.")
+        verbose_name=t(
+            "Kong ID",
+            tag="KongService__admin__service_kong_id"),
+        help_text=t(
+            "ID of the service on kong",
+            tag="KongService__admin__service_kong_id"))
     description = models.TextField(
-        null=False, unique=True,
-        help_text="short description for the service (must be unique).")
+        null=False, unique=False,
+        verbose_name=t(
+            "Description",
+            tag="KongService__admin__description"),
+        help_text=t(
+            "short description for the service (must be unique)",
+            tag="KongService__admin__description"))
     notes = models.TextField(
         null=False, default="", blank=True,
-        help_text="long description for the service.")
+        verbose_name=t(
+            "Notes",
+            tag="KongService__admin__notes"),
+        help_text=t(
+            "Long description for the service",
+            tag="KongService__admin__notes"))
     healthcheck_route = models.TextField(
         null=True, unique=True,
-        help_text="path to health check if the service is avaiable.")
+        verbose_name=t(
+            "Health-check route",
+            tag="KongService__admin__healthcheck_route"),
+        help_text=t(
+            "Path to health check if the service is avaiable",
+            tag="KongService__admin__healthcheck_route"))
     dimensions = models.JSONField(
-        default=dict, help_text="dictionary of tags to help organization",
+        default=dict,
+        verbose_name=t(
+            "Dimentions",
+            tag="KongService__admin__dimensions"),
+        help_text=t(
+            "Dictionary of tags to help organization",
+            tag="KongService__admin__dimensions"),
         encoder=PumpWoodJSONEncoder)
     icon = models.TextField(
-        null=True, blank=True, help_text="icon to be used on front-end.")
+        null=True, blank=True,
+        verbose_name=t(
+            "Icon",
+            tag="KongService__admin__icon"),
+        help_text=t(
+            "Icon to be used on front-end.",
+            tag="KongService__admin__icon"))
     extra_info = models.JSONField(
         default=dict, blank=True,
-        help_text="other information that can be usefull for this service",
+        verbose_name=t(
+            "Extra info.",
+            tag="KongService__admin__extra_info"),
+        help_text=t(
+            "Other information that can be usefull for this service",
+            tag="KongService__admin__extra_info"),
         encoder=PumpWoodJSONEncoder)
 
     def __str__(self):
@@ -44,6 +92,16 @@ class KongService(models.Model):
 
     class Meta:
         db_table = 'pumpwood__service'
+        unique_together = [
+            ['service_url', 'service_name'],
+        ]
+
+        verbose_name = t(
+            'Service',
+            tag="KongService__admin")
+        verbose_name_plural = t(
+            'Services',
+            tag="KongService__admin", plural=True)
 
     @classmethod
     @action(info='Load service/routes on Kong.')
@@ -92,7 +150,7 @@ class KongService(models.Model):
         return True
 
     @classmethod
-    @action(info='Delete services/routes and reload them on Kong.')
+    @action(info='Delete services/routes and reload them on Kong')
     def reload_kong_service(cls, list_service_id: list = None) -> bool:
         """
         Reload kong services, a small down time may occur.
@@ -127,7 +185,7 @@ class KongService(models.Model):
         return True
 
     @classmethod
-    @action(info='Create a Kong service.')
+    @action(info='Create a Kong service')
     def create_service(cls, service_url: str, service_name: str,
                        description: str, notes: str, icon: str = None,
                        healthcheck_route: str = None,
@@ -156,7 +214,7 @@ class KongService(models.Model):
         from pumpwood_djangoauth.system.serializers import (
             KongServiceSerializer)
         registred_service = KongService.objects.filter(
-            Q(service_name=service_name) | Q(service_url=service_url)
+            Q(service_name=service_name) & Q(service_url=service_url)
         ).first()
 
         service_return = kong_api.register_service(
@@ -206,40 +264,96 @@ class KongRoute(models.Model):
 
     service = models.ForeignKey(
         KongService, on_delete=models.CASCADE, related_name="route_set",
-        help_text="service associated with the route.")
+        verbose_name=t(
+            "Service",
+            tag="KongRoute__admin__service"),
+        help_text=t(
+            "Service associated with the route.",
+            tag="KongRoute__admin__service"))
     route_url = models.CharField(
         null=False, max_length=100, unique=True,
-        help_text="service associated with the route (must be unique).")
+        verbose_name=t(
+            "Route URL",
+            tag="KongRoute__admin__route_url"),
+        help_text=t(
+            "Service associated with the route (must be unique).",
+            tag="KongRoute__admin__route_url"))
     route_name = models.CharField(
         null=False, max_length=100, unique=True,
-        help_text="name of the route (must be unique).")
+        verbose_name=t(
+            "Route Name",
+            tag="KongRoute__admin__route_name"),
+        help_text=t(
+            "Name of the route (must be unique)",
+            tag="KongRoute__admin__route_name"))
     route_kong_id = models.TextField(
         null=False, unique=True,
-        help_text="route identification on Kong")
+        verbose_name=t(
+            "Kong ID",
+            tag="KongRoute__admin__route_kong_id"),
+        help_text=t(
+            "Route identification on Kong",
+            tag="KongRoute__admin__route_kong_id"))
     route_type = models.CharField(
         max_length=10, choices=ROUTE_TYPES,
-        help_text="type of the route [endpoint, aux, gui, static, admin]")
-
+        verbose_name=t(
+            "Route type",
+            tag="KongRoute__admin__route_type"),
+        help_text=t(
+            "Type of the route [endpoint, aux, gui, static, admin]",
+            tag="KongRoute__admin__route_type"))
     description = models.TextField(
-        null=False, unique=True,
-        help_text="a short description of the route.")
+        null=False, unique=False,
+        verbose_name=t(
+            "Description",
+            tag="KongRoute__admin__description"),
+        help_text=t(
+            "A short description of the route.",
+            tag="KongRoute__admin__description"))
     notes = models.TextField(
         null=False, default="", blank=True,
-        help_text="a long description of the route.")
+        verbose_name=t(
+            "Notes",
+            tag="KongRoute__admin__notes"),
+        help_text=t(
+            "A long description of the route.",
+            tag="KongRoute__admin__notes"))
     dimensions = models.JSONField(
-        default=dict, help_text="dictionary of tags to help organization",
+        default=dict,
+        verbose_name=t(
+            "Dimentions",
+            tag="KongRoute__admin__dimensions"),
+        help_text=t(
+            "dictionary of tags to help organization",
+            tag="KongRoute__admin__dimensions"),
         encoder=PumpWoodJSONEncoder)
     icon = models.TextField(
         null=True, blank=True,
-        help_text="icon to be used on front-end.")
+        verbose_name=t(
+            "Icon",
+            tag="KongRoute__admin__icon"),
+        help_text=t(
+            "icon to be used on front-end.",
+            tag="KongRoute__admin__icon"))
     extra_info = models.JSONField(
         default=dict, blank=True,
-        help_text="other information that can be usefull for this route",
+        verbose_name=t(
+            "Extra-info",
+            tag="KongRoute__admin__extra_info"),
+        help_text=t(
+            "Other information that can be usefull for this route",
+            tag="KongRoute__admin__extra_info"),
         encoder=PumpWoodJSONEncoder)
 
     class Meta:
         db_table = 'pumpwood__route'
-        unique_together = [['service', 'route_name']]
+        unique_together = [['route_name', 'route_url']]
+        verbose_name = t(
+            'Route',
+            tag="UserProfile__admin")
+        verbose_name_plural = t(
+            'Routes',
+            tag="UserProfile__admin", plural=True)
 
     def __str__(self):
         return 'service: %s; route: %s; route name: %s' % (
@@ -281,12 +395,15 @@ class KongRoute(models.Model):
         # Check values for route_type
         possible_types = [x[0] for x in cls.ROUTE_TYPES]
         if route_type not in possible_types:
-            msg = "route_type must be in %s" % str(possible_types)
+            msg = t.translate(
+                "route_type must be in {possible_types}").format(
+                    possible_types=possible_types)
             raise exceptions.PumpWoodActionArgsException(
-                message=msg, payload={"route_type": msg})
+                message=msg, payload={
+                    "route_type": msg, "possible_types": possible_types})
 
         registred_route = KongRoute.objects.filter(
-            Q(route_name=route_name) | Q(route_url=route_url)
+            Q(route_name=route_name) & Q(route_url=route_url)
         ).first()
 
         service_object = KongService.objects.get(id=service_id)
