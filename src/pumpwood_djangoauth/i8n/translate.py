@@ -66,7 +66,7 @@ def aux_translate_string(sentence, tag, plural, language, user_type) -> str:
 
 def t(sentence, tag='', plural=False, language='', user_type=''):
     """Create a Lazy String to translate sentence when used."""
-    return LazyString(
-        aux_translate_string, sentence=sentence, tag=tag,
+    return aux_translate_string(
+        sentence=sentence, tag=tag,
         plural=plural, language=language,
         user_type=user_type)
