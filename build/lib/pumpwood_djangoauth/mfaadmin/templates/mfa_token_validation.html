@@ -80,10 +80,11 @@
             {% endfor %}
         {% endif %}
 
-        <form action="{{ app_path }}" method="post" id="validate-token-form">{% csrf_token %}
+        <form action="{{ app_path }}" method="post" id="validate-token-form"  autocomplete="off">{% csrf_token %}
             <div class="form-row">
                 <img src="{% static 'images/login-logo.png' %}" class="center"/>
             </div>
+
             <div class="form-row">
                 {{ form.mfa_code.errors }}
                 {{ form.mfa_code.label_tag }} {{ form.mfa_code }}
