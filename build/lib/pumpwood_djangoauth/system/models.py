@@ -214,7 +214,7 @@ class KongService(models.Model):
         from pumpwood_djangoauth.system.serializers import (
             KongServiceSerializer)
         registred_service = KongService.objects.filter(
-            Q(service_name=service_name) & Q(service_url=service_url)
+            Q(service_name=service_name) | Q(service_url=service_url)
         ).first()
 
         service_return = kong_api.register_service(
@@ -403,7 +403,7 @@ class KongRoute(models.Model):
                     "route_type": msg, "possible_types": possible_types})
 
         registred_route = KongRoute.objects.filter(
-            Q(route_name=route_name) & Q(route_url=route_url)
+            Q(route_name=route_name) | Q(route_url=route_url)
         ).first()
 
         service_object = KongService.objects.get(id=service_id)

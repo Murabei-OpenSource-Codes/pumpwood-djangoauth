@@ -5,7 +5,6 @@ setup.py
 src/pumpwood_djangoauth/__init__.py
 src/pumpwood_djangoauth/config.py
 src/pumpwood_djangoauth/error_handling.py
-src/pumpwood_djangoauth/migrations.py
 src/pumpwood_djangoauth.egg-info/PKG-INFO
 src/pumpwood_djangoauth.egg-info/SOURCES.txt
 src/pumpwood_djangoauth.egg-info/dependency_links.txt
