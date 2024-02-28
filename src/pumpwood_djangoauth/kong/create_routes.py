@@ -6,6 +6,7 @@ import textwrap
 from copy import deepcopy
 from django.core.wsgi import get_wsgi_application
 from slugify import slugify
+from django import db
 
 
 def register_auth_kong_objects(service_url: str, service_description: str,
@@ -55,6 +56,7 @@ def register_auth_kong_objects(service_url: str, service_description: str,
                 }
     """
     # Load apps before importing then to code
+    db.connections.close_all()
     get_wsgi_application()
     from pumpwood_djangoauth.system.models import KongService, KongRoute
 
