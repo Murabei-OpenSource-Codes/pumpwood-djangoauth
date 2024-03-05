@@ -10,7 +10,7 @@ from pumpwood_djangoauth.system.serializers import (
     KongServiceSerializer, KongRouteSerializer)
 from pumpwood_djangoauth.config import kong_api, microservice_no_login
 from pumpwood_communication.exceptions import (
-    exceptions_dict, PumpWoodException)
+    exceptions_dict, PumpWoodException, PumpWoodWrongParameters)
 
 
 @api_view(['GET'])
@@ -22,17 +22,38 @@ def view__get_kong_routes(request):
 @api_view(['GET'])
 def view__get_registred_endpoints(request):
     """Filter end-point to expose to frontend."""
+    # Check if it is to hide routes from list
+    availability = request.GET.get('availability', 'front_avaiable')
+    availability_list = None
+    if availability == 'front_avaiable':
+        availability_list = ['front_avaiable']
+    elif availability == 'all':
+        availability_list = [x[0] for x in KongRoute.AVAILABILITY_CHOICES]
+    else:
+        msg = "Availability [{availability}] not implemented"
+        raise PumpWoodWrongParameters(
+            msg, payload={"availability": availability})
+
+    # Get all services
     all_sevices = KongService.objects.order_by("description").all()
     all_sevices_data = KongServiceSerializer(
         all_sevices, many=True).data
 
     resp_services = []
-    for x in all_sevices_data:
-        x["route_set"] = [
-            route for route in x["route_set"]
-            if route["route_type"] == "endpoint"]
-        if len(x["route_set"]) != 0:
-            resp_services.append(x)
+    for service in all_sevices_data:
+        # Check if routes shoulb be display at the frontend
+        route_set = []
+        for route in service["route_set"]:
+            is_to_return = (
+                route["route_type"] == "endpoint") and (
+                route["avaiablility"] in availability_list)
+            if is_to_return:
+                route_set.append(route)
+
+        # Do not list services that does not have routes to be displayed
+        if len(route_set) != 0:
+            service["route_set"] = route_set
+            resp_services.append(service)
     return Response(resp_services)
 
 
@@ -112,8 +133,8 @@ class RestKongRoute(PumpWoodRestService):
     gui_retrieve_fieldset = [{
             "name": "main",
             "fields": [
-                "route_type", "service_id", "route_name", "description",
-                "notes", "dimensions"]
+                "route_type", "service_id", "route_name", "availability",
+                "description", "notes", "dimensions"]
         }, {
             "name": "kong info",
             "fields": [

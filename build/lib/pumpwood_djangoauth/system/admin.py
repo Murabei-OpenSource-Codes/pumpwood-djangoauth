@@ -12,8 +12,8 @@ class KongServiceAdmin(admin.ModelAdmin):
 
 class KongRouteAdmin(admin.ModelAdmin):
     list_display = (
-        "id", "service", "route_name", "route_url", "route_type",
-        "description")
+        "id", "availability", "service", "route_name", "route_url",
+        "route_type", "description")
 
 
 ##############

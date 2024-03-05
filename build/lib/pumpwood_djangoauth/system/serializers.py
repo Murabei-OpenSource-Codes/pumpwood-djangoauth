@@ -48,9 +48,9 @@ class KongServiceSerializer(DynamicFieldsModelSerializer):
         model = KongService
         fields = (
             "pk", "model_class", "service_url", "service_name",
-            "service_kong_id", "description", "notes", "healthcheck_route",
-            "dimensions", "icon", "route_set", "extra_info",
-            "description__verbose", "notes__verbose")
+            "service_kong_id", "availability", "description", "notes",
+            "healthcheck_route", "dimensions", "icon", "route_set",
+            "extra_info", "description__verbose", "notes__verbose")
 
     def get_description__verbose(self, obj):
         """Translate description."""

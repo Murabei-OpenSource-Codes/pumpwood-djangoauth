@@ -262,87 +262,60 @@ class KongRoute(models.Model):
         ('media', 'Media Files')
     ]
 
+    AVAILABILITY_CHOICES = [
+        ('front_avaiable', 'Frontend Avaiable'),
+        ('front_hidden', 'Frontend Hidden'),
+    ]
+
+    availability = models.TextField(
+        choices=AVAILABILITY_CHOICES,
+        default="front_avaiable", verbose_name="Frontend avaiablility",
+        help_text="Hide routes from frontend")
     service = models.ForeignKey(
         KongService, on_delete=models.CASCADE, related_name="route_set",
         verbose_name=t(
             "Service",
             tag="KongRoute__admin__service"),
-        help_text=t(
-            "Service associated with the route.",
-            tag="KongRoute__admin__service"))
+        help_text="Service associated with the route.")
     route_url = models.CharField(
         null=False, max_length=100, unique=True,
         verbose_name=t(
             "Route URL",
             tag="KongRoute__admin__route_url"),
-        help_text=t(
-            "Service associated with the route (must be unique).",
-            tag="KongRoute__admin__route_url"))
+        help_text="Service associated with the route (must be unique).")
     route_name = models.CharField(
         null=False, max_length=100, unique=True,
-        verbose_name=t(
-            "Route Name",
-            tag="KongRoute__admin__route_name"),
-        help_text=t(
-            "Name of the route (must be unique)",
-            tag="KongRoute__admin__route_name"))
+        verbose_name="Route Name",
+        help_text="Name of the route (must be unique)")
     route_kong_id = models.TextField(
         null=False, unique=True,
-        verbose_name=t(
-            "Kong ID",
-            tag="KongRoute__admin__route_kong_id"),
-        help_text=t(
-            "Route identification on Kong",
-            tag="KongRoute__admin__route_kong_id"))
+        verbose_name="Kong ID",
+        help_text="Route identification on Kong")
     route_type = models.CharField(
         max_length=10, choices=ROUTE_TYPES,
-        verbose_name=t(
-            "Route type",
-            tag="KongRoute__admin__route_type"),
-        help_text=t(
-            "Type of the route [endpoint, aux, gui, static, admin]",
-            tag="KongRoute__admin__route_type"))
+        verbose_name="Route type",
+        help_text="Type of the route [endpoint, aux, gui, static, admin]")
     description = models.TextField(
         null=False, unique=False,
-        verbose_name=t(
-            "Description",
-            tag="KongRoute__admin__description"),
-        help_text=t(
-            "A short description of the route.",
-            tag="KongRoute__admin__description"))
+        verbose_name="Description",
+        help_text="A short description of the route.")
     notes = models.TextField(
         null=False, default="", blank=True,
-        verbose_name=t(
-            "Notes",
-            tag="KongRoute__admin__notes"),
-        help_text=t(
-            "A long description of the route.",
-            tag="KongRoute__admin__notes"))
+        verbose_name="Notes",
+        help_text="A long description of the route.")
     dimensions = models.JSONField(
         default=dict,
-        verbose_name=t(
-            "Dimentions",
-            tag="KongRoute__admin__dimensions"),
-        help_text=t(
-            "dictionary of tags to help organization",
-            tag="KongRoute__admin__dimensions"),
+        verbose_name="Dimentions",
+        help_text="Dictionary of tags to help organization",
         encoder=PumpWoodJSONEncoder)
     icon = models.TextField(
         null=True, blank=True,
-        verbose_name=t(
-            "Icon",
-            tag="KongRoute__admin__icon"),
-        help_text=t(
-            "icon to be used on front-end.",
-            tag="KongRoute__admin__icon"))
+        verbose_name="Icon",
+        help_text="Icon to be used on front-end.")
     extra_info = models.JSONField(
         default=dict, blank=True,
-        verbose_name=t(
-            "Extra-info",
-            tag="KongRoute__admin__extra_info"),
-        help_text=t(
-            "Other information that can be usefull for this route",
-            tag="KongRoute__admin__extra_info"),
+        verbose_name="Extra-info",
+        help_text="Other information that can be usefull for this route",
         encoder=PumpWoodJSONEncoder)
 
     class Meta:
