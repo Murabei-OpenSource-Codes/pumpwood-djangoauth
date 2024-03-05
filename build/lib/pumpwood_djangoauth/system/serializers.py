@@ -19,9 +19,9 @@ class KongRouteSerializer(DynamicFieldsModelSerializer):
     class Meta:
         model = KongRoute
         fields = (
-            "pk", "model_class", "service_id", "route_url", "route_name",
-            "route_kong_id", "route_type", "description", "notes",
-            "dimensions", "icon", "extra_info",
+            "pk", "model_class", "availability", "service_id", "route_url",
+            "route_name", "route_kong_id", "route_type", "description",
+            "notes", "dimensions", "icon", "extra_info",
             "description__verbose", "notes__verbose")
 
     def get_description__verbose(self, obj):
@@ -48,7 +48,7 @@ class KongServiceSerializer(DynamicFieldsModelSerializer):
         model = KongService
         fields = (
             "pk", "model_class", "service_url", "service_name",
-            "service_kong_id", "availability", "description", "notes",
+            "service_kong_id", "description", "notes",
             "healthcheck_route", "dimensions", "icon", "route_set",
             "extra_info", "description__verbose", "notes__verbose")
 

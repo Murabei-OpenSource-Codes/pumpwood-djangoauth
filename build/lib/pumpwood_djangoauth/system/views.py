@@ -128,12 +128,12 @@ class RestKongRoute(PumpWoodRestService):
     #######
     # GUI #
     list_fields = [
-        "pk", "service_id", "route_name", "route_type",
+        "pk", "availability", "service_id", "route_name", "route_type",
         "description"]
     gui_retrieve_fieldset = [{
             "name": "main",
             "fields": [
-                "route_type", "service_id", "route_name", "availability",
+                "availability", "route_type", "service_id", "route_name",
                 "description", "notes", "dimensions"]
         }, {
             "name": "kong info",
