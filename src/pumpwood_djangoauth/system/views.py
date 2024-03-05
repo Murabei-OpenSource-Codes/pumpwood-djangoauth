@@ -46,7 +46,7 @@ def view__get_registred_endpoints(request):
         for route in service["route_set"]:
             is_to_return = (
                 route["route_type"] == "endpoint") and (
-                route["avaiablility"] in availability_list)
+                route["availability"] in availability_list)
             if is_to_return:
                 route_set.append(route)
 
