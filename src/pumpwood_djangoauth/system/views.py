@@ -158,7 +158,7 @@ class RestKongRoute(PumpWoodRestService):
     def save(self, request):
         request_data = request.data
         return Response(KongRoute.create_route(
-            availability=request_data.get("availability", "front_avaiable"),
+            availability=request_data.get("availability"),
             service_id=request_data["service_id"],
             route_url=request_data["route_url"],
             route_name=request_data["route_name"],

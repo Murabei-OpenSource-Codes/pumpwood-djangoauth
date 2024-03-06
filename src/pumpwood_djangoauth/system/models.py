@@ -306,7 +306,7 @@ class KongRoute(models.Model):
     @action(info='Create a Kong route.')
     def create_route(cls, service_id: int, route_url: str, route_name: str,
                      route_type: str, description: str, notes: str,
-                     availability: str = 'front_avaiable', icon: str = None,
+                     availability: str = None, icon: str = None,
                      strip_path: bool = False, dimensions: dict = {},
                      extra_info: dict = {}) -> dict:
         """
@@ -373,7 +373,9 @@ class KongRoute(models.Model):
                 extra_info=extra_info)
             registred_route.save()
         else:
-            registred_route.availability = availability
+            # Keep availability when none is passed as argument
+            if availability is not None:
+                registred_route.availability = availability
             registred_route.service_id = service_object.id
             registred_route.route_url = route_url
             registred_route.route_name = route_name
