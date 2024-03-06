@@ -35,7 +35,8 @@ def view__get_registred_endpoints(request):
             msg, payload={"availability": availability})
 
     # Get all services
-    all_sevices = KongService.objects.order_by("description").all()
+    all_sevices = KongService.objects.order_by(
+        "order", "description").all()
     all_sevices_data = KongServiceSerializer(
         all_sevices, many=True).data
 
@@ -49,10 +50,12 @@ def view__get_registred_endpoints(request):
                 route["availability"] in availability_list)
             if is_to_return:
                 route_set.append(route)
+        pd_route_set = pd.DataFrame(route_set)
+        pd_route_set = pd_route_set.sort_values("order", "description")
 
         # Do not list services that does not have routes to be displayed
-        if len(route_set) != 0:
-            service["route_set"] = route_set
+        if len(pd_route_set) != 0:
+            service["route_set"] = pd_route_set.to_dict("records")
             resp_services.append(service)
     return Response(resp_services)
 
@@ -128,13 +131,13 @@ class RestKongRoute(PumpWoodRestService):
     #######
     # GUI #
     list_fields = [
-        "pk", "availability", "service_id", "route_name", "route_type",
-        "description"]
+        "pk", "order", "availability", "service_id", "route_name",
+        "route_type", "description"]
     gui_retrieve_fieldset = [{
             "name": "main",
             "fields": [
-                "availability", "route_type", "service_id", "route_name",
-                "description", "notes", "dimensions"]
+                "order", "availability", "route_type", "service_id",
+                "route_name", "description", "notes", "dimensions"]
         }, {
             "name": "kong info",
             "fields": [
@@ -144,13 +147,17 @@ class RestKongRoute(PumpWoodRestService):
             "fields": ['extra_info']
         }
     ]
-    gui_readonly = ['last_login']
+    gui_readonly = [
+        "route_type", "service_id", "route_name",
+        "description", "notes", "dimensions", "route_url", "route_name",
+        "route_kong_id", 'extra_info']
     gui_verbose_field = '{pk} | {route_name}'
     #######
 
     def save(self, request):
         request_data = request.data
         return Response(KongRoute.create_route(
+            availability=request_data["availability"],
             service_id=request_data["service_id"],
             route_url=request_data["route_url"],
             route_name=request_data["route_name"],
@@ -182,12 +189,12 @@ class RestKongService(PumpWoodRestService):
     #######
     # GUI #
     list_fields = [
-        "pk", "model_class", "service_name", "description"]
+        "pk", "model_class", "order", "service_name", "description"]
 
     gui_retrieve_fieldset = [{
             "name": "main",
             "fields": [
-                "service_name", "description", "notes", "description",
+                "order", "service_name", "description", "notes", "description",
                 "dimensions"]
         }, {
             "name": "kong info",

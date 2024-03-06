@@ -13,77 +13,44 @@ class KongService(models.Model):
 
     service_url = models.CharField(
         null=False, max_length=100, unique=True,
-        verbose_name=t(
-            "Service URL",
-            tag="KongService__admin__service_url"),
-        help_text=t(
-            "service url to redirect the http calls",
-            tag="KongService__admin__service_url"),)
+        verbose_name="Service URL",
+        help_text="Service url to redirect the http calls")
+    order = models.IntegerField(
+        default=0, null=False, verbose_name="Order at frontend",
+        help_text="Order at frontend")
     service_name = models.TextField(
         null=False, max_length=100, unique=True,
-        verbose_name=t(
-            "Service name",
-            tag="KongService__admin__service_name"),
-        help_text=t(
-            "Name of the service (must be unique)",
-            tag="KongService__admin__service_name"))
+        verbose_name="Service name",
+        help_text="Name of the service (must be unique)")
     service_kong_id = models.TextField(
         null=False, unique=True,
-        verbose_name=t(
-            "Kong ID",
-            tag="KongService__admin__service_kong_id"),
-        help_text=t(
-            "ID of the service on kong",
-            tag="KongService__admin__service_kong_id"))
+        verbose_name="Kong ID",
+        help_text="ID of the service on kong")
     description = models.TextField(
         null=False, unique=False,
-        verbose_name=t(
-            "Description",
-            tag="KongService__admin__description"),
-        help_text=t(
-            "short description for the service (must be unique)",
-            tag="KongService__admin__description"))
+        verbose_name="Description",
+        help_text="Short description for the service (must be unique)")
     notes = models.TextField(
         null=False, default="", blank=True,
-        verbose_name=t(
-            "Notes",
-            tag="KongService__admin__notes"),
-        help_text=t(
-            "Long description for the service",
-            tag="KongService__admin__notes"))
+        verbose_name="Notes",
+        help_text="Long description for the service")
     healthcheck_route = models.TextField(
         null=True, unique=True,
-        verbose_name=t(
-            "Health-check route",
-            tag="KongService__admin__healthcheck_route"),
-        help_text=t(
-            "Path to health check if the service is avaiable",
-            tag="KongService__admin__healthcheck_route"))
+        verbose_name="Health-check route",
+        help_text="Path to health check if the service is avaiable")
     dimensions = models.JSONField(
         default=dict,
-        verbose_name=t(
-            "Dimentions",
-            tag="KongService__admin__dimensions"),
-        help_text=t(
-            "Dictionary of tags to help organization",
-            tag="KongService__admin__dimensions"),
+        verbose_name="Dimentions",
+        help_text="Dictionary of tags to help organization",
         encoder=PumpWoodJSONEncoder)
     icon = models.TextField(
         null=True, blank=True,
-        verbose_name=t(
-            "Icon",
-            tag="KongService__admin__icon"),
-        help_text=t(
-            "Icon to be used on front-end.",
-            tag="KongService__admin__icon"))
+        verbose_name="Icon",
+        help_text="Icon to be used on front-end.")
     extra_info = models.JSONField(
         default=dict, blank=True,
-        verbose_name=t(
-            "Extra info.",
-            tag="KongService__admin__extra_info"),
-        help_text=t(
-            "Other information that can be usefull for this service",
-            tag="KongService__admin__extra_info"),
+        verbose_name="Extra info.",
+        help_text="Other information that can be usefull for this service",
         encoder=PumpWoodJSONEncoder)
 
     def __str__(self):
@@ -271,6 +238,9 @@ class KongRoute(models.Model):
         choices=AVAILABILITY_CHOICES,
         default="front_avaiable", verbose_name="Frontend avaiablility",
         help_text="Hide routes from frontend")
+    order = models.IntegerField(
+        default=0, null=False, verbose_name="Order at frontend",
+        help_text="Order at frontend")
     service = models.ForeignKey(
         KongService, on_delete=models.CASCADE, related_name="route_set",
         verbose_name=t(
@@ -336,8 +306,9 @@ class KongRoute(models.Model):
     @action(info='Create a Kong route.')
     def create_route(cls, service_id: int, route_url: str, route_name: str,
                      route_type: str, description: str, notes: str,
-                     icon: str = None, strip_path: bool = False,
-                     dimensions: dict = {}, extra_info: dict = {}) -> dict:
+                     availability: str = 'front_avaiable', icon: str = None,
+                     strip_path: bool = False, dimensions: dict = {},
+                     extra_info: dict = {}) -> dict:
         """
         Create a Kong route to redirect calls.
 
@@ -353,6 +324,7 @@ class KongRoute(models.Model):
             description [str]: Unique description for the service.
             notes [str]: A long description for the service.
         Kwargs:
+            availability [str]: If route should be avaiable at frontend.
             strip_path [bool]: If kong will strip path when routing downstream.
             icon [str] = None: An icon associated with the service.
             dimensions [dict] = {}: A dimensions for the service to help
@@ -388,6 +360,7 @@ class KongRoute(models.Model):
 
         if registred_route is None:
             registred_route = KongRoute(
+                availability=availability,
                 service_id=service_object.id,
                 route_url=route_url,
                 route_name=route_name,
@@ -400,6 +373,7 @@ class KongRoute(models.Model):
                 extra_info=extra_info)
             registred_route.save()
         else:
+            registred_route.availability = availability
             registred_route.service_id = service_object.id
             registred_route.route_url = route_url
             registred_route.route_name = route_name

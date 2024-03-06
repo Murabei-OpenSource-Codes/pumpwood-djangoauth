@@ -16,7 +16,7 @@ class RestMetabaseDashboard(PumpWoodRestService):
     storage_object = storage_object
     microservice = microservice
     foreign_keys = {
-        "updated_by": {"model_class": "User", "many": False},
+        "updated_by_id": {"model_class": "User", "many": False},
     }
 
     file_fields = {
@@ -47,7 +47,7 @@ class RestMetabaseDashboard(PumpWoodRestService):
             "fields": ["extra_info"]
         }
     ]
-    gui_readonly = ["updated_by", "updated_at", "extra_info"]
+    gui_readonly = ["updated_by_id", "updated_at", "extra_info"]
     gui_verbose_field = '{pk} | {description}'
     #######
 

@@ -18,8 +18,8 @@ class MetabaseDashboardSerializer(DynamicFieldsModelSerializer):
             "auto_embedding", "object_model_class", "object_pk", "metabase_id",
             "expire_in_min", "default_theme", "default_is_bordered",
             "default_is_titled", "dimensions", "extra_info",
-            "updated_by", "updated_at")
-        read_only = ["updated_by", "updated_at"]
+            "updated_by_id", "updated_at")
+        read_only = ["updated_by_id", "updated_at"]
 
     def create(self, validated_data):
         validated_data["updated_by_id"] = self.context['request'].user.id
