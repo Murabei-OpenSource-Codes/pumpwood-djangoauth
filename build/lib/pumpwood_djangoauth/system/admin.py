@@ -6,14 +6,18 @@ from .models import KongService, KongRoute
 
 class KongServiceAdmin(admin.ModelAdmin):
     list_display = (
-        "id", "service_name", "service_url", "description",
+        "id", "order", "service_name", "service_url", "description",
         "healthcheck_route")
+    search_fields = ('description', 'service_url', 'service_name', )
+    # list_filter = ('description', 'route_url', 'route_name', )
 
 
 class KongRouteAdmin(admin.ModelAdmin):
     list_display = (
-        "id", "availability", "service", "route_name", "route_url",
+        "id", "service", "order", "availability", "route_name", "route_url",
         "route_type", "description")
+    search_fields = ('description', 'route_url', 'route_name', )
+    list_filter = ('service', 'availability', )
 
 
 ##############
