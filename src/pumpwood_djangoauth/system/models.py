@@ -360,19 +360,33 @@ class KongRoute(models.Model):
         extra_info["kong_data"] = route_return
 
         if registred_route is None:
-            registred_route = KongRoute(
-                availability=availability,
-                service_id=service_object.id,
-                route_url=route_url,
-                route_name=route_name,
-                route_kong_id=route_return["id"],
-                route_type=route_type,
-                description=description,
-                notes=notes,
-                icon=icon,
-                dimensions=dimensions,
-                extra_info=extra_info)
-            registred_route.save()
+            if availability is not None:
+                registred_route = KongRoute(
+                    availability=availability,
+                    service_id=service_object.id,
+                    route_url=route_url,
+                    route_name=route_name,
+                    route_kong_id=route_return["id"],
+                    route_type=route_type,
+                    description=description,
+                    notes=notes,
+                    icon=icon,
+                    dimensions=dimensions,
+                    extra_info=extra_info)
+                registred_route.save()
+            else:
+                registred_route = KongRoute(
+                    service_id=service_object.id,
+                    route_url=route_url,
+                    route_name=route_name,
+                    route_kong_id=route_return["id"],
+                    route_type=route_type,
+                    description=description,
+                    notes=notes,
+                    icon=icon,
+                    dimensions=dimensions,
+                    extra_info=extra_info)
+                registred_route.save()
         else:
             # Keep availability when none is passed as argument
             if availability is not None:
