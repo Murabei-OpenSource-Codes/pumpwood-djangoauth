@@ -353,8 +353,9 @@ class KongRoute(models.Model):
 
         service_object = KongService.objects.get(id=service_id)
         route_return = kong_api.register_route(
-            service_id=service_object.service_kong_id,
-            route_name=route_name, route_url=route_url,
+            service_name=service_object.service_name,
+            route_name=route_name,
+            route_url=route_url,
             strip_path=strip_path)
         extra_info["kong_data"] = route_return
 
