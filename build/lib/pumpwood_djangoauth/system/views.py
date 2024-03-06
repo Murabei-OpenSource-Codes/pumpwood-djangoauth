@@ -1,5 +1,6 @@
 """Create views for system end-points."""
 import os
+import pandas as pd
 from django.http import StreamingHttpResponse
 from django.contrib.auth.decorators import login_required
 from rest_framework.response import Response
@@ -51,10 +52,10 @@ def view__get_registred_endpoints(request):
             if is_to_return:
                 route_set.append(route)
         pd_route_set = pd.DataFrame(route_set)
-        pd_route_set = pd_route_set.sort_values("order", "description")
-
         # Do not list services that does not have routes to be displayed
         if len(pd_route_set) != 0:
+            pd_route_set = pd_route_set.sort_values(
+                by=["order", "description"])
             service["route_set"] = pd_route_set.to_dict("records")
             resp_services.append(service)
     return Response(resp_services)
@@ -157,7 +158,7 @@ class RestKongRoute(PumpWoodRestService):
     def save(self, request):
         request_data = request.data
         return Response(KongRoute.create_route(
-            availability=request_data["availability"],
+            availability=request_data.get("availability", "front_avaiable"),
             service_id=request_data["service_id"],
             route_url=request_data["route_url"],
             route_name=request_data["route_name"],
