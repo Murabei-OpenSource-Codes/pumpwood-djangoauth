@@ -326,13 +326,9 @@ class MetabaseDashboardParameter(models.Model):
 
     class Meta:
         db_table = 'metabase__dashboard_parameter'
-        unique_together = [['dashboard', 'name']]
-        verbose_name = t(
-            'Metabase Dashboard Parameter',
-            tag="MetabaseDashboardParameter__admin")
-        verbose_name_plural = t(
-            'Metabase Dashboard Parameters',
-            tag="MetabaseDashboardParameter__admin", plural=True)
+        unique_together = [['dashboard', 'name'], ]
+        verbose_name = 'Metabase Dashboard Parameter'
+        verbose_name_plural = 'Metabase Dashboard Parameters'
 
     def __str__(self):
         return '%s: %s' % (self.dashboard, self.name)

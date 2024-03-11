@@ -243,15 +243,11 @@ class KongRoute(models.Model):
         help_text="Order at frontend")
     service = models.ForeignKey(
         KongService, on_delete=models.CASCADE, related_name="route_set",
-        verbose_name=t(
-            "Service",
-            tag="KongRoute__admin__service"),
+        verbose_name="Service",
         help_text="Service associated with the route.")
     route_url = models.CharField(
         null=False, max_length=100, unique=True,
-        verbose_name=t(
-            "Route URL",
-            tag="KongRoute__admin__route_url"),
+        verbose_name="Route URL",
         help_text="Service associated with the route (must be unique).")
     route_name = models.CharField(
         null=False, max_length=100, unique=True,
@@ -291,12 +287,8 @@ class KongRoute(models.Model):
     class Meta:
         db_table = 'pumpwood__route'
         unique_together = [['route_name', 'route_url']]
-        verbose_name = t(
-            'Route',
-            tag="UserProfile__admin")
-        verbose_name_plural = t(
-            'Routes',
-            tag="UserProfile__admin", plural=True)
+        verbose_name = 'Route'
+        verbose_name_plural = 'Routes'
 
     def __str__(self):
         return 'service: %s; route: %s; route name: %s' % (
