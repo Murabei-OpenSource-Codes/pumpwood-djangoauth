@@ -137,6 +137,7 @@ class PumpwoodPermissionPolicyAction(models.Model):
     class Meta:
         db_table = 'api_permission__policy_action'
         unique_together = [['policy', 'action'], ]
+
         verbose_name = 'Custom Action Policy'
         verbose_name_plural = 'Custom Action Policies'
 
@@ -209,6 +210,8 @@ class PumpwoodPermissionUserGroupM2M(models.Model):
 
     class Meta:
         db_table = 'api_permission__user_group_m2m'
+        unique_together = [['user', 'group', ], ]
+
         verbose_name = 'Permission User -> Group'
         verbose_name_plural = 'Permission User -> Group'
 
@@ -226,11 +229,11 @@ class PumpwoodPermissionPolicyGroupM2M(models.Model):
         PumpwoodPermissionGroup, on_delete=models.CASCADE,
         related_name="permission_set", verbose_name="Group",
         help_text="Permission Group to apply policy")
-    general_permission = models.TextField(
+    general_policy = models.TextField(
         choices=PERMISSION_CHOICES,
         default="no_change", verbose_name="General Permission",
         help_text="Read/Write general permission")
-    custom_permission = models.ForeignKey(
+    custom_policy = models.ForeignKey(
         PumpwoodPermissionPolicy, on_delete=models.CASCADE,
         related_name="policy_group_set", verbose_name="Group",
         help_text="Pemission Policy that will be applied to the group")
@@ -252,6 +255,8 @@ class PumpwoodPermissionPolicyGroupM2M(models.Model):
 
     class Meta:
         db_table = 'api_permission__policy_group_m2m'
+        unique_together = [['group', 'custom_policy', 'general_policy'], ]
+
         verbose_name = 'Permission Policy -> Group'
         verbose_name_plural = 'Permission Policy -> Group'
 
@@ -296,5 +301,7 @@ class PumpwoodPermissionPolicyUserM2M(models.Model):
 
     class Meta:
         db_table = 'api_permission__policy_user_m2m'
+        unique_together = [['user', 'custom_policy', 'general_policy'], ]
+
         verbose_name = 'Permission Policy -> User'
         verbose_name_plural = 'Permission Policy -> User'
