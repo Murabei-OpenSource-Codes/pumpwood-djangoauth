@@ -225,6 +225,9 @@ class PumpwoodPermissionPolicyGroupM2M(models.Model):
         ('custom', 'Custom'),
     ]
 
+    priority = models.IntegerField(
+        null=False, default=0, verbose_name="Policy priority",
+        help_text="Policy priority, lower number will have precedence")
     group = models.ForeignKey(
         PumpwoodPermissionGroup, on_delete=models.CASCADE,
         related_name="permission_set", verbose_name="Group",
@@ -270,6 +273,9 @@ class PumpwoodPermissionPolicyUserM2M(models.Model):
         ('custom', 'Custom'),
     ]
 
+    priority = models.IntegerField(
+        null=False, default=0, verbose_name="Policy priority",
+        help_text="Policy priority, lower number will have precedence")
     user = models.ForeignKey(
         User, on_delete=models.CASCADE,
         related_name="api_permission_set",

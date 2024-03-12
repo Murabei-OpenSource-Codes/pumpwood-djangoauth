@@ -24,7 +24,7 @@ os.chdir(os.path.normpath(os.path.join(os.path.abspath(__file__), os.pardir)))
 
 setuptools.setup(
     name='pumpwood-djangoauth',
-    version='1.53',
+    version='1.54',
     include_package_data=True,
     license='BSD-3-Clause License',
     description='Assist creating views for Django using Pumpwood pattern.',

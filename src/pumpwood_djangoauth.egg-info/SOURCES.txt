@@ -19,6 +19,7 @@ src/pumpwood_djangoauth/api_permission/serializers.py
 src/pumpwood_djangoauth/api_permission/urls.py
 src/pumpwood_djangoauth/api_permission/views.py
 src/pumpwood_djangoauth/api_permission/migrations/0001_initial.py
+src/pumpwood_djangoauth/api_permission/migrations/0002_priority.py
 src/pumpwood_djangoauth/api_permission/migrations/__init__.py
 src/pumpwood_djangoauth/i8n/__init__.py
 src/pumpwood_djangoauth/i8n/admin.py
