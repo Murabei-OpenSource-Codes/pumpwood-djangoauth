@@ -1,7 +1,9 @@
+"""Django admin."""
 from django.contrib import admin
+from django.contrib import messages
 
 # Register your models here.
-from .models import KongService, KongRoute
+from pumpwood_djangoauth.system.models import KongService, KongRoute
 
 
 class KongServiceAdmin(admin.ModelAdmin):
@@ -17,7 +19,23 @@ class KongRouteAdmin(admin.ModelAdmin):
         "id", "service", "order", "availability", "route_name", "route_url",
         "route_type", "description")
     search_fields = ('description', 'route_url', 'route_name', )
-    list_filter = ('service', 'availability', )
+    list_filter = ('service', 'availability', 'route_type', )
+
+    actions = [
+        "make_front_avaiable", "make_front_hidden", ]
+
+    # Actions
+    @admin.action(description="Make avaiable")
+    def make_front_avaiable(self, request, queryset):
+        queryset.update(availability="front_avaiable")
+        msg = "Modified to avaiable: {}".format(queryset.count())
+        messages.add_message(request, messages.INFO, msg)
+
+    @admin.action(description="Make hidden")
+    def make_front_hidden(self, request, queryset):
+        queryset.update(availability="front_hidden")
+        msg = "Modified to hidden: {}".format(queryset.count())
+        messages.add_message(request, messages.INFO, msg)
 
 
 ##############
