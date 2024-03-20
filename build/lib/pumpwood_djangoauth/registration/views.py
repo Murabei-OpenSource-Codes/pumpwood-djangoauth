@@ -364,7 +364,17 @@ class RestUser(PumpWoodRestService):
 
     service_model = User
     serializer = SerializerUser
-    foreign_keys = {}
+    foreign_keys = {
+        "mfa_method_set": {
+            'model_class': 'PumpwoodMFAMethod', 'many': True,
+            'foreign_key': 'user_id', 'read_only': False},
+        "api_permission_set": {
+            'model_class': 'PumpwoodPermissionPolicyUserM2M', 'many': True,
+            'foreign_key': 'user_id', 'read_only': False},
+        "api_permission_group_set": {
+            'model_class': 'PumpwoodPermissionUserGroupM2M', 'many': True,
+            'foreign_key': 'user_id', 'read_only': False},
+    }
 
     #######
     # GUI #
@@ -374,13 +384,18 @@ class RestUser(PumpWoodRestService):
     gui_retrieve_fieldset = [{
             "name": "main",
             "fields": [
-                'is_active', 'is_service_user', 'is_superuser',
-                'is_staff', 'username', 'email', 'dimensions', 'last_login']
+                'username', 'first_name', 'last_name'
+                'is_active', 'email', 'dimensions', 'last_login']
         }, {
-            "name": "user info/permissions",
+            "name": "Admin permissions",
             "fields": [
-                'first_name', 'last_name', 'date_joined', 'all_permissions',
-                'group_permissions'
+                'is_service_user', 'is_superuser', 'is_staff',
+                'all_permissions', 'group_permissions'
+            ]
+        }, {
+            "name": "API permissions",
+            "fields": [
+                'api_permission_set', 'api_permission_group_set'
             ]
         }, {
             "name": "extra_fields",
