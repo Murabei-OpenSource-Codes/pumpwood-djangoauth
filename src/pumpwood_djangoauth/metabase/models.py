@@ -3,6 +3,7 @@ import jwt
 import os
 import time
 import pandas as pd
+from typing import List
 from django.db import models
 from django.conf import settings
 from pumpwood_djangoviews.action import action
@@ -141,6 +142,77 @@ class MetabaseDashboard(models.Model):
                     "have pk parameter. Please do not delete!**"),
                 default_value=None)
             parameter.save()
+
+    @classmethod
+    @action(info='Dump dashboards and parameters')
+    def dump_dashboards(cls, filter_alias: List[str] = None,
+                        exclude_alias: List[str] = None) -> List[str]:
+        """
+        Dump dashboard and parameters to load on another server.
+
+        Args:
+            No args.
+        Kwargs:
+            filter_alias [List[str]]: Filter dashboard that will be dumped.
+            exclude_alias [List[str]]: Exclude dashboard that will be dumped.
+        Return List[dict]:
+            List of serialized dashboards and its parameters without pks
+            associated with them.
+        """
+        from pumpwood_djangoauth.metabase.serializers import (
+            MetabaseDashboardSerializer, MetabaseDashboardParameterSerializer)
+
+        dashboards = list(cls.objects.filter(
+            alias__in=filter_alias).exclude(alias__in=exclude_alias))
+
+        response_list = []
+        for dash in dashboards:
+            # Remove pks, they will not match other server pk
+            temp_data = MetabaseDashboardSerializer(dash).data
+            del temp_data["pk"]
+            temp_parameters = MetabaseDashboardParameterSerializer(
+                dash.parameter_set.all(), many=True).data
+            for x in temp_parameters:
+                del x["pk"]
+                del x["dashboard_id"]
+            temp_data["parameter_set"] = temp_parameters
+            response_list.append(temp_data)
+        return response_list
+
+    @classmethod
+    @action(info='Load dashboards and parameters')
+    def load_dashboards(cls, dashboard_dump: List[dict]) -> List[str]:
+        """
+        Load dashboard and parameters to load on another server.
+
+        Args:
+            No args.
+        Kwargs:
+            filter_alias [List[str]]: Filter dashboard that will be dumped.
+            exclude_alias [List[str]]: Exclude dashboard that will be dumped.
+        Return List[dict]:
+            List of serialized dashboards and its parameters without pks
+            associated with them.
+        """
+        from pumpwood_djangoauth.metabase.serializers import (
+            MetabaseDashboardSerializer, MetabaseDashboardParameterSerializer)
+
+        dashboards = list(cls.objects.filter(
+            alias__in=filter_alias).exclude(alias__in=exclude_alias))
+
+        response_list = []
+        for dash in dashboards:
+            # Remove pks, they will not match other server pk
+            temp_data = MetabaseDashboardSerializer(dash).data
+            del temp_data["pk"]
+            temp_parameters = MetabaseDashboardParameterSerializer(
+                dash.parameter_set.all(), many=True).data
+            for x in temp_parameters:
+                del x["pk"]
+                del x["dashboard_id"]
+            temp_data["parameter_set"] = temp_parameters
+            response_list.append(temp_data)
+        return response_list
 
     @classmethod
     @action(info='Generate url to embed with iframe using dashboard alias.',
