@@ -10,27 +10,28 @@ from pumpwood_djangoauth.api_permission.models import (
 
 
 class SerializerPumpwoodPermissionPolicy(DynamicFieldsModelSerializer):
-    pk = serializers.IntegerField(source='id', allow_null=True)
+    pk = serializers.IntegerField(source='id', allow_null=True, required=False)
     model_class = ClassNameField()
-    route_id = serializers.IntegerField(allow_null=False, required=True)
     route_id = serializers.IntegerField(allow_null=False, required=True)
 
     class Meta:
         model = PumpwoodPermissionPolicy
         fields = (
             'pk', 'model_class', 'description', 'notes', 'dimensions',
-            'route_id', 'list', 'list_without_pag', 'retrieve',
-            'retrieve_file', 'delete', 'delete_many', 'delete_file', 'save',
-            'extra_info', 'updated_by_id', 'updated_at')
+            'route_id', 'can_retrieve', 'can_retrieve_file', 'can_delete',
+            'can_delete_many', 'can_delete_file', 'can_save',
+            'can_run_actions', 'extra_info', 'updated_by_id',
+            'updated_at')
         read_only = ["updated_by_id", "updated_at"]
 
     def create(self, validated_data):
         validated_data["updated_by_id"] = self.context['request'].user.id
+        print('create:', validated_data)
         return super().create(validated_data)
 
 
 class SerializerPumpwoodPermissionPolicyAction(DynamicFieldsModelSerializer):
-    pk = serializers.IntegerField(source='id', allow_null=True)
+    pk = serializers.IntegerField(source='id', allow_null=True, required=False)
     model_class = ClassNameField()
     policy_id = serializers.IntegerField(allow_null=False, required=True)
 
@@ -47,7 +48,7 @@ class SerializerPumpwoodPermissionPolicyAction(DynamicFieldsModelSerializer):
 
 
 class SerializerPumpwoodPermissionGroup(DynamicFieldsModelSerializer):
-    pk = serializers.IntegerField(source='id', allow_null=True)
+    pk = serializers.IntegerField(source='id', allow_null=True, required=False)
     model_class = ClassNameField()
 
     class Meta:
@@ -63,7 +64,7 @@ class SerializerPumpwoodPermissionGroup(DynamicFieldsModelSerializer):
 
 
 class SerializerPumpwoodPermissionUserGroupM2M(DynamicFieldsModelSerializer):
-    pk = serializers.IntegerField(source='id', allow_null=True)
+    pk = serializers.IntegerField(source='id', allow_null=True, required=False)
     model_class = ClassNameField()
     user_id = serializers.IntegerField(
         allow_null=False, required=True)
@@ -83,7 +84,7 @@ class SerializerPumpwoodPermissionUserGroupM2M(DynamicFieldsModelSerializer):
 
 
 class SerializerPumpwoodPermissionPolicyGroupM2M(DynamicFieldsModelSerializer):
-    pk = serializers.IntegerField(source='id', allow_null=True)
+    pk = serializers.IntegerField(source='id', allow_null=True, required=False)
     model_class = ClassNameField()
     group_id = serializers.IntegerField(
         allow_null=False, required=True)
@@ -103,7 +104,7 @@ class SerializerPumpwoodPermissionPolicyGroupM2M(DynamicFieldsModelSerializer):
 
 
 class SerializerPumpwoodPermissionPolicyUserM2M(DynamicFieldsModelSerializer):
-    pk = serializers.IntegerField(source='id', allow_null=True)
+    pk = serializers.IntegerField(source='id', allow_null=True, required=False)
     model_class = ClassNameField()
     user_id = serializers.IntegerField(
         allow_null=False, required=True)

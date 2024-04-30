@@ -3,12 +3,14 @@ import jwt
 import os
 import time
 import pandas as pd
+from typing import List
 from django.db import models
 from django.conf import settings
 from pumpwood_djangoviews.action import action
 from pumpwood_communication.serializers import PumpWoodJSONEncoder
 from pumpwood_communication.exceptions import (
-    PumpWoodActionArgsException, PumpWoodObjectDoesNotExist)
+    PumpWoodActionArgsException, PumpWoodObjectDoesNotExist,
+    PumpWoodException)
 from pumpwood_djangoauth.config import microservice_no_login
 from pumpwood_djangoauth.i8n.translate import t
 
@@ -141,6 +143,144 @@ class MetabaseDashboard(models.Model):
                     "have pk parameter. Please do not delete!**"),
                 default_value=None)
             parameter.save()
+
+    @classmethod
+    @action(info='Dump dashboards and parameters')
+    def dump_dashboards(cls, filter_alias: List[str] = None,
+                        exclude_alias: List[str] = None) -> List[str]:
+        """
+        Dump dashboard and parameters to load on another server.
+
+        Args:
+            No args.
+        Kwargs:
+            filter_alias [List[str]]: Filter dashboard that will be dumped.
+            exclude_alias [List[str]]: Exclude dashboard that will be dumped.
+        Return List[dict]:
+            List of serialized dashboards and its parameters without pks
+            associated with them.
+        """
+        from pumpwood_djangoauth.metabase.serializers import (
+            MetabaseDashboardSerializer, MetabaseDashboardParameterSerializer)
+
+        # Django query parameters
+        filter_kwargs = {}
+        if filter_alias is not None:
+            filter_kwargs["alias__in"] = filter_alias
+
+        exclude_kwargs = {}
+        if exclude_alias is not None:
+            exclude_kwargs["alias__in"] = exclude_alias
+
+        dashboards = cls.objects\
+            .filter(**filter_kwargs)\
+            .exclude(**exclude_kwargs)
+
+        response_list = []
+        for dash in dashboards:
+            # Remove pks, they will not match other server pk
+            temp_data = MetabaseDashboardSerializer(dash).data
+            del temp_data["pk"]
+            temp_parameters = MetabaseDashboardParameterSerializer(
+                dash.parameter_set.all(), many=True).data
+            for x in temp_parameters:
+                del x["pk"]
+                del x["dashboard_id"]
+            temp_data["parameter_set"] = temp_parameters
+            response_list.append(temp_data)
+        return response_list
+
+    @classmethod
+    @action(info='Load dashboards and parameters')
+    def load_dashboards(cls, dashboard_dump: List[dict]) -> bool:
+        """
+        Load dashboard and parameters to load on another server.
+
+        Args:
+            dashboard_dump [list[dict]]: List of dumped dashboards and its
+                parameters.
+        Kwargs:
+            No kwargs.
+        Return [bool]:
+            Return true..
+        """
+        # Create or update MetabaseDashboard if there is a corresponding
+        # Dashboard with same alias
+        for d in dashboard_dump:
+            dashboard_obj = MetabaseDashboard.objects.filter(
+                alias=d["alias"]).first()
+            if dashboard_obj is None:
+                dashboard_obj = MetabaseDashboard()
+
+            not_update_keys = ["pk", "model_class", "parameter_set"]
+            for key, item in d.items():
+                if key in not_update_keys:
+                    continue
+                try:
+                    setattr(dashboard_obj, key, item)
+                except Exception as e:
+                    msg = (
+                        "It was not possible to set attribute [{attribute}] "
+                        "value [{value}] to and MetabaseDashboard instance."
+                        "Check if data was correctly dumped and not edited "
+                        "latter.\nError: {error}")
+                    raise PumpWoodActionArgsException(
+                        message=msg, payload={
+                            'attribute': key, 'value': item,
+                            'error': str(e)})
+
+            # Save updated dashboard
+            try:
+                dashboard_obj.save()
+            except Exception as e:
+                msg = (
+                    "Error saving MetabaseDashboard object to database."
+                    "Error: {error}")
+                raise PumpWoodException(
+                    message=msg, payload={
+                        'attribute': key, 'value': item,
+                        'error': str(e)})
+
+            for param in d["parameter_set"]:
+                parameter_obj = MetabaseDashboardParameter.objects\
+                    .filter(
+                        dashboard_id=dashboard_obj.id,
+                        name=param["name"]).first()
+                if parameter_obj is None:
+                    parameter_obj = MetabaseDashboardParameter()
+
+                parameter_obj.dashboard_id = dashboard_obj.id
+                not_update_keys = [
+                    "pk", "model_class", "dashboard_id"]
+                for key, item in param.items():
+                    if key in not_update_keys:
+                        continue
+
+                    try:
+                        setattr(parameter_obj, key, item)
+                    except Exception as e:
+                        msg = (
+                            "It was not possible to set attribute "
+                            "[{attribute}] value [{value}] to and "
+                            "MetabaseDashboardParameter instance. "
+                            "Check if data was correctly dumped and "
+                            "not edited latter.\nError: {error}")
+                        raise PumpWoodActionArgsException(
+                            message=msg, payload={
+                                'attribute': key, 'value': item,
+                                'error': str(e)})
+                # Save parameter
+                try:
+                    parameter_obj.save()
+                except Exception as e:
+                    msg = (
+                        "Error saving MetabaseDashboardParameter "
+                        "object to database. Error: {error}")
+                    raise PumpWoodException(
+                        message=msg, payload={
+                            'attribute': key, 'value': item,
+                            'error': str(e)})
+        return True
 
     @classmethod
     @action(info='Generate url to embed with iframe using dashboard alias.',
