@@ -140,7 +140,8 @@ class PumpwoodMFAMethod(models.Model):
         Return [dict]:
             pass
         """
-        from pumpwood_djangoauth.registration.mfa_aux import sso
+        from pumpwood_djangoauth.registration.mfa_aux.views.oauth2 import (
+            create_sso_client)
 
         validation_mfa = PumpwoodMFAToken.objects.filter(
             token=mfa_token).first()
@@ -162,13 +163,22 @@ class PumpwoodMFAMethod(models.Model):
 
         # Create an redirect URL for SSO autorization
         if self.type == 'sso':
-            authorization_url = sso.sso_generate_authorization_url(
-                session_token=validation_mfa.token)
+            sso_client = create_sso_client()
+            authorization_url = sso_client.create_authorization_url(
+                state=validation_mfa.token)
             return {"authorization_url": authorization_url}
 
         msg = "Method {method} not implemented"
         raise PumpWoodNotImplementedError(
             msg, payload={"method": self.type})
+
+        return {
+            'mfa_method_type': self.type,
+            'mfa_method_result': {
+                'authorization_url': authorization_url['authorization_url']
+            },
+            'expiry': validation_mfa.expire_at,
+            'mfa_token': validation_mfa.token}
 
 
 class PumpwoodMFAToken(models.Model):
