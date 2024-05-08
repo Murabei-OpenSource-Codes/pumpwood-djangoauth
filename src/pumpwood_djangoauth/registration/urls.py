@@ -1,6 +1,7 @@
 from pumpwood_djangoviews.routers import PumpWoodRouter
 from django.conf.urls import url
 from pumpwood_djangoauth.registration import views
+from pumpwood_djangoauth.registration.mfa_aux.views import oauth2
 from knox import views as knox_views
 
 pumpwoodrouter = PumpWoodRouter()
@@ -30,6 +31,14 @@ urlpatterns = [
     url(r'^rest/registration/mfa-validate-code/$',
         views.MFALoginView.as_view(),
         name='rest__registration__mfa_validate_code'),
+
+    # OAuth2 End-points
+    url(r'^rest/registration/oauth2-login/$',
+        oauth2.SSOLoginView.as_view(),
+        name='rest__registration__oauth2_login'),
+    url(r'^rest/registration/oauth2-callback/$',
+        oauth2.processs_oauth2_callback,
+        name='rest__registration__oauth2_callback'),
 ]
 
 urlpatterns += pumpwoodrouter.urls

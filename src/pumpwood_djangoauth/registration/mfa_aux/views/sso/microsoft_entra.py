@@ -1,0 +1,99 @@
+"""Make calls to perform SSO using MicrosoftEntra."""
+import os
+import urllib.parse
+import jwt
+from pumpwood_communication import exceptions
+from requests_oauthlib import OAuth2Session
+
+
+class MicrosoftEntraSSO:
+    """Class to help performing Microsoft Entra SSO."""
+
+    SCOPE = ['openid', 'profile', 'email']
+
+    def __init__(self, ):
+        """."""
+        PUMPWOOD__SSO__BASE_REDIRECT_URL = os.getenv(
+            "PUMPWOOD__SSO__BASE_REDIRECT_URL")
+        PUMPWOOD__SSO__AUTHORIZATION_URL = os.getenv(
+            "PUMPWOOD__SSO__AUTHORIZATION_URL")
+        PUMPWOOD__SSO__TOKEN_URL = os.getenv(
+            "PUMPWOOD__SSO__TOKEN_URL")
+        PUMPWOOD__SSO__MS_ENTRA__CLIENT_ID = os.getenv(
+            "PUMPWOOD__SSO__MS_ENTRA__CLIENT_ID")
+        PUMPWOOD__SSO__MS_ENTRA__SECRET = os.getenv(
+            "PUMPWOOD__SSO__MS_ENTRA__SECRET")
+
+        check_variables = (
+            (PUMPWOOD__SSO__BASE_REDIRECT_URL is None) or
+            (PUMPWOOD__SSO__AUTHORIZATION_URL is None) or
+            (PUMPWOOD__SSO__TOKEN_URL is None) or
+            (PUMPWOOD__SSO__MS_ENTRA__CLIENT_ID is None) or
+            (PUMPWOOD__SSO__MS_ENTRA__SECRET is None))
+        if check_variables:
+            msg = (
+                "Enviroment variables PUMPWOOD__SSO__PROVIDER, "
+                "PUMPWOOD__SSO__AUTHORIZATION_URL, PUMPWOOD__SSO__TOKEN_URL, "
+                "PUMPWOOD__SSO__MS_ENTRA__CLIENT_ID, "
+                "PUMPWOOD__SSO__MS_ENTRA__SECRET must be set to use "
+                "Microsoft Entra as SSO")
+            raise exceptions.PumpWoodForbidden(msg)
+        self._redirect_uri = urllib.parse.urljoin(
+            PUMPWOOD__SSO__BASE_REDIRECT_URL,
+            "rest/registration/oauth2-callback")
+        self.PUMPWOOD__SSO__AUTHORIZATION_URL = \
+            PUMPWOOD__SSO__AUTHORIZATION_URL
+        self.PUMPWOOD__SSO__TOKEN_URL = \
+            PUMPWOOD__SSO__TOKEN_URL
+        self.PUMPWOOD__SSO__MS_ENTRA__CLIENT_ID = \
+            PUMPWOOD__SSO__MS_ENTRA__CLIENT_ID
+        self.PUMPWOOD__SSO__MS_ENTRA__SECRET = \
+            PUMPWOOD__SSO__MS_ENTRA__SECRET
+
+    def create_authorization_url(self):
+        """
+        Create authentication URL for Microsoft Entra SSO.
+
+        Args:
+            No Args.
+        Kwargs:
+            No Kwargs.
+        Return [dict]:
+        """
+        oauth = OAuth2Session(
+            self.PUMPWOOD__SSO__MS_ENTRA__CLIENT_ID,
+            redirect_uri=self._redirect_uri,
+            scope=self.SCOPE)
+        authorization_url, state = oauth.authorization_url(
+            self.PUMPWOOD__SSO__AUTHORIZATION_URL)
+        return {
+            "authorization_url": authorization_url,
+            "state": state}
+
+    def fetch_token(self, authorization_response_url: str):
+        """
+        Fetch authorization token and user information.
+
+        Args:
+            authorization_response_url [str]: Autorization response url
+                passed after redirect of SSO authentication.
+        Kwargs:
+
+        """
+        ##############################################################
+        # Set OAUTHLIB_INSECURE_TRANSPORT it crashs with sub-domains #
+        os.environ['OAUTHLIB_INSECURE_TRANSPORT'] = '1'
+        ##############################################################
+
+        oauth = OAuth2Session(
+            self.PUMPWOOD__SSO__MS_ENTRA__CLIENT_ID,
+            redirect_uri=self._redirect_uri,
+            scope=self.SCOPE)
+        token = oauth.fetch_token(
+            self.PUMPWOOD__SSO__TOKEN_URL,
+            authorization_response=authorization_response_url,
+            client_secret=self.PUMPWOOD__SSO__MS_ENTRA__SECRET)
+        decoded_token = jwt.decode(
+            token['id_token'], options={"verify_signature": False})
+        return {
+            "email": decoded_token['email']}

@@ -87,13 +87,12 @@ class LoginView(KnoxLoginView):
                 # Create a token to validate MFA login and creation
                 new_mfa_token = PumpwoodMFAToken(user=user)
                 new_mfa_token.save()
-
-                # Create MFA token using primary mfa
-                mfa_code = PumpwoodMFACode(
-                    token=new_mfa_token, mfa_method=priority_mfa)
-                mfa_code.save()
+                method_result = priority_mfa.run_method(
+                    mfa_token=new_mfa_token.token)
 
                 return Response({
+                    'mfa_method_type': priority_mfa.type,
+                    'mfa_method_result': method_result,
                     'expiry': new_mfa_token.expire_at,
                     'mfa_token': new_mfa_token.token,
                     'user': None,
@@ -190,9 +189,19 @@ def create_new_mfa_code(request, pk=None):
             'associated with current user').format(pk=pk)
         raise exceptions.PumpWoodObjectDoesNotExist(msg)
 
-    mfa_code = PumpwoodMFACode(token=mfa_token_obj, mfa_method=mfa_method)
-    mfa_code.save()
-    return Response(True)
+    # Run MFA method
+    method_results = mfa_method.run_method(
+        mfa_token=mfa_token_obj.token)
+    is_ingress_request = request.headers.get(
+        "X-PUMPWOOD-Ingress-Request", 'NOT-EXTERNAL')
+
+    return Response({
+        'mfa_method_type': mfa_method.type,
+        'mfa_method_result': method_results,
+        'expiry': mfa_token_obj.expire_at,
+        'mfa_token': mfa_token_obj.token,
+        'user': None,
+        "ingress-call": is_ingress_request})
 
 
 class MFALoginView(KnoxLoginView):
