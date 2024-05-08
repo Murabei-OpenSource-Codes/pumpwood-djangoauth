@@ -87,13 +87,12 @@ class LoginView(KnoxLoginView):
                 # Create a token to validate MFA login and creation
                 new_mfa_token = PumpwoodMFAToken(user=user)
                 new_mfa_token.save()
-
-                # Create MFA token using primary mfa
-                mfa_code = PumpwoodMFACode(
-                    token=new_mfa_token, mfa_method=priority_mfa)
-                mfa_code.save()
+                method_result = priority_mfa.run_method(
+                    mfa_token=new_mfa_token.token)
 
                 return Response({
+                    'mfa_method_type': priority_mfa.type,
+                    'mfa_method_result': method_result,
                     'expiry': new_mfa_token.expire_at,
                     'mfa_token': new_mfa_token.token,
                     'user': None,
@@ -163,69 +162,6 @@ def get_user_mfa_methods(request):
     mfa_method_set_data = SerializerPumpwoodMFAMethod(
         mfa_method_set, many=True).data
     return Response(mfa_method_set_data)
-
-
-@api_view(['GET'])
-@permission_classes([permissions.AllowAny])
-def create_new_mfa_code(request, pk=None):
-    """
-    Create a new MFA code.
-
-    Args:
-        request: Django Rest request.
-    Return [bool]:
-        Return True if code sent to MFA.
-    """
-    # Validate MFA token
-    mfa_token_obj = validate_mfa_token(request)
-
-    #############################################################
-    # Fetch MFA method, used argument pk, but also filter by user
-    # to not let user spoffing
-    mfa_method = PumpwoodMFAMethod.objects.filter(
-        user=mfa_token_obj.user, pk=pk).first()
-    if mfa_method is None:
-        msg = (
-            'MFA code with pk[{pk}] does not exists or is not '
-            'associated with current user').format(pk=pk)
-        raise exceptions.PumpWoodObjectDoesNotExist(msg)
-
-    mfa_code = PumpwoodMFACode(token=mfa_token_obj, mfa_method=mfa_method)
-    mfa_code.save()
-    return Response(True)
-
-
-class MFALoginView(KnoxLoginView):
-    permission_classes = (permissions.AllowAny,)
-
-    def post(self, request, format=None):
-        """Login user with MFA Token and MFA Code."""
-        request_data = request.data
-        if "mfa_code" not in request_data.keys():
-            msg = "Missing 'code' on resquest data"
-            raise exceptions.PumpWoodWrongParameters(
-                message=msg, payload={"mfa_code": ['missing']})
-
-        # Validate MFA token
-        mfa_token_obj = validate_mfa_token(request)
-        is_ingress_request = request.headers.get(
-            "X-PUMPWOOD-Ingress-Request", 'NOT-EXTERNAL')
-
-        mfa_code = PumpwoodMFACode.objects.filter(
-            token=mfa_token_obj, code=request_data["mfa_code"]).first()
-        if mfa_code is None:
-            msg = 'MFA code incorrect'
-            raise exceptions.PumpWoodUnauthorized(
-                message=msg, payload={"error": "mfa_code_not_found"})
-
-        user = mfa_token_obj.user
-        login(request, user)
-
-        resp = super(MFALoginView, self).post(request, format=None).data
-        return Response({
-            'expiry': resp['expiry'], 'token': resp['token'],
-            'user': SerializerUser(request.user, many=False).data,
-            "ingress-call": is_ingress_request})
 
 
 class CheckAuthentication(APIView):

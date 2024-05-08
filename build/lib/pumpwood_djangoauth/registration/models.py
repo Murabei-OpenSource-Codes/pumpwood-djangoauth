@@ -10,7 +10,7 @@ from django.db.models.signals import post_save
 from django.dispatch import receiver
 from pumpwood_communication.serializers import PumpWoodJSONEncoder
 from pumpwood_communication.exceptions import (
-    PumpWoodForbidden, PumpWoodMFAError)
+    PumpWoodForbidden, PumpWoodMFAError, PumpWoodNotImplementedError)
 from pumpwood_djangoauth.registration.mfa_aux.main import send_mfa_code
 from pumpwood_djangoauth.i8n.translate import t
 
@@ -51,6 +51,7 @@ class PumpwoodMFAMethod(models.Model):
 
     TYPES = [
         ('sms', 'SMS'),
+        ('sso', 'Single Sign-On'),
     ]
     is_enabled = models.BooleanField(
         default=True,
@@ -110,12 +111,12 @@ class PumpwoodMFAMethod(models.Model):
         # Validate MFA Method for user
         validation_mfa = PumpwoodMFAToken(user=self.user)
         validation_mfa.save()
+
         try:
             # Check if it is possible to create a MFACode
             super(PumpwoodMFAMethod, self).save(*args, **kwargs)
-            validation_mfacode = PumpwoodMFACode(
-                token=validation_mfa, mfa_method=self)
-            validation_mfacode.save()
+            self.run_method(mfa_token=validation_mfa.token)
+
             self.is_validated = True
             self.msg = "MFA validated"
             super(PumpwoodMFAMethod, self).save(*args, **kwargs)
@@ -127,6 +128,57 @@ class PumpwoodMFAMethod(models.Model):
             self.is_validated = False
             self.msg = e.message
             super(PumpwoodMFAMethod, self).save(*args, **kwargs)
+
+    def run_method(self, mfa_token: str):
+        """
+        Run MFA method.
+
+        Args:
+            mfa_token [str] MFA Token.
+        Kwargs:
+            No Kwargs.
+        Return [dict]:
+            pass
+        """
+        from pumpwood_djangoauth.registration.mfa_aux.views.oauth2 import (
+            create_sso_client)
+
+        validation_mfa = PumpwoodMFAToken.objects.filter(
+            token=mfa_token).first()
+        if validation_mfa is None:
+            msg = "MFA token not found"
+            raise PumpWoodMFAError(msg)
+
+        # Create an MFA Code and send it using an sms broker
+        if self.type == 'app_log':
+            new_code = PumpwoodMFACode(token=validation_mfa, mfa_method=self)
+            new_code.save()
+            return {"code_status": "logged"}
+
+        # Create an MFA Code and send it using an sms broker
+        if self.type == 'sms':
+            new_code = PumpwoodMFACode(token=validation_mfa, mfa_method=self)
+            new_code.save()
+            return {"code_status": "sent"}
+
+        # Create an redirect URL for SSO autorization
+        if self.type == 'sso':
+            sso_client = create_sso_client()
+            authorization_url = sso_client.create_authorization_url(
+                state=validation_mfa.token)
+            return {"authorization_url": authorization_url}
+
+        msg = "Method {method} not implemented"
+        raise PumpWoodNotImplementedError(
+            msg, payload={"method": self.type})
+
+        return {
+            'mfa_method_type': self.type,
+            'mfa_method_result': {
+                'authorization_url': authorization_url['authorization_url']
+            },
+            'expiry': validation_mfa.expire_at,
+            'mfa_token': validation_mfa.token}
 
 
 class PumpwoodMFAToken(models.Model):

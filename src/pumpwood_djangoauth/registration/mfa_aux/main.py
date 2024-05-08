@@ -1,5 +1,4 @@
 """Main method to send MFA codes."""
-import os
 from pumpwood_djangoauth.registration.mfa_aux import app_log
 from pumpwood_djangoauth.registration.mfa_aux import twilio_sms
 from pumpwood_communication.exceptions import PumpWoodNotImplementedError
