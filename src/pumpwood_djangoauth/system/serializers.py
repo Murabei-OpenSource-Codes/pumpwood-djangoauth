@@ -51,12 +51,6 @@ class KongServiceSerializer(DynamicFieldsModelSerializer):
     description__verbose = serializers.SerializerMethodField()
     notes__verbose = serializers.SerializerMethodField()
 
-    # ForeignKey
-    route_set = MicroserviceRelatedField(
-        microservice=microservice,
-        write_only=False, model_class='KongRoute',
-        foreign_key='service_id', order_by=["route_name"])
-
     class Meta:
         model = KongService
         fields = (
