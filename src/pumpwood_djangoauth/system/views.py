@@ -39,7 +39,10 @@ def view__get_registred_endpoints(request):
     all_sevices = KongService.objects.order_by(
         "order", "description").all()
     all_sevices_data = KongServiceSerializer(
-        all_sevices, many=True).data
+        all_sevices, many=True,
+        fields=[
+            "pk", "order", "availability", "service_id", "route_name",
+            "route_type", "description", "route_set"]).data
 
     resp_services = []
     for service in all_sevices_data:
