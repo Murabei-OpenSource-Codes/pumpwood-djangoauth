@@ -125,11 +125,6 @@ class RestKongRoute(PumpWoodRestService):
 
     service_model = KongRoute
     serializer = KongRouteSerializer
-    foreign_keys = {
-        'service_id': {
-            'model_class': 'KongService', 'many': False,
-            'display_field': 'service_name'},
-    }
 
     #######
     # GUI #
@@ -185,11 +180,6 @@ class RestKongService(PumpWoodRestService):
 
     service_model = KongService
     serializer = KongServiceSerializer
-    foreign_keys = {
-        'route_set': {
-            'model_class': 'KongRoute', 'many': True,
-            'foreign_key': 'service_id'}
-    }
 
     #######
     # GUI #

@@ -56,11 +56,11 @@ class SerializerUser(DynamicFieldsModelSerializer):
             'pk', 'model_class', 'username', 'email', 'first_name',
             'last_name', 'last_login', 'date_joined', 'is_active', 'is_staff',
             'is_superuser', 'all_permissions', 'group_permissions',
-            'user_profile', 'mfa_method_set', 'api_permission_set',
+            'user_profile',
+            'mfa_method_set', 'api_permission_set',
             'api_permission_group_set', 'mfa_method_set', 'mfa_token_set',
-            'recovery_codes_set',)
-        read_only = (
-            'last_login', 'date_joined')
+            'recovery_codes_set')
+        read_only = ('last_login', 'date_joined')
 
     def get_all_permissions(self, obj):
         all_permissions = list(obj.get_all_permissions())
