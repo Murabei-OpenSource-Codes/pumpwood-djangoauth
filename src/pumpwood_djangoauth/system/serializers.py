@@ -2,9 +2,11 @@ import pumpwood_djangoauth.i8n.translate as _
 from rest_framework import serializers
 from pumpwood_djangoviews.serializers import (
     ClassNameField, CustomChoiceTypeField, CustomNestedSerializer,
-    DynamicFieldsModelSerializer)
+    DynamicFieldsModelSerializer, MicroserviceForeignKeyField,
+    MicroserviceRelatedField)
 from pumpwood_communication.serializers import PumpWoodJSONEncoder
 from pumpwood_djangoauth.system.models import KongService, KongRoute
+from pumpwood_djangoauth.config import microservice
 
 
 ########
@@ -12,15 +14,20 @@ from pumpwood_djangoauth.system.models import KongService, KongRoute
 class KongRouteSerializer(DynamicFieldsModelSerializer):
     pk = serializers.IntegerField(source='id', allow_null=True, required=False)
     model_class = ClassNameField()
-    service_id = serializers.IntegerField(allow_null=False, required=True)
     description__verbose = serializers.SerializerMethodField()
     notes__verbose = serializers.SerializerMethodField()
+
+    # ForeignKey
+    service_id = serializers.IntegerField(allow_null=False, required=True)
+    service = MicroserviceForeignKeyField(
+        model_class="KongService", source="service_id",
+        microservice=microservice, display_field='service_name')
 
     class Meta:
         model = KongRoute
         fields = (
-            "pk", "model_class", "availability", "service_id", "route_url",
-            "order", "route_name", "route_kong_id", "route_type",
+            "pk", "model_class", "availability", "service_id", "service",
+            "route_url", "order", "route_name", "route_kong_id", "route_type",
             "description", "notes", "dimensions", "icon", "extra_info",
             "description__verbose", "notes__verbose")
 
@@ -43,6 +50,12 @@ class KongServiceSerializer(DynamicFieldsModelSerializer):
     route_set = serializers.SerializerMethodField()
     description__verbose = serializers.SerializerMethodField()
     notes__verbose = serializers.SerializerMethodField()
+
+    # ForeignKey
+    route_set = MicroserviceRelatedField(
+        microservice=microservice,
+        write_only=False, model_class='KongRoute',
+        foreign_key='service_id', order_by=["route_name"])
 
     class Meta:
         model = KongService

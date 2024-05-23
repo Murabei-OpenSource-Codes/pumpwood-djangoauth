@@ -63,7 +63,8 @@ class RestMetabaseDashboardParameter(PumpWoodRestService):
 
     foreign_keys = {
         "dashboard_id": {
-            "model_class": "MetabaseDashboard", "many": False},
+            "model_class": "MetabaseDashboard",
+            "many": False},
     }
 
     file_fields = {

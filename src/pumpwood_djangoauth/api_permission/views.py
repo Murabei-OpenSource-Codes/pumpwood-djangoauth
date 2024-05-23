@@ -102,9 +102,6 @@ class RestPumpwoodPermissionPolicy(PumpWoodRestService):
     serializer = SerializerPumpwoodPermissionPolicy
     storage_object = storage_object
     microservice = microservice
-    foreign_keys = {
-        "updated_by_id": {"model_class": "User", "many": False},
-    }
 
     #######
     # GUI #
@@ -145,12 +142,6 @@ class RestPumpwoodPermissionPolicyAction(PumpWoodRestService):
     serializer = SerializerPumpwoodPermissionPolicyAction
     storage_object = storage_object
     microservice = microservice
-    foreign_keys = {
-        'policy_id': {
-            "model_class": "PumpwoodPermissionPolicy", "many": False},
-        "updated_by_id": {
-            "model_class": "User", "many": False},
-    }
 
     #######
     # GUI #

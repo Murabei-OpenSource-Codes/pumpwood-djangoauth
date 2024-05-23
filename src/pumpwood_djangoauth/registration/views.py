@@ -300,17 +300,6 @@ class RestUser(PumpWoodRestService):
 
     service_model = User
     serializer = SerializerUser
-    foreign_keys = {
-        "mfa_method_set": {
-            'model_class': 'PumpwoodMFAMethod', 'many': True,
-            'foreign_key': 'user_id', 'read_only': False},
-        "api_permission_set": {
-            'model_class': 'PumpwoodPermissionPolicyUserM2M', 'many': True,
-            'foreign_key': 'user_id', 'read_only': False},
-        "api_permission_group_set": {
-            'model_class': 'PumpwoodPermissionUserGroupM2M', 'many': True,
-            'foreign_key': 'user_id', 'read_only': False},
-    }
 
     #######
     # GUI #
