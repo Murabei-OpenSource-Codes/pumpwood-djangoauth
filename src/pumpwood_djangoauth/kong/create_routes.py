@@ -105,7 +105,6 @@ def register_auth_kong_objects(service_url: str, service_description: str,
             "icon": icon,
             "extra_info": {
                 "view_type": view._view_type,
-                "foreign_keys": view.foreign_keys,
                 "list_fields": view.list_fields,
                 "file_fields": view.file_fields,
                 "search_options": search_options
