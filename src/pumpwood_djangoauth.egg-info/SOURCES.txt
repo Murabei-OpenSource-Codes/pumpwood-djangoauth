@@ -115,6 +115,7 @@ src/pumpwood_djangoauth/registration/migrations/0009_auto_20240205_1154.py
 src/pumpwood_djangoauth/registration/migrations/0010_auto_20240209_2228.py
 src/pumpwood_djangoauth/registration/migrations/0011_auto_20240209_2229.py
 src/pumpwood_djangoauth/registration/migrations/0012_alter_pumpwoodmfamethod_type.py
+src/pumpwood_djangoauth/registration/migrations/0013_change_user_column_name.py
 src/pumpwood_djangoauth/registration/migrations/__init__.py
 src/pumpwood_djangoauth/system/__init__.py
 src/pumpwood_djangoauth/system/admin.py
