@@ -121,10 +121,10 @@ class RequestLogMiddleware:
             splited_full_path = full_path.split("/")
             request_method = request.method.lower()
 
-            model_class = list_get_or_none(splited_full_path, 2)
-            end_point = list_get_or_none(splited_full_path, 3)
-            first_arg = list_get_or_none(splited_full_path, 4)
-            second_arg = list_get_or_none(splited_full_path, 5)
+            model_class = list_get_or_none(splited_full_path, 1)
+            end_point = list_get_or_none(splited_full_path, 2)
+            first_arg = list_get_or_none(splited_full_path, 3)
+            second_arg = list_get_or_none(splited_full_path, 4)
             payload = None
             is_multipart = request.content_type == "multipart/form-data"
             if request_method == 'post' and not is_multipart:
