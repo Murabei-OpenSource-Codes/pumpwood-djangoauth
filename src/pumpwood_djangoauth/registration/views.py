@@ -216,7 +216,7 @@ class CheckAuthentication(APIView):
         """
         request_data = request.data
         request_method = request_data.get("request_method")
-        path = request.path.strip("/")
+        path = request_data.get("path", "").strip("/")
 
         # Geting modelo class of Pumpwood calls
         model_class = None
