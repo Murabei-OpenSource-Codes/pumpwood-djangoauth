@@ -313,14 +313,6 @@ class RestPumpwoodPermissionPolicyUserM2M(PumpWoodRestService):
     serializer = SerializerPumpwoodPermissionPolicyUserM2M
     storage_object = storage_object
     microservice = microservice
-    foreign_keys = {
-        "user_id": {
-            "model_class": "User", "many": False},
-        "custom_policy_id": {
-            "model_class": "PumpwoodPermissionPolicy", "many": False},
-        "updated_by_id": {
-            "model_class": "User", "many": False},
-    }
 
     #######
     # GUI #

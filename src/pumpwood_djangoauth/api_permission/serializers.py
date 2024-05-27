@@ -187,7 +187,7 @@ class SerializerPumpwoodPermissionPolicyUserM2M(DynamicFieldsModelSerializer):
     custom_policy_id = serializers.IntegerField(
         allow_null=False, required=True)
     custom_policy = MicroserviceForeignKeyField(
-        source="group_id", microservice=microservice,
+        source="custom_policy_id", microservice=microservice,
         model_class="PumpwoodPermissionPolicy",
         display_field="priority")
 
