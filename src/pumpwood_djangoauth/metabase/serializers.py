@@ -2,7 +2,8 @@ from rest_framework import serializers
 from pumpwood_djangoviews.serializers import (
     ClassNameField, CustomChoiceTypeField, CustomNestedSerializer,
     DynamicFieldsModelSerializer, MicroserviceForeignKeyField,
-    MicroserviceRelatedField)
+    MicroserviceRelatedField, LocalForeignKeyField,
+    LocalRelatedField)
 from django.contrib.auth.models import User
 from pumpwood_djangoauth.metabase.models import (
     MetabaseDashboard, MetabaseDashboardParameter)

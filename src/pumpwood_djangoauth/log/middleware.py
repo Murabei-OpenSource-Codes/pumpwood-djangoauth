@@ -24,7 +24,7 @@ class RequestLogMiddleware:
 
     def __call__(self, request):
         content_type = request.content_type
-        full_path = request.get_full_path().strip("/")
+        full_path = request.build_absolute_uri(request.get_full_path())
         splited_full_path = full_path.split("/")
 
         root_path = list_get_or_none(splited_full_path, 0)
@@ -48,7 +48,8 @@ class RequestLogMiddleware:
         if request.user is None:
             return None
 
-        full_path = request.get_full_path()
+        full_path = request.build_absolute_uri(
+            request.get_full_path().strip("/"))
         splited_full_path = full_path.split("/")
         request_method = request.method.lower()
         model_class = list_get_or_none(splited_full_path, 5)
@@ -77,7 +78,8 @@ class RequestLogMiddleware:
         if request.user is None:
             return None
 
-        full_path = request.get_full_path().strip("/")
+        full_path = request.build_absolute_uri(
+            request.get_full_path().strip("/"))
         splited_full_path = full_path.split("/")
         request_method = request.method.lower()
         media_path = list_get_or_none(splited_full_path, 1)
@@ -117,7 +119,8 @@ class RequestLogMiddleware:
         user_id = user.id
         is_service_user = user.user_profile.is_service_user
         if not is_service_user and ingress_request == 'EXTERNAL':
-            full_path = request.get_full_path()
+            full_path = request.build_absolute_uri(
+                request.get_full_path().strip("/"))
             splited_full_path = full_path.split("/")
             request_method = request.method.lower()
 
@@ -130,6 +133,8 @@ class RequestLogMiddleware:
             if request_method == 'post' and not is_multipart:
                 payload = request.body[:300]
 
+            print("## log_rest_calls ##")
+            print("full_path:", full_path)
             log_api_request(
                 user_id=user_id,
                 permission_check='ok',

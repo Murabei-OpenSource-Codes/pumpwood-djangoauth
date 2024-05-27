@@ -64,13 +64,13 @@ class LoginView(KnoxLoginView):
         user_id = None
         if user is not None:
             user_id = user.id
+        path = request.build_absolute_uri(request.get_full_path())
         log_api_request(
             user_id=user_id,
             permission_check='failed' if user_id is None else 'ok',
-            request_method='post', path=request.get_full_path(),
+            request_method='post', path=path,
             model_class='registration', end_point='login',
-            first_arg=request_data["username"],
-            second_arg='',
+            first_arg=request_data["username"], second_arg='',
             ingress_request=is_ingress_request,
             payload=None)
 
@@ -216,7 +216,7 @@ class CheckAuthentication(APIView):
         """
         request_data = request.data
         request_method = request_data.get("request_method")
-        path = request_data.get("path")
+        path = request.build_absolute_uri(request_data.get("path"))
 
         # Geting modelo class of Pumpwood calls
         model_class = None
@@ -263,7 +263,8 @@ class CheckAuthentication(APIView):
                 user_id=request.user.id,
                 permission_check=str_has_perm,
                 request_method=request_method,
-                path=path, model_class=model_class, end_point=end_point,
+                path=path,
+                model_class=model_class, end_point=end_point,
                 first_arg=first_arg, second_arg=second_arg, payload=payload,
                 ingress_request=ingress_request_check)
 

@@ -3,7 +3,8 @@ from rest_framework import serializers
 from pumpwood_djangoviews.serializers import (
     ClassNameField, CustomChoiceTypeField, CustomNestedSerializer,
     DynamicFieldsModelSerializer, MicroserviceForeignKeyField,
-    MicroserviceRelatedField)
+    MicroserviceRelatedField, LocalForeignKeyField,
+    LocalRelatedField)
 from pumpwood_communication.serializers import PumpWoodJSONEncoder
 from pumpwood_djangoauth.system.models import KongService, KongRoute
 from pumpwood_djangoauth.config import microservice
@@ -19,9 +20,11 @@ class KongRouteSerializer(DynamicFieldsModelSerializer):
 
     # ForeignKey
     service_id = serializers.IntegerField(allow_null=False, required=True)
-    service = MicroserviceForeignKeyField(
-        model_class="KongService", source="service_id",
-        microservice=microservice, display_field='service_name')
+    service = LocalForeignKeyField(
+        serializer=(
+            "pumpwood_djangoauth.system.serializers."
+            "KongServiceSerializer"),
+        display_field='service_name')
 
     class Meta:
         model = KongRoute
@@ -47,9 +50,12 @@ class KongRouteSerializer(DynamicFieldsModelSerializer):
 class KongServiceSerializer(DynamicFieldsModelSerializer):
     pk = serializers.IntegerField(source='id', allow_null=True, required=False)
     model_class = ClassNameField()
-    route_set = serializers.SerializerMethodField()
     description__verbose = serializers.SerializerMethodField()
     notes__verbose = serializers.SerializerMethodField()
+
+    # Foreign Keys
+    route_set = LocalRelatedField(
+        serializer=KongRouteSerializer, order_by=["-id"])
 
     class Meta:
         model = KongService
@@ -70,7 +76,3 @@ class KongServiceSerializer(DynamicFieldsModelSerializer):
         return str(_.t(
             sentence=obj.notes,
             tag="KongService__field__notes"))
-
-    def get_route_set(self, instance):
-        routes = instance.route_set.all().order_by('description')
-        return KongRouteSerializer(routes, many=True).data

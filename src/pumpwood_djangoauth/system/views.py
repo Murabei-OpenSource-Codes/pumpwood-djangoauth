@@ -41,8 +41,11 @@ def view__get_registred_endpoints(request):
     all_sevices_data = KongServiceSerializer(
         all_sevices, many=True,
         fields=[
-            "pk", "order", "availability", "service_id", "route_name",
-            "route_type", "description", "route_set"]).data
+            "pk", "model_class", "service_url", "service_name",
+            "order", "service_kong_id", "description", "notes",
+            "healthcheck_route", "dimensions", "icon", "route_set",
+            "extra_info", "description__verbose", "notes__verbose",
+            "route_set"]).data
 
     resp_services = []
     for service in all_sevices_data:
@@ -55,6 +58,7 @@ def view__get_registred_endpoints(request):
             if is_to_return:
                 route_set.append(route)
         pd_route_set = pd.DataFrame(route_set)
+
         # Do not list services that does not have routes to be displayed
         if len(pd_route_set) != 0:
             pd_route_set = pd_route_set.sort_values(
