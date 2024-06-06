@@ -13,14 +13,19 @@ from pumpwood_djangoauth.config import microservice
 class MetabaseDashboardSerializer(DynamicFieldsModelSerializer):
     pk = serializers.IntegerField(source='id', allow_null=True, required=False)
     model_class = ClassNameField()
+
+    # Foreign Key
     updated_by = MicroserviceForeignKeyField(
         model_class="User", source="updated_by_id",
         microservice=microservice, required=False,
         display_field='username')
+
+    # Related Field
     parameter_set = MicroserviceRelatedField(
         model_class="MetabaseDashboardParameter",
         microservice=microservice, foreign_key='dashboard_id',
-        help_text="Parameters associated with Dashboard")
+        help_text="Parameters associated with Dashboard",
+        order_by=["name"])
 
     class Meta:
         model = MetabaseDashboard
