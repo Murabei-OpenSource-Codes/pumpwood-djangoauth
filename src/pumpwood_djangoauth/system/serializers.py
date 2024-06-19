@@ -35,7 +35,7 @@ class KongRouteSerializer(DynamicFieldsModelSerializer):
             "description__verbose", "notes__verbose")
         list_fields = [
             "pk", "order", "availability", "service_id", "route_name",
-            "route_type", "description"]
+            "route_url", "route_type", "description"]
 
     def get_description__verbose(self, obj):
         """Translate description."""
