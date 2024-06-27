@@ -61,8 +61,7 @@ class MicrosoftEntraSSO:
 
         # Create callback url
         self._redirect_uri = urllib.parse.urljoin(
-            PUMPWOOD__SSO__BASE_REDIRECT_URL,
-            "rest/registration/oauth2-callback")
+            PUMPWOOD__SSO__REDIRECT_URL)
         self.PUMPWOOD__SSO__AUTHORIZATION_URL = \
             PUMPWOOD__SSO__AUTHORIZATION_URL
         self.PUMPWOOD__SSO__TOKEN_URL = \
