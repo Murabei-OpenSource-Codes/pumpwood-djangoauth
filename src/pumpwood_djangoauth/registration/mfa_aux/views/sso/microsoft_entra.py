@@ -13,8 +13,8 @@ class MicrosoftEntraSSO:
 
     def __init__(self, ):
         """."""
-        PUMPWOOD__SSO__BASE_REDIRECT_URL = os.getenv(
-            "PUMPWOOD__SSO__BASE_REDIRECT_URL")
+        PUMPWOOD__SSO__REDIRECT_URL = os.getenv(
+            "PUMPWOOD__SSO__REDIRECT_URL")
         PUMPWOOD__SSO__AUTHORIZATION_URL = os.getenv(
             "PUMPWOOD__SSO__AUTHORIZATION_URL")
         PUMPWOOD__SSO__TOKEN_URL = os.getenv(
@@ -25,7 +25,7 @@ class MicrosoftEntraSSO:
             "PUMPWOOD__SSO__SECRET")
 
         is_BASE_REDIRECT_URL_set = \
-            (PUMPWOOD__SSO__BASE_REDIRECT_URL is None)
+            (PUMPWOOD__SSO__REDIRECT_URL is None)
         is_AUTHORIZATION_URL_set = \
             (PUMPWOOD__SSO__AUTHORIZATION_URL is None)
         is_TOKEN_URL_set = \
@@ -44,7 +44,7 @@ class MicrosoftEntraSSO:
                 "PUMPWOOD__SSO__CLIENT_ID, "
                 "PUMPWOOD__SSO__SECRET must be set to use "
                 "Microsoft Entra as SSO. Variables status:\n"
-                "- is PUMPWOOD__SSO__BASE_REDIRECT_URL set: "
+                "- is PUMPWOOD__SSO__REDIRECT_URL set: "
                 "{is_BASE_REDIRECT_URL_set}\n"
                 "- is PUMPWOOD__SSO__AUTHORIZATION_URL set: "
                 "{is_AUTHORIZATION_URL_set}\n"
@@ -60,8 +60,7 @@ class MicrosoftEntraSSO:
                     "is_SECRET_set": is_SECRET_set})
 
         # Create callback url
-        self._redirect_uri = urllib.parse.urljoin(
-            PUMPWOOD__SSO__REDIRECT_URL)
+        self._redirect_uri = PUMPWOOD__SSO__REDIRECT_URL
         self.PUMPWOOD__SSO__AUTHORIZATION_URL = \
             PUMPWOOD__SSO__AUTHORIZATION_URL
         self.PUMPWOOD__SSO__TOKEN_URL = \
