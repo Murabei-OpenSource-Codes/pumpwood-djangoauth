@@ -1,8 +1,10 @@
 """View for MFA using codes like SMS, email, etc..."""
+from django.conf import settings
+from django.contrib.auth import login
+from django.conf import settings
 from rest_framework import permissions
 from rest_framework.response import Response
 from rest_framework.decorators import api_view, permission_classes
-from django.contrib.auth import login
 from pumpwood_communication import exceptions
 from pumpwood_djangoauth.registration.models import (
     PumpwoodMFAMethod, PumpwoodMFAToken, PumpwoodMFACode,
@@ -93,10 +95,14 @@ class MFALoginView(KnoxLoginView):
             "ingress-call": is_ingress_request})
         response.set_cookie(
             'PumpwoodAuthorization', resp['token'],
-            httponly=True, samesite='Strict', expires=resp['expiry'],
-            secure=True)
+            expires=resp['expiry'],
+            httponly=settings.SESSION_COOKIE_HTTPONLY,
+            secure=settings.SESSION_COOKIE_SECURE,
+            samesite=settings.SESSION_COOKIE_SAMESITE)
         response.set_cookie(
             'PumpwoodAuthorizationExpiry', resp['expiry'],
-            httponly=True, samesite='Strict', expires=resp['expiry'],
-            secure=True)
+            expires=resp['expiry'],
+            httponly=settings.SESSION_COOKIE_HTTPONLY,
+            secure=settings.SESSION_COOKIE_SECURE,
+            samesite=settings.SESSION_COOKIE_SAMESITE)
         return response

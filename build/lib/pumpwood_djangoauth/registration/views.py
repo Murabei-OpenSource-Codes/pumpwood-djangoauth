@@ -1,12 +1,12 @@
 """Views for authentication and user end-point."""
-import urllib
 from django.utils import timezone
+from django.contrib.auth import authenticate, login
+from django.contrib.auth.models import User
+from django.conf import settings
 from rest_framework import permissions
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.decorators import api_view, permission_classes
-from django.contrib.auth import authenticate, login
-from django.contrib.auth.models import User
 from pumpwood_communication import exceptions
 from pumpwood_djangoviews.views import PumpWoodRestService
 from pumpwood_djangoauth.registration.models import (
@@ -100,10 +100,14 @@ class LoginView(KnoxLoginView):
                     "ingress-call": is_ingress_request})
                 response.set_cookie(
                     'PumpwoodMFAToken', new_mfa_token.token,
-                    httponly=True)
+                    httponly=settings.SESSION_COOKIE_HTTPONLY,
+                    secure=settings.SESSION_COOKIE_SECURE,
+                    samesite=settings.SESSION_COOKIE_SAMESITE)
                 response.set_cookie(
                     'PumpwoodMFATokenExpiry', new_mfa_token.expire_at,
-                    httponly=True)
+                    httponly=settings.SESSION_COOKIE_HTTPONLY,
+                    secure=settings.SESSION_COOKIE_SECURE,
+                    samesite=settings.SESSION_COOKIE_SAMESITE)
                 return response
 
             # Users without priority_mfa will receive authentication token
@@ -124,12 +128,16 @@ class LoginView(KnoxLoginView):
                     "ingress-call": is_ingress_request})
                 response.set_cookie(
                     'PumpwoodAuthorization', resp['token'],
-                    httponly=True, samesite='Strict', expires=resp['expiry'],
-                    secure=True)
+                    httponly=settings.SESSION_COOKIE_HTTPONLY,
+                    secure=settings.SESSION_COOKIE_SECURE,
+                    samesite=settings.SESSION_COOKIE_SAMESITE,
+                    expires=resp['expiry'])
                 response.set_cookie(
                     'PumpwoodAuthorizationExpiry', resp['expiry'],
-                    httponly=True, samesite='Strict', expires=resp['expiry'],
-                    secure=True)
+                    expires=resp['expiry'],
+                    httponly=settings.SESSION_COOKIE_HTTPONLY,
+                    secure=settings.SESSION_COOKIE_SECURE,
+                    samesite=settings.SESSION_COOKIE_SAMESITE)
                 return response
         else:
             msg = ("Username/Password incorrect")

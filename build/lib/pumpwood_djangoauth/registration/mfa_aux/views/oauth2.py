@@ -1,11 +1,11 @@
 """Views for authentication and user end-point."""
 import os
 from django.utils import timezone
-from rest_framework import permissions
-from rest_framework import status
+from django.conf import settings
 from django.contrib.auth.models import User
 from django.contrib.auth.signals import user_logged_in
 from django.contrib.auth import login
+from rest_framework import status, permissions
 from rest_framework.response import Response
 from rest_framework.decorators import api_view, permission_classes
 from pumpwood_communication import exceptions
@@ -107,12 +107,16 @@ def oauth2_get_authorization_url(request):
         "ingress-call": is_ingress_request})
     response.set_cookie(
         'PumpwoodMFAToken', new_mfa_token.token,
-        httponly=True, samesite='Strict', expires=new_mfa_token.expire_at,
-        secure=True)
+        expires=new_mfa_token.expire_at,
+        httponly=settings.SESSION_COOKIE_HTTPONLY,
+        secure=settings.SESSION_COOKIE_SECURE,
+        samesite=settings.SESSION_COOKIE_SAMESITE)
     response.set_cookie(
         'PumpwoodMFATokenExpiry', new_mfa_token.expire_at,
-        httponly=True, samesite='Strict', expires=new_mfa_token.expire_at,
-        secure=True)
+        expires=new_mfa_token.expire_at,
+        httponly=settings.SESSION_COOKIE_HTTPONLY,
+        secure=settings.SESSION_COOKIE_SECURE,
+        samesite=settings.SESSION_COOKIE_SAMESITE)
     return response
 
 
@@ -211,10 +215,14 @@ class SSOLoginView(KnoxLoginView):
             "ingress-call": is_ingress_request})
         response.set_cookie(
             'PumpwoodAuthorization', data['token'],
-            httponly=True, samesite='Strict', expires=data['expiry'],
-            secure=True)
+            expires=data['expiry'],
+            httponly=settings.SESSION_COOKIE_HTTPONLY,
+            secure=settings.SESSION_COOKIE_SECURE,
+            samesite=settings.SESSION_COOKIE_SAMESITE)
         response.set_cookie(
             'PumpwoodAuthorizationExpiry', data['expiry'],
-            httponly=True, samesite='Strict', expires=data['expiry'],
-            secure=True)
+            expires=data['expiry'],
+            httponly=settings.SESSION_COOKIE_HTTPONLY,
+            secure=settings.SESSION_COOKIE_SECURE,
+            samesite=settings.SESSION_COOKIE_SAMESITE)
         return response
