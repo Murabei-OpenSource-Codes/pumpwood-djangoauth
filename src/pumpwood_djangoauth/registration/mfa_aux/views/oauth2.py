@@ -58,8 +58,8 @@ def oauth2_get_authorization_url(request):
     Return [str]:
         .
     """
-    ####################################################################
-    # Validate if email is registred at aplication before make SSO call#
+    #####################################################################
+    # Validate if email is registred at aplication before make SSO call #
     is_ingress_request = request.headers.get(
         "X-PUMPWOOD-Ingress-Request", 'NOT-EXTERNAL')
     request_data = request.data
@@ -96,47 +96,24 @@ def oauth2_get_authorization_url(request):
     sso_client = create_sso_client()
     authorization_url = sso_client.create_authorization_url(
         state=new_mfa_token.token)
-    authorization_url
-    return Response({
+
+    response = Response({
         'mfa_method_type': mfa_method.type,
         'mfa_method_result': {
-            'authorization_url': authorization_url['authorization_url']
-        },
+            'authorization_url': authorization_url['authorization_url']},
         'expiry': new_mfa_token.expire_at,
         'mfa_token': new_mfa_token.token,
         'user': None,
         "ingress-call": is_ingress_request})
-
-
-@api_view(['GET'])
-@permission_classes([permissions.AllowAny])
-def processs_oauth2_callback(request):
-    """
-    Processs callback from Auth2.
-
-    Args:
-        No args.
-    Return [str]:
-        .
-    """
-    sso_client = create_sso_client()
-    sso_user_info = sso_client.fetch_token(
-        authorization_response_url=request.get_full_path())
-
-    # Check if e-mail used to login is at database
-    user = User.objects.filter(email=sso_user_info["email"]).first()
-    if user is None:
-        msg = "Email [{email}] used at SSO is not present at database"
-        raise exceptions.PumpWoodUnauthorized(
-            msg, payload={'email': sso_user_info["email"]})
-
-    mfa_method = user.mfa_method_set.filter(
-        type='sso', is_enabled=True, is_validated=True).first()
-    if mfa_method is None:
-        msg = "Email [{email}] is not associated with SSO authentication"
-        raise exceptions.PumpWoodUnauthorized(
-            msg, payload={'email': sso_user_info["email"]})
-    return Response({})
+    response.set_cookie(
+        'PumpwoodMFAToken', new_mfa_token.token,
+        httponly=True, samesite='Strict', expires=new_mfa_token.expire_at,
+        secure=True)
+    response.set_cookie(
+        'PumpwoodMFATokenExpiry', new_mfa_token.expire_at,
+        httponly=True, samesite='Strict', expires=new_mfa_token.expire_at,
+        secure=True)
+    return response
 
 
 class SSOLoginView(KnoxLoginView):
@@ -171,7 +148,7 @@ class SSOLoginView(KnoxLoginView):
 
         now_time = timezone.now()
         if mfa_object.expire_at <= now_time:
-            msg = 'MFA Token has expired, loging again'
+            msg = 'MFA Token has expired, log in again'
             mfa_object.delete()
             raise exceptions.PumpWoodUnauthorized(
                 msg, payload={"error": "mfa_token_expired"})
@@ -220,6 +197,7 @@ class SSOLoginView(KnoxLoginView):
                 return Response(
                     {"error": msg},
                     status=status.HTTP_403_FORBIDDEN)
+
         token_ttl = self.get_token_ttl()
         instance, token = AuthToken.objects.create(request.user, token_ttl)
         user_logged_in.send(
@@ -227,7 +205,16 @@ class SSOLoginView(KnoxLoginView):
             request=request, user=request.user)
         data = self.get_post_response_data(request, token, instance)
 
-        return Response({
+        response = Response({
             'expiry': data['expiry'], 'token': data['token'],
             'user': SerializerUser(request.user, many=False).data,
             "ingress-call": is_ingress_request})
+        response.set_cookie(
+            'PumpwoodAuthorization', data['token'],
+            httponly=True, samesite='Strict', expires=data['expiry'],
+            secure=True)
+        response.set_cookie(
+            'PumpwoodAuthorizationExpiry', data['expiry'],
+            httponly=True, samesite='Strict', expires=data['expiry'],
+            secure=True)
+        return response

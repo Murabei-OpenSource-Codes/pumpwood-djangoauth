@@ -87,7 +87,16 @@ class MFALoginView(KnoxLoginView):
         login(request, user)
 
         resp = super(MFALoginView, self).post(request, format=None).data
-        return Response({
+        response = Response({
             'expiry': resp['expiry'], 'token': resp['token'],
             'user': SerializerUser(request.user, many=False).data,
             "ingress-call": is_ingress_request})
+        response.set_cookie(
+            'PumpwoodAuthorization', resp['token'],
+            httponly=True, samesite='Strict', expires=resp['expiry'],
+            secure=True)
+        response.set_cookie(
+            'PumpwoodAuthorizationExpiry', resp['expiry'],
+            httponly=True, samesite='Strict', expires=resp['expiry'],
+            secure=True)
+        return response

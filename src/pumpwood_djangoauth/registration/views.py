@@ -1,4 +1,5 @@
 """Views for authentication and user end-point."""
+import urllib
 from django.utils import timezone
 from rest_framework import permissions
 from rest_framework.views import APIView
@@ -90,13 +91,20 @@ class LoginView(KnoxLoginView):
                 method_result = priority_mfa.run_method(
                     mfa_token=new_mfa_token.token)
 
-                return Response({
+                response = Response({
                     'mfa_method_type': priority_mfa.type,
                     'mfa_method_result': method_result,
                     'expiry': new_mfa_token.expire_at,
                     'mfa_token': new_mfa_token.token,
                     'user': None,
                     "ingress-call": is_ingress_request})
+                response.set_cookie(
+                    'PumpwoodMFAToken', new_mfa_token.token,
+                    httponly=True)
+                response.set_cookie(
+                    'PumpwoodMFATokenExpiry', new_mfa_token.expire_at,
+                    httponly=True)
+                return response
 
             # Users without priority_mfa will receive authentication token
             # when loging with username/password
@@ -109,11 +117,20 @@ class LoginView(KnoxLoginView):
                     raise exceptions.PumpWoodUnauthorized(message=msg)
 
                 resp = super(LoginView, self).post(request, format=None).data
-                return Response({
+                response = Response({
                     'expiry': resp['expiry'],
                     'token': resp['token'],
                     'user': SerializerUser(request.user, many=False).data,
                     "ingress-call": is_ingress_request})
+                response.set_cookie(
+                    'PumpwoodAuthorization', resp['token'],
+                    httponly=True, samesite='Strict', expires=resp['expiry'],
+                    secure=True)
+                response.set_cookie(
+                    'PumpwoodAuthorizationExpiry', resp['expiry'],
+                    httponly=True, samesite='Strict', expires=resp['expiry'],
+                    secure=True)
+                return response
         else:
             msg = ("Username/Password incorrect")
             raise exceptions.PumpWoodUnauthorized(
