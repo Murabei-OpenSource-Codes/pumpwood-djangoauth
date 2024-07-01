@@ -116,5 +116,17 @@ class MicrosoftEntraSSO:
             client_secret=self.PUMPWOOD__SSO__SECRET)
         decoded_token = jwt.decode(
             token['id_token'], options={"verify_signature": False})
-        return {
-            "email": decoded_token['email']}
+        with_email = (
+            'email' in decoded_token.keys())
+        with_preferred_username = (
+            'preferred_username' in decoded_token.keys())
+
+        if with_email:
+            return {"email": decoded_token['email']}
+        elif with_preferred_username:
+            return {"email": decoded_token['preferred_username']}
+        else:
+            msg = (
+                'Entra Token does not contain user email, ' +
+                'it is not possible to login')
+            raise exceptions.PumpWoodUnauthorized(msg)
