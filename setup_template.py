@@ -29,8 +29,8 @@ setuptools.setup(
     package_dir={"": "src"},
     package_data={"": ['*.html']},
     install_requires=[
-        "Django==3.2.6",
-        "djangorestframework>=3.12.4",
+        "Django<4.0.0",
+        "djangorestframework<3.13",
         "python-slugify>=8.0.1",
         "pandas>=1.3.1",
         "django-flat-json-widget>=0.1.3",
