@@ -1,8 +1,7 @@
 from rest_framework import serializers
 from pumpwood_djangoviews.serializers import (
-    ClassNameField, CustomChoiceTypeField, CustomNestedSerializer,
-    DynamicFieldsModelSerializer, MicroserviceForeignKeyField,
-    MicroserviceRelatedField)
+    ClassNameField, DynamicFieldsModelSerializer,
+    MicroserviceForeignKeyField, MicroserviceRelatedField)
 from django.contrib.auth.models import User
 from pumpwood_djangoauth.api_permission.models import (
     PumpwoodPermissionPolicy, PumpwoodPermissionPolicyAction,

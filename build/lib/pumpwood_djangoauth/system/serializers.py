@@ -1,10 +1,9 @@
 import pumpwood_djangoauth.i8n.translate as _
 from rest_framework import serializers
 from pumpwood_djangoviews.serializers import (
-    ClassNameField, CustomChoiceTypeField, CustomNestedSerializer,
-    DynamicFieldsModelSerializer, MicroserviceForeignKeyField,
-    MicroserviceRelatedField, LocalForeignKeyField,
-    LocalRelatedField)
+    ClassNameField, DynamicFieldsModelSerializer,
+    MicroserviceForeignKeyField, MicroserviceRelatedField,
+    LocalForeignKeyField, LocalRelatedField)
 from pumpwood_communication.serializers import PumpWoodJSONEncoder
 from pumpwood_djangoauth.system.models import KongService, KongRoute
 from pumpwood_djangoauth.config import microservice
