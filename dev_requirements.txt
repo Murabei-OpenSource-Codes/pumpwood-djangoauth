@@ -1,0 +1,21 @@
+requests
+simplejson
+pandas
+Shapely>=1.7.0
+geopandas>=0.8.1
+djangorestframework<3.13
+Django<=4.0.0
+pdoc
+
+# Pumpwood general
+https://github.com/Murabei-OpenSource-Codes/pumpwood-communication/archive/refs/tags/1.33.zip
+https://github.com/Murabei-OpenSource-Codes/pumpwood-miscellaneous/archive/refs/tags/0.25.zip
+
+# Pumpwood Django
+https://github.com/Murabei-OpenSource-Codes/pumpwood-djangoviews/archive/refs/tags/0.45.1.zip
+
+# I8n
+https://github.com/Murabei-OpenSource-Codes/pumpwood-i8n/archive/refs/tags/0.1.4.zip
+
+# Kong integration
+https://github.com/Murabei-OpenSource-Codes/pumpwood-kong/archive/refs/tags/0.7.zip

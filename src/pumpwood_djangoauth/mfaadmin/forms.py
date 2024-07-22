@@ -1,8 +1,7 @@
 """Create custom login form."""
 from django import forms
 from django.contrib.auth.forms import AuthenticationForm
-from django.contrib.auth import authenticate, login
-from django.utils import timezone
+from django.contrib.auth import authenticate
 from pumpwood_djangoauth.registration.models import PumpwoodMFAToken
 from django.core.exceptions import ValidationError
 from django.utils.translation import gettext as _

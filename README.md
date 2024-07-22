@@ -3,12 +3,13 @@ Create basic Pumpwood end-points for authentication and service mesh using
 Kong. It integrates with
 <a href="https://github.com/Murabei-OpenSource-Codes/pumpwood-communication">
     pumpwood-communication
+
 </a> and <a href="https://github.com/Murabei-OpenSource-Codes/pumpwood-djangoviews">
     pumpwood-djangoviews
 </a>.
 
 <p align="center" width="60%">
-  <img src="doc/sitelogo-horizontal.png" /> <br>
+  <img src="static_doc/sitelogo-horizontal.png" /> <br>
 
   <a href="https://en.wikipedia.org/wiki/Cecropia">
     Pumpwood is a native brasilian tree
