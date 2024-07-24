@@ -1,5 +1,6 @@
 """Views for authentication and user end-point."""
 import os
+import simplejson as json
 from django.utils import timezone
 from django.conf import settings
 from django.contrib.auth.models import User
@@ -163,29 +164,51 @@ class SSOLoginView(KnoxLoginView):
         sso_client = create_sso_client()
         sso_user_info = sso_client.fetch_token(
             authorization_response_url=request.get_full_path())
+        access_token_data = sso_user_info["access_token"]
 
-        # Check if e-mail used to login is at database #
-        user = User.objects.filter(email=sso_user_info["email"]).first()
-        if user is None:
-            msg = "Email [{email}] used at SSO is not present at database"
+        # Check if user has an SSO authentication associated with him/her
+        user = mfa_object.user
+        user_mfa_method = user.mfa_method_set.filter(type='sso').first()
+        if user_mfa_method is None:
+            msg = "User [{username}] is not associated with SSO authentication"
             raise exceptions.PumpWoodUnauthorized(
-                msg, payload={'email': sso_user_info["email"]})
+                msg, payload={'username': user.username})
 
-        # Check if user has SSO longin habilitated #
-        mfa_method = user.mfa_method_set.filter(
-            type='sso', is_enabled=True, is_validated=True).first()
-        if mfa_method is None:
-            msg = "Email [{email}] is not associated with SSO authentication"
-            raise exceptions.PumpWoodUnauthorized(
-                msg, payload={'email': sso_user_info["email"]})
+        user_email = user.email
+        user_upn = user_mfa_method.extra_info.get("upn")
+        access_token_email = access_token_data.get("email")
+        access_token_upn = access_token_data.get("upn")
 
-        # Check if email user is the same of the mfa token #
-        if mfa_object.user != user:
+        # If extra_info is not set for MFA method, try to use user email
+        # to validate SSO if 'email' key is avaiable at access_token
+        user_id_match = False
+        if access_token_email is not None and user_upn is None:
+            user_id_match = access_token_email == user_email
+
+        # If MFA extra_info.upn is not None try to match the upn from
+        # access token upn data
+        elif user_upn is not None and access_token_upn is not None:
+            user_id_match = user_upn == access_token_upn
+
+        # If it was not possible to validate user identification according
+        # to any of the extra_info data or user email, then raise an error
+        # indicating the keys that were returned by access key token
+        # and user associated information
+        if not user_id_match:
             msg = (
-                "Email [{email}] user does not match MFA Token user, "
-                "something is wrong")
+                "It was not possible to verify user id matching " +
+                "information from Pumpwood MFA Method and SSO access token " +
+                "data.\n" +
+                "- access token upn: [{access_token_upn}]\n" +
+                "- access token email: [{access_token_email}]\n" +
+                "- user upn: [{user_upn}]\n" +
+                "- user email: [{user_email}]")
             raise exceptions.PumpWoodUnauthorized(
-                msg, payload={'email': sso_user_info["email"]})
+                msg, payload={
+                    "access_token_upn": access_token_upn,
+                    "access_token_email": access_token_email,
+                    "user_upn": user_upn,
+                    "user_email": user_email})
 
         # Ok it seem legit... Login user from SSO call
         login(request, user)

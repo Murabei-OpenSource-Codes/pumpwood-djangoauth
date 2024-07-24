@@ -1,13 +1,13 @@
 from django.contrib import admin
 from django.contrib import messages
+from django.contrib.auth.admin import UserAdmin
+from django.contrib.auth.forms import UserChangeForm
+from django.contrib.auth.models import User
 from pumpwood_djangoauth.registration.models import (
     UserProfile, PumpwoodMFAMethod, PumpwoodMFAToken, PumpwoodMFACode,
     PumpwoodMFARecoveryCode)
 from pumpwood_djangoauth.api_permission.models import (
     PumpwoodPermissionPolicyUserM2M)
-from django.contrib.auth.admin import UserAdmin
-from django.contrib.auth.forms import UserChangeForm
-from django.contrib.auth.models import User
 
 
 ######################
@@ -22,7 +22,7 @@ class PumpwoodMFAMethodInline(admin.TabularInline):
     readonly_fields = ('is_validated', 'msg')
     fields = [
         "is_enabled", "is_validated", "priority", "type", "mfa_parameter",
-        "msg"]
+        "extra_info", "msg"]
 
 
 class PumpwoodPermissionPolicyGroupM2MInline(admin.TabularInline):

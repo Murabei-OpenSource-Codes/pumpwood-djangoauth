@@ -53,6 +53,7 @@ class PumpwoodMFAMethod(models.Model):
         ('sms', 'SMS'),
         ('sso', 'Single Sign-On'),
     ]
+
     is_enabled = models.BooleanField(
         default=True,
         verbose_name="If MFA is enabled?",

@@ -1,18 +1,42 @@
-"""Expand Django users to set more information and password reset."""
+"""
+Django models to set custom permission for Pumpwood end-points.
+
+.. warning::
+    End-points not functional yet.
+"""
 from django.db import models
-from pumpwood_communication.serializers import PumpWoodJSONEncoder
 from django.contrib.auth.models import User
 from django.conf import settings
+from pumpwood_communication.serializers import PumpWoodJSONEncoder
+from pumpwood_communication import exceptions
 
 
 class PumpwoodPermissionPolicy(models.Model):
-    """Permission Policy to be applied at Pumpwood End-points."""
+    """
+    Permission Policy to be applied at Pumpwood End-points.
+
+    Permission policy is a set of diffent permission associated with and
+    an end-point. Permission Policy can be associated with Users or Groups
+    with a priority parameter.
+
+    .. warning::
+        End-points not functional yet.
+
+    Model fields:
+        - **description [models.TextField]:**
+            Unique description for PumpwoodPermissionPolicy objects.
+        - **notes [models.TextField]:** Long descriptions for
+            PumpwoodPermissionPolicy objects.
+    """
 
     PERMISSION_CHOICES = [
         ('allow', 'Allow'),
         ('deny', 'Deny'),
         ('no_change', 'No change'),
     ]
+    """Permission choices that will restrict `can_list, can_list_without_pag,
+       can_retrieve, can_retrieve_file, can_delete, can_delete_many,
+       can_delete_file, can_save, can_run_actions` attributes."""
 
     ACTION_PERMISSION_CHOICES = [
         ('allow', 'Allow'),
@@ -20,77 +44,95 @@ class PumpwoodPermissionPolicy(models.Model):
         ('custom', 'Custom'),
         ('no_change', 'No change'),
     ]
+    """Action Permission choices that will restrict `can_run_actions`
+       attribute."""
 
     description = models.TextField(
         null=False, unique=True, blank=False,
         verbose_name="Description",
         help_text="A short description of the route.")
+    """@private"""
     notes = models.TextField(
         null=False, default="", blank=True,
         verbose_name="Notes",
         help_text="A long description of the route.")
+    """@private"""
     dimensions = models.JSONField(
         default=dict, blank=True,
         verbose_name="Dimentions",
         help_text="Dictionary of tags to help organization",
         encoder=PumpWoodJSONEncoder)
+    """Key/Value tags to help organization."""
     route = models.ForeignKey(
         'system.KongRoute', on_delete=models.CASCADE,
         related_name="permission_set", verbose_name="Route",
         help_text="Route associated with permission.")
+    """Foreign Key for KongRoute associated with permissions."""
     can_list = models.TextField(
         choices=PERMISSION_CHOICES,
         default="no_change", verbose_name="List",
         help_text="Permission to list end-point and front-end page")
+    """Permission associated with list end-points."""
     can_list_without_pag = models.TextField(
         choices=PERMISSION_CHOICES,
         default="no_change", verbose_name="List Without Pag.",
         help_text=(
             "Permission to list without pagination end-point. Return all "
             "values associated with query (list paginate 50)"))
+    """Permission associated with list without pag end-point."""
     can_retrieve = models.TextField(
         choices=PERMISSION_CHOICES,
         default="no_change", verbose_name="Retrieve",
         help_text="Permission to retrieve end-point and front-end page")
+    """Permission associated with retrieve end-point."""
     can_retrieve_file = models.TextField(
         choices=PERMISSION_CHOICES,
         default="no_change", verbose_name="Retrieve File",
         help_text="Permission to retrieve file end-point")
+    """Permission associated with retrieve file end-point."""
     can_delete = models.TextField(
         choices=PERMISSION_CHOICES,
         default="no_change", verbose_name="Delete",
         help_text="Permission to delete object end-point and front-end page")
+    """Permission associated with delete end-point."""
     can_delete_many = models.TextField(
         choices=PERMISSION_CHOICES,
         default="no_change", verbose_name="Delete Many",
         help_text="Permission to delete many end-point")
+    """Permission associated with delete many end-point."""
     can_delete_file = models.TextField(
         choices=PERMISSION_CHOICES,
         default="no_change", verbose_name="Delete File",
         help_text="Permission to delelte file end-point")
+    """Permission associated with delete file end-point."""
     can_save = models.TextField(
         choices=PERMISSION_CHOICES,
         default="no_change", verbose_name="Save",
         help_text="Permission to save end-point and front-end page")
+    """Permission associated with save end-point."""
     can_run_actions = models.TextField(
         choices=ACTION_PERMISSION_CHOICES,
         default="no_change", verbose_name="Actions",
         help_text="Permission to run actions")
+    """Permission associated with execute action end-point."""
     extra_info = models.JSONField(
         default=dict, blank=True,
         verbose_name="Extra info.",
         help_text="Other information that can be usefull",
         encoder=PumpWoodJSONEncoder)
+    """Extra-info associated with permission object."""
     updated_by = models.ForeignKey(
         settings.AUTH_USER_MODEL, on_delete=models.CASCADE,
         null=False, blank=True,
         related_name='policy_updated_by_set',
         verbose_name="Updated By",
         help_text="Updated By")
+    """User that updated/created object."""
     updated_at = models.DateTimeField(
         null=False, blank=True, auto_now=True,
         verbose_name="Updated At",
         help_text="Updated At")
+    """When the object was modified."""
 
     def __str__(self):
         return self.description
@@ -105,13 +147,22 @@ class PumpwoodPermissionPolicy(models.Model):
         """
         List all permissions associated with an user.
 
-            user_id
+        Args:
+            user_id [int]:
         """
-        pass
+        msg = "Function not implemented"
+        raise exceptions.PumpWoodNotImplementedError(
+            message=msg)
 
 
 class PumpwoodPermissionPolicyAction(models.Model):
-    """Permission Policies to customize action access."""
+    """Permission Policies to customize action access.
+
+    Custom action permission can allow/deny specific actions associated with
+    a model class.
+    """
+
+    """Pumpwood PermissionPolicy ."""
 
     PERMISSION_CHOICES = [
         ('allow', 'Allow'),

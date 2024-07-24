@@ -10,7 +10,6 @@ src/pumpwood_djangoauth.egg-info/SOURCES.txt
 src/pumpwood_djangoauth.egg-info/dependency_links.txt
 src/pumpwood_djangoauth.egg-info/requires.txt
 src/pumpwood_djangoauth.egg-info/top_level.txt
-src/pumpwood_djangoauth/admin/password_validation.py
 src/pumpwood_djangoauth/api_permission/__init__.py
 src/pumpwood_djangoauth/api_permission/admin.py
 src/pumpwood_djangoauth/api_permission/apps.py
@@ -90,6 +89,7 @@ src/pumpwood_djangoauth/mfaadmin/templates/mfa_token_validation.html
 src/pumpwood_djangoauth/registration/__init__.py
 src/pumpwood_djangoauth/registration/admin.py
 src/pumpwood_djangoauth/registration/apps.py
+src/pumpwood_djangoauth/registration/forms.py
 src/pumpwood_djangoauth/registration/models.py
 src/pumpwood_djangoauth/registration/serializers.py
 src/pumpwood_djangoauth/registration/urls.py

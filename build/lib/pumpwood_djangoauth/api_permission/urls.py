@@ -1,7 +1,7 @@
-from pumpwood_djangoviews.routers import PumpWoodRouter
+"""Create URLs for api_permission models."""
 from django.conf.urls import url
+from pumpwood_djangoviews.routers import PumpWoodRouter
 from pumpwood_djangoauth.api_permission import views
-from knox import views as knox_views
 
 pumpwoodrouter = PumpWoodRouter()
 pumpwoodrouter.register(viewset=views.RestPumpwoodPermissionPolicy)
