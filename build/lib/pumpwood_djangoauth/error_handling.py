@@ -9,10 +9,12 @@ raises that will be transformed to correct json response with associated
 from rest_framework.views import exception_handler
 from pumpwood_communication.exceptions import (
     PumpWoodException, PumpWoodObjectDoesNotExist, PumpWoodQueryException,
-    PumpWoodUnauthorized)
+    PumpWoodUnauthorized, )
 from rest_framework.response import Response
 from django.core.exceptions import (
-    FieldError, ObjectDoesNotExist, PermissionDenied)
+    FieldError, ObjectDoesNotExist, PermissionDenied,
+    PumpWoodOtherException, PumpWoodIntegrityError)
+from django.core.exceptions import IntegrityError
 
 
 def custom_exception_handler(exc, context) -> Response:
@@ -71,5 +73,13 @@ def custom_exception_handler(exc, context) -> Response:
         return Response(
             payload, status=pump_exc.status_code)
 
-    response = exception_handler(exc, context)
-    return response
+    if issubclass(type(exc), IntegrityError):
+        pump_exc = PumpWoodIntegrityError(message=str(exc))
+        payload = pump_exc.to_dict()
+        return Response(
+            payload, status=pump_exc.status_code)
+
+    pump_exc = PumpWoodOtherException(message=str(exc))
+    payload = pump_exc.to_dict()
+    return Response(
+        payload, status=pump_exc.status_code)

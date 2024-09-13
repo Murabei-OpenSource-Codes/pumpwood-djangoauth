@@ -122,8 +122,7 @@ class LoginView(KnoxLoginView):
 
                 resp = super(LoginView, self).post(request, format=None).data
                 response = Response({
-                    'expiry': resp['expiry'],
-                    'token': resp['token'],
+                    'expiry': resp['expiry'], 'token': resp['token'],
                     'user': SerializerUser(request.user, many=False).data,
                     "ingress-call": is_ingress_request})
                 response.set_cookie(

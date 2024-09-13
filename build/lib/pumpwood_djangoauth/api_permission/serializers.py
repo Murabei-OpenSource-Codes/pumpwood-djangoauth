@@ -27,8 +27,8 @@ class SerializerPumpwoodPermissionPolicy(DynamicFieldsModelSerializer):
         model = PumpwoodPermissionPolicy
         fields = (
             'pk', 'model_class', 'description', 'notes', 'dimensions',
-            'route_id', 'route','can_retrieve', 'can_retrieve_file', 'can_delete',
-            'can_delete_many', 'can_delete_file', 'can_save',
+            'route_id', 'route', 'can_retrieve', 'can_retrieve_file',
+            'can_delete', 'can_delete_many', 'can_delete_file', 'can_save',
             'can_run_actions', 'extra_info', 'updated_by_id',
             'updated_by', 'updated_at')
         read_only = ["updated_by_id", "updated_at"]
