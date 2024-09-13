@@ -13,7 +13,7 @@ from pumpwood_communication.exceptions import (
 from rest_framework.response import Response
 from django.core.exceptions import (
     FieldError, ObjectDoesNotExist, PermissionDenied)
-from django.core.exceptions import IntegrityError
+from django.db.utils import IntegrityError
 
 
 def custom_exception_handler(exc, context) -> Response:
