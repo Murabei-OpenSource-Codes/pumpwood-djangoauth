@@ -50,8 +50,6 @@ def custom_exception_handler(exc, context) -> Response:
     """
     from rest_framework.views import exception_handler
 
-    print(exc)
-
     ##########################################################
     # Call REST framework's default exception handler first, #
     # to get the standard error response.
