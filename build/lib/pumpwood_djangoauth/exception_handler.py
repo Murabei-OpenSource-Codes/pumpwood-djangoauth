@@ -21,8 +21,7 @@ REST_FRAMEWORK = {
 }
 ```
 """
-from django.core.exceptions import (
-    FieldError, ObjectDoesNotExist, PermissionDenied)
+from django.core import exceptions as django_exceptions
 from django.db.utils import IntegrityError
 from rest_framework.response import Response
 from rest_framework.exceptions import (
@@ -54,26 +53,27 @@ def custom_exception_handler(exc, context) -> Response:
     # Call REST framework's default exception handler first, #
     # to get the standard error response.
     # Django errors
-    if issubclass(type(exc), FieldError):
+    if issubclass(type(exc), django_exceptions.FieldError):
         pump_exc = PumpWoodQueryException(message=str(exc))
         payload = pump_exc.to_dict()
         return Response(
             payload, status=pump_exc.status_code)
 
-    if issubclass(type(exc), IntegrityError):
-        pump_exc = PumpWoodIntegrityError(message=str(exc))
-        payload = pump_exc.to_dict()
-        return Response(
-            payload, status=pump_exc.status_code)
-
-    if issubclass(type(exc), ObjectDoesNotExist):
+    if issubclass(type(exc), django_exceptions.ObjectDoesNotExist):
         pump_exc = PumpWoodObjectDoesNotExist(message=str(exc))
         payload = pump_exc.to_dict()
         return Response(
             payload, status=pump_exc.status_code)
 
-    if issubclass(type(exc), PermissionDenied):
+    if issubclass(type(exc), django_exceptions.PermissionDenied):
         pump_exc = PumpWoodUnauthorized(message=str(exc))
+        payload = pump_exc.to_dict()
+        return Response(
+            payload, status=pump_exc.status_code)
+
+    # Django database error
+    if issubclass(type(exc), IntegrityError):
+        pump_exc = PumpWoodIntegrityError(message=str(exc))
         payload = pump_exc.to_dict()
         return Response(
             payload, status=pump_exc.status_code)

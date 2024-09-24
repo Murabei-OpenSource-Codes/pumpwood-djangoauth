@@ -4,7 +4,7 @@ README.md
 setup.py
 src/pumpwood_djangoauth/__init__.py
 src/pumpwood_djangoauth/config.py
-src/pumpwood_djangoauth/error_handling.py
+src/pumpwood_djangoauth/exception_handler.py
 src/pumpwood_djangoauth.egg-info/PKG-INFO
 src/pumpwood_djangoauth.egg-info/SOURCES.txt
 src/pumpwood_djangoauth.egg-info/dependency_links.txt
