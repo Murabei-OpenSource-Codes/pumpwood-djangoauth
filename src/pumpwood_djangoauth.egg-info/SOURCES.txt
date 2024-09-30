@@ -47,6 +47,7 @@ src/pumpwood_djangoauth/i8n/migrations/0007_auto_20240208_1142.py
 src/pumpwood_djangoauth/i8n/migrations/0008_alter_pumpwoodi8ntranslation_options.py
 src/pumpwood_djangoauth/i8n/migrations/0009_auto_20240209_2229.py
 src/pumpwood_djangoauth/i8n/migrations/0010_auto_20240311_1736.py
+src/pumpwood_djangoauth/i8n/migrations/0011_i8s_blank_sentence.py
 src/pumpwood_djangoauth/i8n/migrations/__init__.py
 src/pumpwood_djangoauth/kong/__init__.py
 src/pumpwood_djangoauth/kong/create_routes.py
