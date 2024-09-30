@@ -8,16 +8,15 @@ class PumpwoodI8nTranslation(models.Model):
     """Model to perform I8n on Pumpwood."""
 
     sentence = models.TextField(
-        null=False, unique=False,
-        verbose_name="Sentence",
-        help_text="sentence for i8n")
+        null=False, unique=False, blank=True,
+        verbose_name="Sentence", help_text="sentence for i8n")
     tag = models.CharField(
         max_length=154, null=False, unique=False, blank=True, default="",
         verbose_name='Tag',
         help_text=(
             "tag to differenciate same sentences, but different contexts"))
     plural = models.BooleanField(
-        null=False,
+        null=False, default=False,
         verbose_name='Is Plural?',
         help_text="if sentence must be i8n on plural or not")
     language = models.CharField(
