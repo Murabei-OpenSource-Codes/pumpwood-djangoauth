@@ -1,6 +1,7 @@
 """Create an admin site using MFAAdmin."""
 from django.contrib import admin
 from pumpwood_djangoauth.mfaadmin.views import MFALoginView
+from django.utils.decorators import method_decorator
 from django.views.decorators.cache import never_cache
 from django.contrib.auth import REDIRECT_FIELD_NAME
 from django.http import HttpResponseRedirect
@@ -13,7 +14,7 @@ class MFAAdmin(admin.AdminSite):
     login_template = "mfa_login.html"
     login_form = MFAAuthenticationForm
 
-    @never_cache
+    @method_decorator(never_cache)
     def login(self, request, extra_context=None):
         """Display the login form for the given HttpRequest."""
         if request.method == 'GET' and self.has_permission(request):

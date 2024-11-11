@@ -41,9 +41,9 @@ class CustomUserChangeForm(UserChangeForm):
 class CustomUserAdmin(UserAdmin):
     form = CustomUserChangeForm
     fieldsets = UserAdmin.fieldsets
-    inlines = UserAdmin.inlines + [
+    inlines = UserAdmin.inlines + (
         UserProfileInline, PumpwoodMFAMethodInline,
-        PumpwoodPermissionPolicyGroupM2MInline]
+        PumpwoodPermissionPolicyGroupM2MInline)
     list_display = (
         "id", "username", "email", "is_staff", "is_superuser", "get_has_mfa",
         "get_is_service_user")

@@ -1,6 +1,5 @@
 """Make calls to perform SSO using MicrosoftEntra."""
 import os
-import urllib.parse
 import jwt
 from pumpwood_communication import exceptions
 from requests_oauthlib import OAuth2Session

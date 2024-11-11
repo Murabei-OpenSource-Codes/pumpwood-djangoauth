@@ -1,5 +1,5 @@
 """Create URLs for api_permission models."""
-from django.conf.urls import url
+from django.urls import path
 from pumpwood_djangoviews.routers import PumpWoodRouter
 from pumpwood_djangoauth.api_permission import views
 
@@ -12,10 +12,12 @@ pumpwoodrouter.register(viewset=views.RestPumpwoodPermissionPolicyGroupM2M)
 pumpwoodrouter.register(viewset=views.RestPumpwoodPermissionPolicyUserM2M)
 
 urlpatterns = [
-    url(r'^rest/api-permission/list-self-permissions/$',
+    path(
+        'rest/api-permission/list-self-permissions/',
         views.view__list_self_permissions,
         name='rest__api_permission__list_self'),
-    url(r'^rest/api-permission/has-self-permission/$',
+    path(
+        'rest/api-permission/has-self-permission/',
         views.view__has_permission,
         name='rest__api_permission__has_permission'),
 ]

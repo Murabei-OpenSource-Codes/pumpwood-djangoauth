@@ -4,7 +4,7 @@ import pandas as pd
 from django.http import StreamingHttpResponse
 from django.contrib.auth.decorators import login_required
 from rest_framework.response import Response
-from rest_framework.decorators import permission_classes, api_view
+from rest_framework.decorators import api_view
 from pumpwood_djangoviews.views import PumpWoodRestService
 from pumpwood_djangoauth.system.models import KongService, KongRoute
 from pumpwood_djangoauth.system.serializers import (

@@ -1,6 +1,5 @@
 """Views for authentication and user end-point."""
 import os
-import simplejson as json
 from django.utils import timezone
 from django.conf import settings
 from django.contrib.auth.models import User
