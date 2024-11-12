@@ -343,10 +343,6 @@ class KongRoute(models.Model):
         ).first()
 
         service_object = KongService.objects.get(id=service_id)
-        print("service_object.service_name:", service_object.service_name)
-        print("route_name:", route_name)
-        print("route_url:", route_url)
-        print("strip_path:", strip_path)
         route_return = kong_api.register_route(
             service_name=service_object.service_name,
             route_name=route_name,
