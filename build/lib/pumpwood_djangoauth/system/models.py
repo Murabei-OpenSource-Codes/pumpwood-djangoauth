@@ -332,8 +332,7 @@ class KongRoute(models.Model):
         # Check values for route_type
         possible_types = [x[0] for x in cls.ROUTE_TYPES]
         if route_type not in possible_types:
-            msg = t.translate(
-                "route_type must be in {possible_types}").format(
+            msg = "route_type must be in {possible_types}".format(
                     possible_types=possible_types)
             raise exceptions.PumpWoodActionArgsException(
                 message=msg, payload={
@@ -344,11 +343,16 @@ class KongRoute(models.Model):
         ).first()
 
         service_object = KongService.objects.get(id=service_id)
+        print("service_object.service_name:", service_object.service_name)
+        print("route_name:", route_name)
+        print("route_url:", route_url)
+        print("strip_path:", strip_path)
         route_return = kong_api.register_route(
             service_name=service_object.service_name,
             route_name=route_name,
             route_url=route_url,
             strip_path=strip_path)
+
         extra_info["kong_data"] = route_return
 
         if registred_route is None:

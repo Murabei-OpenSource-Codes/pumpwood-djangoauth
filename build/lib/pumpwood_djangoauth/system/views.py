@@ -92,10 +92,10 @@ def view__dummy_raise(request):
     exception_class = request_data.get("exception_class")
 
     # Checking if data is with the correct type
-    if not type(exception_class) == str:
+    if type(exception_class) is not str:
         msg = "exception_class must be a str: %s" % str(type(exception_class))
         raise PumpWoodException(message=msg)
-    if not type(exception_deep) == int:
+    if type(exception_deep) is not int:
         msg = "exception_deep must be a int: %s" % str(type(exception_deep))
         raise PumpWoodException(message=msg)
     if 3 < exception_deep:
