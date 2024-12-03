@@ -97,4 +97,5 @@ class PumpwoodI8nTranslation(models.Model):
             diff_timeused = now_time - translation_obj.last_used_at
             if 1 <= diff_timeused.days:
                 translation_obj.last_used_at = now_time
+                translation_obj.save()
         return translation_obj.translation or sentence
