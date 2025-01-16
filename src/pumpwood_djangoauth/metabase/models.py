@@ -100,9 +100,11 @@ class MetabaseDashboard(models.Model):
         help_text="Updated At")
 
     def __str__(self):
+        """__str__."""
         return '[%s] %s' % (self.id, self.description)
 
     class Meta:
+        """Meta Class."""
         db_table = 'metabase__dashboard'
         verbose_name = t(
             'Pumpwood Metabase Dashbord',
@@ -148,14 +150,13 @@ class MetabaseDashboard(models.Model):
     @action(info='Dump dashboards and parameters')
     def dump_dashboards(cls, filter_alias: List[str] = None,
                         exclude_alias: List[str] = None) -> List[str]:
-        """
-        Dump dashboard and parameters to load on another server.
+        """Dump dashboard and parameters to load on another server.
 
         Args:
-            No args.
-        Kwargs:
-            filter_alias [List[str]]: Filter dashboard that will be dumped.
-            exclude_alias [List[str]]: Exclude dashboard that will be dumped.
+            filter_alias (List[str]):
+                Filter dashboard that will be dumped.
+            exclude_alias (List[str]):
+                Exclude dashboard that will be dumped.
         Return List[dict]:
             List of serialized dashboards and its parameters without pks
             associated with them.
@@ -193,15 +194,13 @@ class MetabaseDashboard(models.Model):
     @classmethod
     @action(info='Load dashboards and parameters')
     def load_dashboards(cls, dashboard_dump: List[dict]) -> bool:
-        """
-        Load dashboard and parameters to load on another server.
+        """Load dashboard and parameters to load on another server.
 
         Args:
-            dashboard_dump [list[dict]]: List of dumped dashboards and its
-                parameters.
-        Kwargs:
-            No kwargs.
-        Return [bool]:
+            dashboard_dump (list[dict]):
+                List of dumped dashboards and its parameters.
+
+        Return:
             Return true..
         """
         # Create or update MetabaseDashboard if there is a corresponding
@@ -289,8 +288,7 @@ class MetabaseDashboard(models.Model):
                                 dashboard_parameters: dict = {},
                                 theme: str = None, bordered: bool = None,
                                 titled: bool = None) -> str:
-        """
-        Generate url to embed graph and dash with iframe using alias.
+        """Generate url to embed graph and dash with iframe using alias.
 
         Use dashboard alias to create iframe link. This might help when
         replicating enviroments and dashboards.
@@ -325,8 +323,7 @@ class MetabaseDashboard(models.Model):
     def generate_url(self, auth_header: dict, dashboard_parameters: dict = {},
                      theme: str = None, bordered: bool = None,
                      titled: bool = None) -> str:
-        """
-        Generate url to embed graph and dash with iframe.
+        """Generate url to embed graph and dash with iframe.
 
         Create a url to embedded dashboard or graph on front end using
         iframe. Ex.:
@@ -345,8 +342,8 @@ class MetabaseDashboard(models.Model):
             Return true.
         """
         # Read env Metabase variables.
-        METABASE_SITE_URL = os.getenv("METABASE_SITE_URL")
-        METABASE_SECRET_KEY = os.getenv("METABASE_SECRET_KEY")
+        METABASE_SITE_URL = os.getenv("METABASE_SITE_URL") # NOQA
+        METABASE_SECRET_KEY = os.getenv("METABASE_SECRET_KEY") # NOQA
 
         # List parameters associated with dashboard
         parameter_dict = {}
@@ -465,10 +462,12 @@ class MetabaseDashboardParameter(models.Model):
         help_text="Default value")
 
     class Meta:
+        """Meta Class."""
         db_table = 'metabase__dashboard_parameter'
         unique_together = [['dashboard', 'name'], ]
         verbose_name = 'Metabase Dashboard Parameter'
         verbose_name_plural = 'Metabase Dashboard Parameters'
 
     def __str__(self):
+        """__str__."""
         return '%s: %s' % (self.dashboard, self.name)
