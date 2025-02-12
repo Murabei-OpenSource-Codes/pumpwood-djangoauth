@@ -38,7 +38,7 @@ def log_api_request(user_id: int, permission_check: str, request_method: str,
     Return [dict]:
         Return the dictionary that will be passed to RabbitMQ.
     """
-    if type(payload) == dict:
+    if type(payload) is dict:
         payload = json.dumps(payload)
     elif payload is None:
         payload = ''
