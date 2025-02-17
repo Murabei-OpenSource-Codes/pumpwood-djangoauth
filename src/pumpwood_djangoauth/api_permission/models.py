@@ -10,10 +10,12 @@ from django.conf import settings
 from pumpwood_communication.serializers import PumpWoodJSONEncoder
 from pumpwood_communication import exceptions
 
+# User groups
+from pumpwood_djangoauth.groups.models import PumpwoodUserGroup
+
 
 class PumpwoodPermissionPolicy(models.Model):
-    """
-    Permission Policy to be applied at Pumpwood End-points.
+    """Permission Policy to be applied at Pumpwood End-points.
 
     Permission policy is a set of diffent permission associated with and
     an end-point. Permission Policy can be associated with Users or Groups
@@ -174,25 +176,27 @@ class PumpwoodPermissionPolicy(models.Model):
     """@private"""
 
     def __str__(self):
+        """__str__."""
         return self.description
 
     class Meta:
+        """Meta class."""
         db_table = 'api_permission__policy'
         verbose_name = 'Permission Policy'
         verbose_name_plural = 'Permission Policies'
 
     @classmethod
-    def list_user_permissions(self, user_pk: int) -> list:
-        """
-        List all permissions associated with an user.
+    def list_user_permissions(cls, user_pk: int) -> list:
+        """List all permissions associated with an user.
 
         .. warning::
             Function not implemented yet.
 
         Args:
-            user_pk [int]:
+            user_pk (int):
                 User pk tho whom list all avaiable
                 permissions.
+
         Raises:
             PumpWoodNotImplementedError:
                 Function is not implemented.
@@ -265,6 +269,7 @@ class PumpwoodPermissionPolicyAction(models.Model):
     """@private"""
 
     class Meta:
+        """Meta class."""
         db_table = 'api_permission__policy_action'
         unique_together = [['policy', 'action'], ]
         """Fields to be considered that should be considered unique together
@@ -328,6 +333,7 @@ class PumpwoodPermissionGroup(models.Model):
     """@private"""
 
     class Meta:
+        """Meta class."""
         db_table = 'api_permission__group'
         verbose_name = 'Permission Group'
         verbose_name_plural = 'Permission Groups'
@@ -385,9 +391,9 @@ class PumpwoodPermissionUserGroupM2M(models.Model):
     """@private"""
 
     class Meta:
+        """Meta class."""
         db_table = 'api_permission__user_group_m2m'
         unique_together = [['user', 'group', ], ]
-
         verbose_name = 'Permission User -> Group'
         verbose_name_plural = 'Permission User -> Group'
 
@@ -428,20 +434,20 @@ class PumpwoodPermissionPolicyGroupM2M(models.Model):
         help_text="Policy priority, lower number will have precedence")
     """@private"""
     group = models.ForeignKey(
-        PumpwoodPermissionGroup, on_delete=models.CASCADE,
-        related_name="permission_set", verbose_name="Group",
-        help_text="Permission Group to apply policy")
+        PumpwoodUserGroup, on_delete=models.CASCADE, null=False,
+        db_index=True, related_name="api_permission_set", verbose_name="Group",
+        help_text="User Group to apply policy")
     """@private"""
     general_policy = models.TextField(
         choices=PERMISSION_CHOICES,
         default="no_change", verbose_name="General Permission",
-        help_text="Read/Write general permission")
+        help_text="API Read/Write general permission")
     """@private"""
     custom_policy = models.ForeignKey(
         PumpwoodPermissionPolicy, on_delete=models.CASCADE,
         null=True, blank=True,
         related_name="policy_group_set", verbose_name="Group",
-        help_text="Pemission Policy that will be applied to the group")
+        help_text="API Pemission Policy that will be applied to the group")
     """@private"""
     extra_info = models.JSONField(
         default=dict, blank=True,
@@ -463,6 +469,7 @@ class PumpwoodPermissionPolicyGroupM2M(models.Model):
     """@private"""
 
     class Meta:
+        """Meta class."""
         db_table = 'api_permission__policy_group_m2m'
         verbose_name = 'Permission Policy -> Group'
         verbose_name_plural = 'Permission Policy -> Group'
@@ -539,6 +546,7 @@ class PumpwoodPermissionPolicyUserM2M(models.Model):
     """@private"""
 
     class Meta:
+        """Meta class."""
         db_table = 'api_permission__policy_user_m2m'
         verbose_name = 'Permission Policy -> User'
         verbose_name_plural = 'Permission Policy -> User'

@@ -73,16 +73,14 @@ class KongService(models.Model):
     @classmethod
     @action(info='Load service/routes on Kong.')
     def load_kong_service(cls, list_service_id: list = None) -> bool:
-        """
-        Load kong services and routes.
+        """Load kong services and routes.
 
         Load services and routes in database at Kong. This action does not
         remove other kongs end-points.
 
-        Args
-            No Args.
-        Kwargs:
-            list_service_id [list]: List of ids to reload routes on Kong.
+        Args:
+            list_service_id (list):
+                List of ids to reload routes on Kong.
         Return [bool]:
             Return true.
         """

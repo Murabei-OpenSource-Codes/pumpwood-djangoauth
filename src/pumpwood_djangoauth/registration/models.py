@@ -16,16 +16,17 @@ from pumpwood_djangoauth.i8n.translate import t
 
 
 @receiver(post_save, sender=settings.AUTH_USER_MODEL)
-def create_auth_token(sender, instance=None, created=False, **kwargs):
+def create_auth_profile(sender, instance=None, created=False, **kwargs):
+    """Create a auth profile when user is created."""
     if created:
         UserProfile.objects.create(user=instance)
 
 
 class UserProfile(models.Model):
+    """User profile with extra information."""
     user = models.OneToOneField(
         settings.AUTH_USER_MODEL, on_delete=models.CASCADE,
-        verbose_name="User",
-        help_text="User",
+        verbose_name="User", help_text="User",
         related_name="user_profile")
     is_service_user = models.BooleanField(
         default=False,
@@ -35,12 +36,18 @@ class UserProfile(models.Model):
         default=dict, blank=True, encoder=PumpWoodJSONEncoder,
         verbose_name="Dimentions",
         help_text="Key/value tags to help retrieve database information")
+    # default_row_permission = models.ForeignKey(
+    #     'api_permission.models.', on_delete=models.CASCADE,
+    #     related_name="mfa_method_set",
+    #     verbose_name="User",
+    #     help_text="User associated with MFA")
     extra_fields = models.JSONField(
         default=dict, blank=True, encoder=PumpWoodJSONEncoder,
         verbose_name="Extra Info",
         help_text="Extra Info")
 
     class Meta:
+        """Meta class."""
         db_table = 'pumpwood__userprofile'
         verbose_name = 'User profile'
         verbose_name_plural = 'Users profile'
@@ -95,6 +102,7 @@ class PumpwoodMFAMethod(models.Model):
             tag="PumpwoodMFAMethod__admin__extra_info"))
 
     class Meta:
+        """Meta class."""
         db_table = 'pumpwood__mfa'
         unique_together = [
             ['user_id', 'type'],
