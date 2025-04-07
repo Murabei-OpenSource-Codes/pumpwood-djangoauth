@@ -1,17 +1,40 @@
 """setup."""
+"""Setup template file."""
 import os
-import setuptools
+import re
+from setuptools import setup, find_packages
 
-with open(os.path.join(os.path.dirname(__file__), 'README.md')) as readme:
-    README = readme.read()
 
-requirements_path = os.path.join(
-    os.path.dirname(__file__), 'requirements.txt')
+def parse_requirements(filename):
+    """Load requirements from a requirements.txt file."""
+    with open(filename) as f:
+        lines = f.read().splitlines()
 
-# allow setup.py to be run from any path
-os.chdir(os.path.normpath(os.path.join(os.path.abspath(__file__), os.pardir)))
+    requirements = []
+    for line in lines:
+        # Skip comments and empty lines
+        if line.startswith('#') or not line.strip():
+            continue
 
-setuptools.setup(
+        # Remove whitespace and any trailing comments
+        line = re.sub(r'\s*#.*$', '', line).strip()
+        if line:  # Add if not empty after cleanup
+            requirements.append(line)
+
+    return requirements
+
+
+# Read README
+with open(os.path.join(os.path.dirname(__file__), 'README.md'),
+          encoding='utf-8') as f:
+    README = f.read()
+
+# Parse requirements.txt
+requirements_path = os.path.join(os.path.dirname(__file__), 'requirements.txt')
+requirements = parse_requirements(requirements_path)
+
+
+setup(
     name='pumpwood-djangoauth',
     version='{VERSION}',
     include_package_data=True,
@@ -28,19 +51,7 @@ setuptools.setup(
     ],
     package_dir={"": "src"},
     package_data={"": ['*.html']},
-    install_requires=[
-        "Django>=4.0.0",
-        "djangorestframework>=3.13",
-        "python-slugify>=8.0.1",
-        "pandas>=1.3.1",
-        "django-flat-json-widget>=0.1.3",
-        "PyJWT>=2.7.0",
-        "django-rest-knox==4.2.0",
-        "pumpwood-communication>=1.0",
-        "pumpwood-kong",
-        "twilio==8.11.0",
-        "lazy-string==1.0.0",
-    ],
-    packages=setuptools.find_packages(where="src"),
+    install_requires=requirements,  # Uses parsed requirements.txt
+    packages=find_packages(where="src"),
     python_requires=">=3.6",
 )
