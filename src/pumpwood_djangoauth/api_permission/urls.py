@@ -6,8 +6,6 @@ from pumpwood_djangoauth.api_permission import views
 pumpwoodrouter = PumpWoodRouter()
 pumpwoodrouter.register(viewset=views.RestPumpwoodPermissionPolicy)
 pumpwoodrouter.register(viewset=views.RestPumpwoodPermissionPolicyAction)
-pumpwoodrouter.register(viewset=views.RestPumpwoodPermissionGroup)
-pumpwoodrouter.register(viewset=views.RestPumpwoodPermissionUserGroupM2M)
 pumpwoodrouter.register(viewset=views.RestPumpwoodPermissionPolicyGroupM2M)
 pumpwoodrouter.register(viewset=views.RestPumpwoodPermissionPolicyUserM2M)
 

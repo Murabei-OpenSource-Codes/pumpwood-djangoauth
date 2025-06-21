@@ -1,16 +1,14 @@
 from rest_framework import serializers
 from pumpwood_djangoviews.serializers import (
-    ClassNameField, DynamicFieldsModelSerializer,
-    MicroserviceForeignKeyField, MicroserviceRelatedField)
-from django.contrib.auth.models import User
+    ClassNameField, DynamicFieldsModelSerializer, MicroserviceForeignKeyField)
 from pumpwood_djangoauth.api_permission.models import (
     PumpwoodPermissionPolicy, PumpwoodPermissionPolicyAction,
-    PumpwoodPermissionGroup, PumpwoodPermissionPolicyGroupM2M,
-    PumpwoodPermissionPolicyUserM2M, PumpwoodPermissionUserGroupM2M)
+    PumpwoodPermissionPolicyGroupM2M, PumpwoodPermissionPolicyUserM2M)
 from pumpwood_djangoauth.config import microservice
 
 
 class SerializerPumpwoodPermissionPolicy(DynamicFieldsModelSerializer):
+    """Serializer for PumpwoodPermissionPolicy model."""
     pk = serializers.IntegerField(source='id', allow_null=True, required=False)
     model_class = ClassNameField()
     route_id = serializers.IntegerField(allow_null=False, required=True)
@@ -24,6 +22,7 @@ class SerializerPumpwoodPermissionPolicy(DynamicFieldsModelSerializer):
         model_class="User", display_field="username")
 
     class Meta:
+        """Meta."""
         model = PumpwoodPermissionPolicy
         fields = (
             'pk', 'model_class', 'description', 'notes', 'dimensions',
@@ -34,15 +33,18 @@ class SerializerPumpwoodPermissionPolicy(DynamicFieldsModelSerializer):
         read_only = ["updated_by_id", "updated_at"]
 
     def create(self, validated_data):
+        """Set updated_by_id using logged user."""
         validated_data["updated_by_id"] = self.context['request'].user.id
         return super().create(validated_data)
 
     def update(self, instance, validated_data):
+        """Set updated_by_id using logged user."""
         validated_data["updated_by_id"] = self.context['request'].user.id
         return super().update(instance, validated_data)
 
 
 class SerializerPumpwoodPermissionPolicyAction(DynamicFieldsModelSerializer):
+    """Serializer for PumpwoodPermissionPolicyAction model."""
     pk = serializers.IntegerField(source='id', allow_null=True, required=False)
     model_class = ClassNameField()
     policy_id = serializers.IntegerField(allow_null=False, required=True)
@@ -56,6 +58,7 @@ class SerializerPumpwoodPermissionPolicyAction(DynamicFieldsModelSerializer):
         model_class="User", display_field="username")
 
     class Meta:
+        """Meta."""
         model = PumpwoodPermissionPolicyAction
         fields = (
             'pk', 'model_class', 'policy_id', 'action', 'permission',
@@ -64,76 +67,18 @@ class SerializerPumpwoodPermissionPolicyAction(DynamicFieldsModelSerializer):
         read_only = ["updated_by_id", "updated_at"]
 
     def create(self, validated_data):
+        """Set updated_by_id using logged user."""
         validated_data["updated_by_id"] = self.context['request'].user.id
         return super().create(validated_data)
 
     def update(self, instance, validated_data):
-        validated_data["updated_by_id"] = self.context['request'].user.id
-        return super().update(instance, validated_data)
-
-
-class SerializerPumpwoodPermissionGroup(DynamicFieldsModelSerializer):
-    pk = serializers.IntegerField(source='id', allow_null=True, required=False)
-    model_class = ClassNameField()
-
-    # ForeignKey
-    updated_by = MicroserviceForeignKeyField(
-        source="updated_by_id", microservice=microservice,
-        model_class="User", display_field="username")
-
-    class Meta:
-        model = PumpwoodPermissionGroup
-        fields = (
-            'pk', 'model_class', 'description', 'notes', 'dimensions',
-            'extra_info', "updated_by_id", "updated_at", 'updated_by')
-        read_only = ["updated_by_id", "updated_at"]
-
-    def create(self, validated_data):
-        validated_data["updated_by_id"] = self.context['request'].user.id
-        return super().create(validated_data)
-
-    def update(self, instance, validated_data):
-        validated_data["updated_by_id"] = self.context['request'].user.id
-        return super().update(instance, validated_data)
-
-
-class SerializerPumpwoodPermissionUserGroupM2M(DynamicFieldsModelSerializer):
-    pk = serializers.IntegerField(source='id', allow_null=True, required=False)
-    model_class = ClassNameField()
-
-    # ForeignKey
-    group_id = serializers.IntegerField(allow_null=False, required=True)
-    group = MicroserviceForeignKeyField(
-        source="group_id", microservice=microservice,
-        model_class="PumpwoodPermissionGroup",
-        display_field="description")
-
-    user_id = serializers.IntegerField(allow_null=False, required=True)
-    user = MicroserviceForeignKeyField(
-        source="user_id", microservice=microservice,
-        model_class="User", display_field="username")
-
-    updated_by = MicroserviceForeignKeyField(
-        source="updated_by_id", microservice=microservice,
-        model_class="User", display_field="username")
-
-    class Meta:
-        model = PumpwoodPermissionUserGroupM2M
-        fields = (
-            'pk', 'model_class', 'user_id', 'user', 'group_id', 'group',
-            'extra_info', 'updated_by_id', 'updated_by', 'updated_at')
-        read_only = ["updated_by_id", "updated_at"]
-
-    def create(self, validated_data):
-        validated_data["updated_by_id"] = self.context['request'].user.id
-        return super().create(validated_data)
-
-    def update(self, instance, validated_data):
+        """Set updated_by_id using logged user."""
         validated_data["updated_by_id"] = self.context['request'].user.id
         return super().update(instance, validated_data)
 
 
 class SerializerPumpwoodPermissionPolicyGroupM2M(DynamicFieldsModelSerializer):
+    """Serializer for PumpwoodPermissionPolicyGroupM2M model."""
     pk = serializers.IntegerField(source='id', allow_null=True, required=False)
     model_class = ClassNameField()
 
@@ -156,6 +101,7 @@ class SerializerPumpwoodPermissionPolicyGroupM2M(DynamicFieldsModelSerializer):
         model_class="User", display_field="username")
 
     class Meta:
+        """Meta."""
         model = PumpwoodPermissionPolicyGroupM2M
         fields = (
             'pk', 'model_class', 'priority', 'group', 'group_id',
@@ -164,15 +110,18 @@ class SerializerPumpwoodPermissionPolicyGroupM2M(DynamicFieldsModelSerializer):
         read_only = ["updated_by_id", "updated_at"]
 
     def create(self, validated_data):
+        """Set updated_by_id using logged user."""
         validated_data["updated_by_id"] = self.context['request'].user.id
         return super().create(validated_data)
 
     def update(self, instance, validated_data):
+        """Set updated_by_id using logged user."""
         validated_data["updated_by_id"] = self.context['request'].user.id
         return super().update(instance, validated_data)
 
 
 class SerializerPumpwoodPermissionPolicyUserM2M(DynamicFieldsModelSerializer):
+    """Serializer for PumpwoodPermissionPolicyUserM2M model."""
     pk = serializers.IntegerField(source='id', allow_null=True, required=False)
     model_class = ClassNameField()
 
@@ -195,6 +144,7 @@ class SerializerPumpwoodPermissionPolicyUserM2M(DynamicFieldsModelSerializer):
         model_class="User", display_field="username")
 
     class Meta:
+        """Meta."""
         model = PumpwoodPermissionPolicyUserM2M
         fields = (
             'pk', 'model_class', 'priority', 'user_id', 'user',
@@ -203,5 +153,11 @@ class SerializerPumpwoodPermissionPolicyUserM2M(DynamicFieldsModelSerializer):
         read_only = ["updated_by_id", "updated_at"]
 
     def create(self, validated_data):
+        """Set updated_by_id using logged user."""
         validated_data["updated_by_id"] = self.context['request'].user.id
         return super().create(validated_data)
+
+    def update(self, instance, validated_data):
+        """Set updated_by_id using logged user."""
+        validated_data["updated_by_id"] = self.context['request'].user.id
+        return super().update(instance, validated_data)
