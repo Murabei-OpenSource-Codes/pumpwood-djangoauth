@@ -1,20 +1,21 @@
+"""Serializer for registration end-points."""
 from rest_framework import serializers
 from pumpwood_djangoviews.serializers import (
-    ClassNameField, DynamicFieldsModelSerializer, MicroserviceForeignKeyField,
-    MicroserviceRelatedField, LocalForeignKeyField,
+    ClassNameField, DynamicFieldsModelSerializer, LocalForeignKeyField,
     LocalRelatedField)
 from django.contrib.auth.models import User
 from pumpwood_djangoauth.registration.models import (
     UserProfile, PumpwoodMFAMethod, PumpwoodMFAToken, PumpwoodMFACode,
     PumpwoodMFARecoveryCode)
-from pumpwood_djangoauth.config import microservice
 
 
 class SerializerUserProfile(DynamicFieldsModelSerializer):
+    """Serializer for model UserProfile."""
     pk = serializers.IntegerField(source='id', allow_null=True)
     model_class = ClassNameField()
 
     class Meta:
+        """Meta."""
         model = UserProfile
         fields = (
             'pk', 'model_class', 'is_service_user', 'dimensions',
@@ -22,6 +23,7 @@ class SerializerUserProfile(DynamicFieldsModelSerializer):
 
 
 class SerializerPumpwoodMFAMethod(DynamicFieldsModelSerializer):
+    """Serializer for model PumpwoodMFAMethod."""
     pk = serializers.IntegerField(source='id', allow_null=True)
     model_class = ClassNameField()
 
@@ -33,6 +35,7 @@ class SerializerPumpwoodMFAMethod(DynamicFieldsModelSerializer):
             "serializers.SerializerUser"))
 
     class Meta:
+        """Meta."""
         model = PumpwoodMFAMethod
         fields = (
             'pk', 'model_class', 'is_enabled', 'priority', 'user_id',
@@ -40,6 +43,7 @@ class SerializerPumpwoodMFAMethod(DynamicFieldsModelSerializer):
 
 
 class SerializerPumpwoodMFAToken(DynamicFieldsModelSerializer):
+    """Serializer for model PumpwoodMFAToken."""
     pk = serializers.IntegerField(source='token', allow_null=True)
     model_class = ClassNameField()
 
@@ -51,6 +55,7 @@ class SerializerPumpwoodMFAToken(DynamicFieldsModelSerializer):
             "serializers.SerializerUser"))
 
     class Meta:
+        """Meta."""
         model = PumpwoodMFAToken
         fields = (
             'pk', 'model_class', "token", "user_id", "user",
@@ -58,10 +63,12 @@ class SerializerPumpwoodMFAToken(DynamicFieldsModelSerializer):
 
 
 class SerializerPumpwoodMFACode(DynamicFieldsModelSerializer):
+    """Serializer for model PumpwoodMFACode."""
     pk = serializers.IntegerField(source='id', allow_null=True)
     model_class = ClassNameField()
 
     class Meta:
+        """Meta."""
         model = PumpwoodMFACode
         fields = (
             'pk', 'model_class', 'token', 'mfa_method', 'code',
@@ -69,6 +76,7 @@ class SerializerPumpwoodMFACode(DynamicFieldsModelSerializer):
 
 
 class SerializerPumpwoodMFARecoveryCode(DynamicFieldsModelSerializer):
+    """Serializer for model PumpwoodMFARecoveryCode."""
     pk = serializers.IntegerField(source='id', allow_null=True)
     model_class = ClassNameField()
 
@@ -80,12 +88,14 @@ class SerializerPumpwoodMFARecoveryCode(DynamicFieldsModelSerializer):
             "serializers.SerializerUser"))
 
     class Meta:
+        """Meta."""
         model = PumpwoodMFARecoveryCode
         fields = (
             'pk', 'model_class', 'user_id', 'user', 'code', 'created_at')
 
 
 class SerializerUser(DynamicFieldsModelSerializer):
+    """Serializer for model User."""
     pk = serializers.IntegerField(source='id', allow_null=True)
     model_class = ClassNameField()
     user_profile = SerializerUserProfile(many=False, read_only=True)
@@ -114,6 +124,7 @@ class SerializerUser(DynamicFieldsModelSerializer):
         order_by=["-id"])
 
     class Meta:
+        """Meta."""
         model = User
         fields = (
             'pk', 'model_class', 'username', 'email', 'first_name',
@@ -128,16 +139,19 @@ class SerializerUser(DynamicFieldsModelSerializer):
         read_only = ('last_login', 'date_joined')
 
     def get_all_permissions(self, obj):
+        """Get all possible permissions."""
         all_permissions = list(obj.get_all_permissions())
         all_permissions.sort()
         return all_permissions
 
     def get_user_permissions(self, obj):
+        """Get user's permissions."""
         user_permissions = list(obj.get_user_permissions())
         user_permissions.sort()
         return user_permissions
 
     def get_group_permissions(self, obj):
+        """Get group permission."""
         group_permissions = list(obj.get_group_permissions())
         group_permissions.sort()
         return group_permissions

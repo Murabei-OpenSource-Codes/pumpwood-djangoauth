@@ -1,23 +1,22 @@
 """Views for authentication and user end-point."""
 import pandas as pd
 import numpy as np
-from django.utils import timezone
 from django.db import connection
-from rest_framework import permissions
-from rest_framework.views import APIView
 from rest_framework.response import Response
-from rest_framework.decorators import api_view, permission_classes
-from django.contrib.auth import authenticate, login
-from django.contrib.auth.models import User
-from pumpwood_communication import exceptions
-from pumpwood_djangoauth.config import (
-    storage_object, microservice, rabbitmq_api)
+from rest_framework.decorators import api_view
 from pumpwood_djangoviews.views import PumpWoodRestService
+from pumpwood_djangoauth.config import storage_object, microservice
+
+# Models
+from django.contrib.auth.models import User
 from pumpwood_djangoauth.api_permission.models import (
     PumpwoodPermissionPolicy, PumpwoodPermissionPolicyAction,
     PumpwoodPermissionGroup, PumpwoodPermissionPolicyGroupM2M,
-    PumpwoodPermissionPolicyUserM2M,
-    PumpwoodPermissionUserGroupM2M)
+    PumpwoodPermissionPolicyUserM2M, PumpwoodPermissionUserGroupM2M)
+from pumpwood_djangoauth.system.models import (
+    KongRoute)
+
+# Serializers
 from pumpwood_djangoauth.api_permission.serializers import (
     SerializerPumpwoodPermissionPolicy,
     SerializerPumpwoodPermissionPolicyAction,
@@ -27,9 +26,42 @@ from pumpwood_djangoauth.api_permission.serializers import (
     SerializerPumpwoodPermissionUserGroupM2M)
 
 
-def get_user_permissions(user_id: int, route_name: str = None):
+def get_user_permissions(user: User, route_name: str = None):
+    """Get user permission, including self and group related."""
+    if user.is_superuser:
+        all_routes = KongRoute.objects.all()
+        list_permissions = []
+        for r in all_routes:
+            list_permissions.append({
+                'description': '## superuser ##',
+                'notes': '## superuser ##',
+                'dimensions': {},
+                'route__description': r.description,
+                'route__id': r.id,
+                'route__url': r.route_url,
+                'route__type': r.route_type,
+                'can_list': 'allow',
+                'can_list_without_pag': 'allow',
+                'can_retrieve': 'allow',
+                'can_retrieve_file': 'allow',
+                'can_delete': 'allow',
+                'can_delete_many': 'allow',
+                'can_delete_file': 'allow',
+                'can_save': 'allow',
+                'can_run_actions': 'allow',
+                'extra_info': {},
+                'updated_by': None,
+                'updated_at': None})
+        return list_permissions
+
+    user_permissions = PumpwoodPermissionPolicy.objects.filter(
+        
+    )
+
     query_results = None
     if route_name is not None:
+        PumpwoodPermissionPolicy.objects.filter()
+
         query = """
             SELECT *
             FROM public.api_permission__list_all_permissions
@@ -38,8 +70,7 @@ def get_user_permissions(user_id: int, route_name: str = None):
         """
         query_results = pd.read_sql(
             query, con=connection, params={
-                "user_id": user_id,
-                "route_name": route_name})
+                "user_id": user_id, "route_name": route_name})
     else:
         query = """
             SELECT *
@@ -48,8 +79,7 @@ def get_user_permissions(user_id: int, route_name: str = None):
         """
         query_results = pd.read_sql(
             query, con=connection, params={
-                "user_id": user_id
-            })
+                "user_id": user_id})
 
     # Custom action policy
     is_custom_action = query_results["can_run_actions"] == 'custom'

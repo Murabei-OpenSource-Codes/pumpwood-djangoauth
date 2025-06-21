@@ -60,6 +60,7 @@ class KongServiceSerializer(DynamicFieldsModelSerializer):
         serializer=KongRouteSerializer, order_by=["-id"])
 
     class Meta:
+        """Meta."""
         model = KongService
         fields = (
             "pk", "model_class", "service_url", "service_name",

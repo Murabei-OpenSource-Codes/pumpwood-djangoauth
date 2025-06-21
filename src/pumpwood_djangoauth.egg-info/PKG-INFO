@@ -1,6 +1,6 @@
-Metadata-Version: 2.1
+Metadata-Version: 2.4
 Name: pumpwood-djangoauth
-Version: 2.0.2
+Version: 2.0.3
 Summary: Assist creating views for Django using Pumpwood pattern.
 Home-page: https://github.com/Murabei-OpenSource-Codes/pumpwood-djangoauth
 Author: Murabei Data Science
@@ -22,6 +22,17 @@ Requires-Dist: pumpwood-communication>=1.0
 Requires-Dist: pumpwood-kong
 Requires-Dist: twilio==8.11.0
 Requires-Dist: lazy-string==1.0.0
+Dynamic: author
+Dynamic: author-email
+Dynamic: classifier
+Dynamic: description
+Dynamic: description-content-type
+Dynamic: home-page
+Dynamic: license
+Dynamic: license-file
+Dynamic: requires-dist
+Dynamic: requires-python
+Dynamic: summary
 
 # PumpWood Django Auth
 Create basic Pumpwood end-points for authentication and service mesh using

@@ -9,9 +9,7 @@ from rest_framework.response import Response
 from rest_framework.decorators import api_view, permission_classes
 from pumpwood_communication import exceptions
 from pumpwood_djangoviews.views import PumpWoodRestService
-from pumpwood_djangoauth.registration.models import (
-    PumpwoodMFAMethod, PumpwoodMFAToken, PumpwoodMFACode,
-    PumpwoodMFARecoveryCode)
+from pumpwood_djangoauth.registration.models import PumpwoodMFAToken
 from pumpwood_djangoauth.registration.serializers import SerializerUser
 
 # Knox Views
@@ -21,16 +19,17 @@ from knox.views import LoginView as KnoxLoginView
 from pumpwood_djangoauth.log.functions import log_api_request
 
 # I8N
-from pumpwood_djangoauth.i8n.models import PumpwoodI8nTranslation as t
+from pumpwood_djangoauth.i8n.models import PumpwoodI8nTranslation as t # NOQA
 
 
 class LoginView(KnoxLoginView):
+    """Login view that super KnoxLoginView."""
+
     # login view extending KnoxLoginView
     permission_classes = (permissions.AllowAny,)
 
     def post(self, request, format=None):
-        """
-        Login user using its password and username.
+        """Login user using its password and username.
 
         Check if header have indication that the request came from "outside"
         """
@@ -146,12 +145,13 @@ class LoginView(KnoxLoginView):
 
 # Fuction to validate MFA Token
 def validate_mfa_token(request):
-    """
-    Validate MFA Token and return user if possible.
+    """Validate MFA Token and return user if possible.
 
     Args:
-        request: Django Rest request.
-    Return [User]:
+        request:
+            Django Rest request.
+
+    Returns:
         Return user associated with MFA Token.
     """
     mfa_autorization = request.headers.get("X-PUMPWOOD-MFA-Autorization")
@@ -232,8 +232,7 @@ class CheckAuthentication(APIView):
         return Response(True)
 
     def post(self, request):
-        """
-        Log API calls.
+        """Log API calls.
 
         New end-point that sets setting user_id and other information of the
         requested API.

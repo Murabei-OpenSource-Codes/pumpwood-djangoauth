@@ -1,4 +1,5 @@
 """Manage Kong routes for Pumpwood."""
+from typing import List
 from django.db import models
 from django.db.models import Q
 from pumpwood_djangoviews.action import action
@@ -54,10 +55,12 @@ class KongService(models.Model):
         encoder=PumpWoodJSONEncoder)
 
     def __str__(self):
+        """__str__."""
         return 'microservice: %s; endpoint: %s' % (
             self.service_name, self.service_url)
 
     class Meta:
+        """Meta."""
         db_table = 'pumpwood__service'
         unique_together = [
             ['service_url', 'service_name'],
@@ -116,17 +119,15 @@ class KongService(models.Model):
 
     @classmethod
     @action(info='Delete services/routes and reload them on Kong')
-    def reload_kong_service(cls, list_service_id: list = None) -> bool:
-        """
-        Reload kong services, a small down time may occur.
+    def reload_kong_service(cls, list_service_id: List[int] = None) -> bool:
+        """Reload kong services, a small down time may occur.
 
         Remove and recreate all services and kong routes if list_service_id
         not passed as argument.
 
-        Args
-            No Args.
-        Kwargs:
-            list_service_id [list]: List of ids to reload routes on Kong.
+        Args:
+            list_service_id (list):
+                List of ids to reload routes on Kong.
         Return [bool]:
             Return true.
         """
@@ -155,25 +156,30 @@ class KongService(models.Model):
                        description: str, notes: str, icon: str = None,
                        healthcheck_route: str = None,
                        dimensions: dict = {}, extra_info: dict = {}) -> dict:
-        """
-        Create a Kong service to redirect calls.
+        """Create a Kong service to redirect calls.
 
         Save calls use same object to create or patch already created object.
 
         Args:
-            service_url [str]: URL of the service to which call to this service
+            service_url (str):
+                URL of the service to which call to this service
                 will be redicted as is.
-            service_name [str]: Unique name for the service
-            description [str]: Unique description for the service.
-            notes [str]: A long description for the service.
-        Kwargs:
-            healthcheck_route [str] = None: A health check end-point for the
-                service.
-            dimensions [dict] = {}: A dimensions for the service to help
-                quering.
-            extra_info [dict] = {}: Extra information to be saved with service.
-            icon [str] = None: An icon associated with the service.
-        Returns [dict] -> dict:
+            service_name (str):
+                Unique name for the service
+            description (str):
+                Unique description for the service.
+            notes (str):
+                A long description for the service.
+            healthcheck_route (str): = None
+                A health check end-point for the service.
+            dimensions (dict): = {}
+                A dimensions for the service to help quering.
+            extra_info (dict): = {}
+                Extra information to be saved with service.
+            icon (str): = None
+                An icon associated with the service.
+
+        Returns (dict):
             Return a serialized KongService object.
         """
         from pumpwood_djangoauth.system.serializers import (
@@ -283,12 +289,14 @@ class KongRoute(models.Model):
         encoder=PumpWoodJSONEncoder)
 
     class Meta:
+        """Meta."""
         db_table = 'pumpwood__route'
         unique_together = [['route_name', 'route_url']]
         verbose_name = 'Route'
         verbose_name_plural = 'Routes'
 
     def __str__(self):
+        """__str__."""
         return 'service: %s; route: %s; route name: %s' % (
             self.service.service_name, self.route_name, self.route_url)
 
@@ -299,29 +307,36 @@ class KongRoute(models.Model):
                      availability: str = None, icon: str = None,
                      strip_path: bool = False, dimensions: dict = {},
                      extra_info: dict = {}) -> dict:
-        """
-        Create a Kong route to redirect calls.
+        """Create a Kong route to redirect calls.
 
         Save calls use same object to create or patch already created object.
 
         Args:
-            service_id [int]: Id of the service associated with route on
-                PumpWood.
-            route_url [str]: Route URL to redirect the calls to service.
-            route_name [str]: Unique name for the route.
-            route_type [str]: Type of the route to create values must be in:
+            service_id (int):
+                Id of the service associated with route on PumpWood.
+            route_url (str):
+                Route URL to redirect the calls to service.
+            route_name (str):
+                Unique name for the route.
+            route_type (str):
+                Type of the route to create values must be in:
                 ['endpoint', 'aux', 'gui', 'static', 'admin']
-            description [str]: Unique description for the service.
-            notes [str]: A long description for the service.
-        Kwargs:
-            availability [str]: If route should be avaiable at frontend.
-            strip_path [bool]: If kong will strip path when routing downstream.
-            icon [str] = None: An icon associated with the service.
-            dimensions [dict] = {}: A dimensions for the service to help
-                quering.
-            extra_info [dict] = {}: Extra information to be saved with
-                service.
-        Returns [dict]:
+            description (str):
+                Unique description for the service.
+            notes (str):
+                A long description for the service.
+            availability (str):
+                If route should be avaiable at frontend.
+            strip_path (bool):
+                If kong will strip path when routing downstream.
+            icon (str): = None
+                An icon associated with the service.
+            dimensions (dict): = {}
+                A dimensions for the service to help quering.
+            extra_info (dict): = {}
+                Extra information to be saved with service.
+
+        Returns:
             Return a serialized KongRoute object.
         """
         from pumpwood_djangoauth.system.serializers import (
