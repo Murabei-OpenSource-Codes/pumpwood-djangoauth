@@ -34,6 +34,7 @@ src/pumpwood_djangoauth/api_permission/migrations/0011_pumpwoodpermissionpolicyg
 src/pumpwood_djangoauth/api_permission/migrations/0012_migrade_group_data.py
 src/pumpwood_djangoauth/api_permission/migrations/0013_remove_pumpwoodpermissionpolicygroupm2m_group_bk.py
 src/pumpwood_djangoauth/api_permission/migrations/0014_finish_groups_data_migration.py
+src/pumpwood_djangoauth/api_permission/migrations/0015_remove_unused_models.py
 src/pumpwood_djangoauth/api_permission/migrations/__init__.py
 src/pumpwood_djangoauth/groups/__init__.py
 src/pumpwood_djangoauth/groups/admin.py
