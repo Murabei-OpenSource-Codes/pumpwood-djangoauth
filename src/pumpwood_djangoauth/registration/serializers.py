@@ -114,13 +114,13 @@ class SerializerUser(DynamicFieldsModelSerializer):
         order_by=["-id"])
     api_permission_set = LocalRelatedField(
         serializer=(
-            "pumpwood_djangoauth.api_permission."
+            "pumpwood_djangoauth.api_permission." +
             "serializers.SerializerPumpwoodPermissionPolicyUserM2M"),
         order_by=["-id"])
-    api_permission_group_set = LocalRelatedField(
+    user_group_m2m_set = LocalRelatedField(
         serializer=(
-            "pumpwood_djangoauth.api_permission."
-            "serializers.SerializerPumpwoodPermissionUserGroupM2M"),
+            "pumpwood_djangoauth.groups." +
+            "serializers.SerializerPumpwoodUserGroupM2M"),
         order_by=["-id"])
 
     class Meta:
@@ -131,7 +131,7 @@ class SerializerUser(DynamicFieldsModelSerializer):
             'last_name', 'last_login', 'date_joined', 'is_active', 'is_staff',
             'is_superuser', 'all_permissions', 'group_permissions',
             'user_profile', 'mfa_method_set', 'api_permission_set',
-            'api_permission_group_set', 'mfa_method_set', 'mfa_token_set',
+            'user_group_m2m_set', 'mfa_method_set', 'mfa_token_set',
             'recovery_codes_set')
         list_fields = [
             "pk", "model_class", 'is_active', 'is_superuser', 'is_staff',

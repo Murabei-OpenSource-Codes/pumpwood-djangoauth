@@ -341,7 +341,7 @@ class RestUser(PumpWoodRestService):
         }, {
             "name": "API permissions",
             "fields": [
-                'api_permission_set', 'api_permission_group_set'
+                'api_permission_set',
             ]
         }, {
             "name": "extra_fields",

@@ -94,13 +94,12 @@ class PumpwoodUserGroupM2M(models.Model):
 
     user = models.ForeignKey(
         User, on_delete=models.CASCADE,
-        related_name="pumpwood_user_group_m2m_set",
-        verbose_name="User",
+        related_name="user_group_m2m_set", verbose_name="User",
         help_text="User associated with group")
     """@private"""
     group = models.ForeignKey(
         PumpwoodUserGroup, on_delete=models.CASCADE,
-        related_name="pumpwood_group_m2m_set", verbose_name="Group",
+        related_name="user_group_m2m_set", verbose_name="Group",
         help_text="Permission Group to apply policy")
     """@private"""
     extra_info = models.JSONField(
