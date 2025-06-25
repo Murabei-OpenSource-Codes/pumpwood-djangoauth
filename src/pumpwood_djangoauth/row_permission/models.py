@@ -7,7 +7,6 @@ base_query function.
 """
 from django.db import models
 from django.conf import settings
-from django.contrib.auth.models import User
 from pumpwood_communication.serializers import PumpWoodJSONEncoder
 
 # User groups
@@ -229,7 +228,7 @@ class PumpwoodRowPermissionPolicyGroupM2M(models.Model):
         verbose_name_plural = 'Row permission Policy -> Group'
 
 
-class PumpwoodPermissionPolicyUserM2M(models.Model):
+class PumpwoodRowPermissionPolicyUserM2M(models.Model):
     """Link PermissionPolicy and User.
 
     Associate permission policies with users individualy.
@@ -260,7 +259,7 @@ class PumpwoodPermissionPolicyUserM2M(models.Model):
         help_text="Policy priority, lower number will have precedence")
     """@private"""
     user = models.ForeignKey(
-        User, on_delete=models.CASCADE,
+        settings.AUTH_USER_MODEL, on_delete=models.CASCADE,
         related_name="row_permission_set",
         verbose_name="User",
         help_text="Row Permission user to apply policy")

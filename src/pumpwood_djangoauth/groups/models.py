@@ -5,7 +5,6 @@ Django models to set custom groups permission for Pumpwood end-points.
     End-points not functional yet.
 """
 from django.db import models
-from django.contrib.auth.models import User
 from django.conf import settings
 from pumpwood_communication.serializers import PumpWoodJSONEncoder
 
@@ -93,7 +92,7 @@ class PumpwoodUserGroupM2M(models.Model):
     """
 
     user = models.ForeignKey(
-        User, on_delete=models.CASCADE,
+        settings.AUTH_USER_MODEL, on_delete=models.CASCADE,
         related_name="user_group_m2m_set", verbose_name="User",
         help_text="User associated with group")
     """@private"""

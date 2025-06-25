@@ -47,6 +47,17 @@ def get_user_permissions(user: User, route_name: str = None):
                 'updated_at': None})
         return list_permissions
 
+    PumpwoodPermissionPolicyGroupM2M.objects\
+        .filter(group__user_group_m2m_set__user=user)
+    PumpwoodPermissionPolicyUserM2M.objects\
+        .filter(user=user)
+
+    user_permissions = PumpwoodPermissionPolicy.objects\
+        .filter(policy_user_set__user=user)
+    group_permissions = PumpwoodPermissionPolicy.objects\
+        .filter(user=user)
+
+
     # user_permissions = PumpwoodPermissionPolicy.objects.filter(
     # )
 
@@ -97,7 +108,7 @@ def view__list_self_permissions(request):
     user = request.user
     route_name = request.GET.get('route_name')
     query_results = get_user_permissions(
-        user_id=user.id, route_name=route_name)
+        user_id=user, route_name=route_name)
     return Response(query_results)
 
 

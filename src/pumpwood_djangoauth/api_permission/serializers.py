@@ -1,6 +1,7 @@
 from rest_framework import serializers
 from pumpwood_djangoviews.serializers import (
-    ClassNameField, DynamicFieldsModelSerializer, MicroserviceForeignKeyField)
+    ClassNameField, DynamicFieldsModelSerializer, MicroserviceForeignKeyField,
+    MicroserviceRelatedField, LocalForeignKeyField)
 from pumpwood_djangoauth.api_permission.models import (
     PumpwoodPermissionPolicy, PumpwoodPermissionPolicyAction,
     PumpwoodPermissionPolicyGroupM2M, PumpwoodPermissionPolicyUserM2M)
@@ -14,12 +15,18 @@ class SerializerPumpwoodPermissionPolicy(DynamicFieldsModelSerializer):
     route_id = serializers.IntegerField(allow_null=False, required=True)
 
     # Foreign Key
-    route = MicroserviceForeignKeyField(
-        source="route_id", microservice=microservice,
-        model_class="KongRoute", display_field="route_name")
-    updated_by = MicroserviceForeignKeyField(
-        source="updated_by_id", microservice=microservice,
-        model_class="User", display_field="username")
+    route = LocalForeignKeyField(
+        serializer=(
+            "pumpwood_djangoauth.system.serializers.KongRouteSerializer"))
+    updated_by = LocalForeignKeyField(
+        serializer=(
+            "pumpwood_djangoauth.registration.serializers.SerializerUser"))
+
+    # Related fields
+    action_set = MicroserviceRelatedField(
+        microservice=microservice,
+        model_class="PumpwoodPermissionPolicyAction",
+        foreign_key="policy_id", pk_field="id")
 
     class Meta:
         """Meta."""
@@ -29,7 +36,7 @@ class SerializerPumpwoodPermissionPolicy(DynamicFieldsModelSerializer):
             'route_id', 'route', 'can_retrieve', 'can_retrieve_file',
             'can_delete', 'can_delete_many', 'can_delete_file', 'can_save',
             'can_run_actions', 'extra_info', 'updated_by_id',
-            'updated_by', 'updated_at')
+            'updated_by', 'updated_at', 'action_set')
         read_only = ["updated_by_id", "updated_at"]
 
     def create(self, validated_data):
@@ -94,7 +101,7 @@ class SerializerPumpwoodPermissionPolicyGroupM2M(DynamicFieldsModelSerializer):
     custom_policy = MicroserviceForeignKeyField(
         source="group_id", microservice=microservice,
         model_class="PumpwoodPermissionPolicy",
-        display_field="priority")
+        display_field="description")
 
     updated_by = MicroserviceForeignKeyField(
         source="updated_by_id", microservice=microservice,
@@ -137,7 +144,7 @@ class SerializerPumpwoodPermissionPolicyUserM2M(DynamicFieldsModelSerializer):
     custom_policy = MicroserviceForeignKeyField(
         source="custom_policy_id", microservice=microservice,
         model_class="PumpwoodPermissionPolicy",
-        display_field="priority")
+        display_field="description")
 
     updated_by = MicroserviceForeignKeyField(
         source="updated_by_id", microservice=microservice,

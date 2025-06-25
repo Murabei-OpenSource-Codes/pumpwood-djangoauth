@@ -11,8 +11,12 @@ from django.dispatch import receiver
 from pumpwood_communication.serializers import PumpWoodJSONEncoder
 from pumpwood_communication.exceptions import (
     PumpWoodForbidden, PumpWoodMFAError, PumpWoodNotImplementedError)
+from pumpwood_djangoviews.action import action
 from pumpwood_djangoauth.registration.mfa_aux.main import send_mfa_code
 from pumpwood_djangoauth.i8n.translate import t
+
+# Auxiliary classes and functions
+from pumpwood_djangoauth.registration.aux import PermissionAux
 
 
 @receiver(post_save, sender=settings.AUTH_USER_MODEL)
@@ -51,6 +55,18 @@ class UserProfile(models.Model):
         db_table = 'pumpwood__userprofile'
         verbose_name = 'User profile'
         verbose_name_plural = 'Users profile'
+
+    @classmethod
+    @action(info="List user assciated API permissions",
+            request='request')
+    def self_api_permissions(cls, request):
+        """List users api permissions.
+
+        Args:
+            request:
+                Django request.
+        """
+        return PermissionAux.get(user=request.user, request=request)
 
 
 class PumpwoodMFAMethod(models.Model):
