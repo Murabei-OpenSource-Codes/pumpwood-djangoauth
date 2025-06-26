@@ -68,7 +68,7 @@ class SerializerPumpwoodPermissionPolicyAction(DynamicFieldsModelSerializer):
         """Meta."""
         model = PumpwoodPermissionPolicyAction
         fields = (
-            'pk', 'model_class', 'policy_id', 'action', 'permission',
+            'pk', 'model_class', 'policy_id', 'action', 'is_allowed',
             'extra_info', "updated_by_id", "updated_at",
             "policy", "updated_by")
         read_only = ["updated_by_id", "updated_at"]

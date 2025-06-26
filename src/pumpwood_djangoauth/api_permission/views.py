@@ -179,12 +179,12 @@ class RestPumpwoodPermissionPolicyAction(PumpWoodRestService):
     #######
     # GUI #
     list_fields = [
-        'pk', 'model_class', 'policy_id', 'action', 'permission',
+        'pk', 'model_class', 'policy_id', 'action', 'is_allowed',
         'extra_info', "updated_by_id", "updated_at"]
     gui_retrieve_fieldset = [{
             "name": "main",
             "fields": [
-                'pk', 'model_class', 'policy_id', 'action', 'permission',
+                'pk', 'model_class', 'policy_id', 'action', 'is_allowed',
                 'extra_info', "updated_by_id", "updated_at", ]
         }, {
             "name": "extra-info",
