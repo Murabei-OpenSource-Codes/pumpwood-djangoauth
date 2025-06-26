@@ -9,7 +9,9 @@ from rest_framework.response import Response
 from rest_framework.decorators import api_view, permission_classes
 from pumpwood_communication import exceptions
 from pumpwood_djangoviews.views import PumpWoodRestService
-from pumpwood_djangoauth.registration.models import PumpwoodMFAToken
+from pumpwood_djangoauth.config import storage_object, microservice
+from pumpwood_djangoauth.registration.models import (
+    PumpwoodMFAToken, UserProfile)
 from pumpwood_djangoauth.registration.serializers import SerializerUser
 
 # Knox Views
@@ -324,6 +326,8 @@ class RestUser(PumpWoodRestService):
 
     service_model = User
     serializer = SerializerUser
+    storage_object = storage_object
+    microservice = microservice
 
     #######
     # GUI #
@@ -350,4 +354,32 @@ class RestUser(PumpWoodRestService):
     ]
     gui_readonly = ['last_login']
     gui_verbose_field = '{pk} | {username}'
+    #######
+
+
+class RestUserProfile(PumpWoodRestService):
+    """End-point with information about Pumpwood users."""
+
+    endpoint_description = "User Profile"
+    notes = (
+        "End-point user profile information and actions associated with "
+        "api permission and other pumpwood user related")
+    dimensions = {
+        "microservice": "pumpwood-auth-app",
+        "service_type": "core",
+        "service": "auth",
+        "type": "userprofile",
+    }
+    icon = None
+
+    service_model = UserProfile
+    serializer = SerializerUser
+    storage_object = storage_object
+    microservice = microservice
+
+    #######
+    # GUI #
+    gui_retrieve_fieldset = None
+    gui_readonly = []
+    gui_verbose_field = '{pk}'
     #######

@@ -111,19 +111,8 @@ class PumpwoodPermissionPolicy(models.Model):
         default=False, verbose_name="List",
         help_text="Permission to list end-point and front-end page")
     """@private"""
-    can_list_legacy = models.TextField(
-        choices=PERMISSION_CHOICES,
-        default="no_change", verbose_name="List",
-        help_text="Permission to list end-point and front-end page")
-    """@private"""
     can_list_without_pag = models.BooleanField(
         default=False, verbose_name="List Without Pag.",
-        help_text=(
-            "Permission to list without pagination end-point. Return all "
-            "values associated with query (list paginate 50)"))
-    can_list_without_pag_legacy = models.TextField(
-        choices=PERMISSION_CHOICES,
-        default="no_change", verbose_name="List Without Pag.",
         help_text=(
             "Permission to list without pagination end-point. Return all "
             "values associated with query (list paginate 50)"))
@@ -132,63 +121,28 @@ class PumpwoodPermissionPolicy(models.Model):
         default=False, verbose_name="Retrieve",
         help_text="Permission to retrieve end-point and front-end page")
     """@private"""
-    can_retrieve_legacy = models.TextField(
-        choices=PERMISSION_CHOICES,
-        default="no_change", verbose_name="Retrieve",
-        help_text="Permission to retrieve end-point and front-end page")
-    """@private"""
     can_retrieve_file = models.BooleanField(
         default=False, verbose_name="Retrieve File",
-        help_text="Permission to retrieve file end-point")
-    """@private"""
-    can_retrieve_file_legacy = models.TextField(
-        choices=PERMISSION_CHOICES,
-        default="no_change", verbose_name="Retrieve File",
         help_text="Permission to retrieve file end-point")
     """@private"""
     can_delete = models.BooleanField(
         default=False, verbose_name="Delete",
         help_text="Permission to delete object end-point and front-end page")
     """@private"""
-    can_delete_legacy = models.TextField(
-        choices=PERMISSION_CHOICES,
-        default="no_change", verbose_name="Delete",
-        help_text="Permission to delete object end-point and front-end page")
-    """@private"""
     can_delete_many = models.BooleanField(
         default=False, verbose_name="Delete Many",
-        help_text="Permission to delete many end-point")
-    """@private"""
-    can_delete_many_legacy = models.TextField(
-        choices=PERMISSION_CHOICES,
-        default="no_change", verbose_name="Delete Many",
         help_text="Permission to delete many end-point")
     """@private"""
     can_delete_file = models.BooleanField(
         default=False, verbose_name="Delete File",
         help_text="Permission to delelte file end-point")
     """@private"""
-    can_delete_file_legacy = models.TextField(
-        choices=PERMISSION_CHOICES,
-        default="no_change", verbose_name="Delete File",
-        help_text="Permission to delelte file end-point")
-    """@private"""
     can_save = models.BooleanField(
         default=False, verbose_name="Save",
         help_text="Permission to save end-point and front-end page")
     """@private"""
-    can_save_legacy = models.TextField(
-        choices=PERMISSION_CHOICES,
-        default="no_change", verbose_name="Save",
-        help_text="Permission to save end-point and front-end page")
-    """@private"""
     can_run_actions = models.BooleanField(
         default=False, verbose_name="Actions",
-        help_text="Permission to run actions")
-    """@private"""
-    can_run_actions_legacy = models.TextField(
-        choices=ACTION_PERMISSION_CHOICES,
-        default="no_change", verbose_name="Actions",
         help_text="Permission to run actions")
     """@private"""
     extra_info = models.JSONField(
@@ -261,11 +215,6 @@ class PumpwoodPermissionPolicyAction(models.Model):
     """@private"""
     is_allowed = models.BooleanField(
         default=False, null=False, blank=False,
-        verbose_name="Allow/Deny",
-        help_text="If user can run or not this action")
-    """@private"""
-    permission = models.TextField(
-        choices=PERMISSION_CHOICES, null=False, blank=False,
         verbose_name="Allow/Deny",
         help_text="If user can run or not this action")
     """@private"""

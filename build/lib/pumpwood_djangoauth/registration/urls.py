@@ -7,6 +7,8 @@ from pumpwood_djangoauth.registration.mfa_aux.views import oauth2, code
 
 pumpwoodrouter = PumpWoodRouter()
 pumpwoodrouter.register(viewset=views.RestUser)
+pumpwoodrouter.register(viewset=views.RestUserProfile)
+
 
 urlpatterns = [
     # Login/out end-points

@@ -5,10 +5,8 @@ Django models to set custom permission for Pumpwood end-points.
     End-points not functional yet.
 """
 from django.db import models
-from django.contrib.auth.models import User
 from django.conf import settings
 from pumpwood_communication.serializers import PumpWoodJSONEncoder
-from pumpwood_communication import exceptions
 
 # User groups
 from pumpwood_djangoauth.groups.models import PumpwoodUserGroup
@@ -109,51 +107,42 @@ class PumpwoodPermissionPolicy(models.Model):
         related_name="permission_set", verbose_name="Route",
         help_text="Route associated with permission.")
     """@private"""
-    can_list = models.TextField(
-        choices=PERMISSION_CHOICES,
-        default="no_change", verbose_name="List",
+    can_list = models.BooleanField(
+        default=False, verbose_name="List",
         help_text="Permission to list end-point and front-end page")
     """@private"""
-    can_list_without_pag = models.TextField(
-        choices=PERMISSION_CHOICES,
-        default="no_change", verbose_name="List Without Pag.",
+    can_list_without_pag = models.BooleanField(
+        default=False, verbose_name="List Without Pag.",
         help_text=(
             "Permission to list without pagination end-point. Return all "
             "values associated with query (list paginate 50)"))
     """@private"""
-    can_retrieve = models.TextField(
-        choices=PERMISSION_CHOICES,
-        default="no_change", verbose_name="Retrieve",
+    can_retrieve = models.BooleanField(
+        default=False, verbose_name="Retrieve",
         help_text="Permission to retrieve end-point and front-end page")
     """@private"""
-    can_retrieve_file = models.TextField(
-        choices=PERMISSION_CHOICES,
-        default="no_change", verbose_name="Retrieve File",
+    can_retrieve_file = models.BooleanField(
+        default=False, verbose_name="Retrieve File",
         help_text="Permission to retrieve file end-point")
     """@private"""
-    can_delete = models.TextField(
-        choices=PERMISSION_CHOICES,
-        default="no_change", verbose_name="Delete",
+    can_delete = models.BooleanField(
+        default=False, verbose_name="Delete",
         help_text="Permission to delete object end-point and front-end page")
     """@private"""
-    can_delete_many = models.TextField(
-        choices=PERMISSION_CHOICES,
-        default="no_change", verbose_name="Delete Many",
+    can_delete_many = models.BooleanField(
+        default=False, verbose_name="Delete Many",
         help_text="Permission to delete many end-point")
     """@private"""
-    can_delete_file = models.TextField(
-        choices=PERMISSION_CHOICES,
-        default="no_change", verbose_name="Delete File",
+    can_delete_file = models.BooleanField(
+        default=False, verbose_name="Delete File",
         help_text="Permission to delelte file end-point")
     """@private"""
-    can_save = models.TextField(
-        choices=PERMISSION_CHOICES,
-        default="no_change", verbose_name="Save",
+    can_save = models.BooleanField(
+        default=False, verbose_name="Save",
         help_text="Permission to save end-point and front-end page")
     """@private"""
-    can_run_actions = models.TextField(
-        choices=ACTION_PERMISSION_CHOICES,
-        default="no_change", verbose_name="Actions",
+    can_run_actions = models.BooleanField(
+        default=False, verbose_name="Actions",
         help_text="Permission to run actions")
     """@private"""
     extra_info = models.JSONField(
@@ -184,26 +173,6 @@ class PumpwoodPermissionPolicy(models.Model):
         db_table = 'api_permission__policy'
         verbose_name = 'Permission Policy'
         verbose_name_plural = 'Permission Policies'
-
-    @classmethod
-    def list_user_permissions(cls, user_pk: int) -> list:
-        """List all permissions associated with an user.
-
-        .. warning::
-            Function not implemented yet.
-
-        Args:
-            user_pk (int):
-                User pk tho whom list all avaiable
-                permissions.
-
-        Raises:
-            PumpWoodNotImplementedError:
-                Function is not implemented.
-        """
-        msg = "Function not implemented"
-        raise exceptions.PumpWoodNotImplementedError(
-            message=msg)
 
 
 class PumpwoodPermissionPolicyAction(models.Model):
@@ -244,8 +213,8 @@ class PumpwoodPermissionPolicyAction(models.Model):
         verbose_name="Route action",
         help_text="Route action to which apply permission")
     """@private"""
-    permission = models.TextField(
-        choices=PERMISSION_CHOICES, null=False, blank=False,
+    is_allowed = models.BooleanField(
+        default=False, null=False, blank=False,
         verbose_name="Allow/Deny",
         help_text="If user can run or not this action")
     """@private"""
@@ -390,7 +359,7 @@ class PumpwoodPermissionPolicyUserM2M(models.Model):
         help_text="Policy priority, lower number will have precedence")
     """@private"""
     user = models.ForeignKey(
-        User, on_delete=models.CASCADE,
+        settings.AUTH_USER_MODEL, on_delete=models.CASCADE,
         related_name="api_permission_set",
         verbose_name="User",
         help_text="Permission Group to apply policy")

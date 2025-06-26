@@ -35,14 +35,14 @@ from pumpwood_communication.exceptions import (
 
 
 def custom_exception_handler(exc, context) -> Response:
-    """
-    Treat custom exception handler to PumpWoodExceptions.
+    """Treat custom exception handler to PumpWoodExceptions.
 
     Args:
-        exc [Exception]:
+        exc (Exception):
             Exception raised processing request.
         context:
             Context of the error that was raised.
+
     Returns:
         Return a response with error code depending of the PumpWoodException
         raised. It returns a serialized dictionary with exception data.
