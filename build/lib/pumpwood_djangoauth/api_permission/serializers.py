@@ -25,7 +25,7 @@ class SerializerPumpwoodPermissionPolicy(DynamicFieldsModelSerializer):
     # Related fields
     action_set = LocalRelatedField(
         serializer=(
-            'api_permission.serializers.' +
+            'pumpwood_djangoauth.api_permission.serializers.' +
             'SerializerPumpwoodPermissionPolicyAction'))
 
     class Meta:
