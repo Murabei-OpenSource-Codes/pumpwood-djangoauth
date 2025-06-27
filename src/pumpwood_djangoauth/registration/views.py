@@ -307,8 +307,10 @@ class CheckAuthentication(APIView):
 @api_view(['GET'])
 def retrieve_authenticated_user(request):
     """Retrieve information about the authenticated user."""
-    return Response(
-        SerializerUser(request.user, many=False).data)
+    self_user_data = SerializerUser(
+        request.user, many=False, foreign_key_fields=True,
+        related_fields=True, context={'request': request}).data
+    return Response(self_user_data)
 
 
 class RestUser(PumpWoodRestService):

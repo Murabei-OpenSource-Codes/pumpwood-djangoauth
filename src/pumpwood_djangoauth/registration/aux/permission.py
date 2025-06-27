@@ -52,7 +52,7 @@ class PermissionAux:
         for r in routed_data:
             r['__display_name__'] = r.get('route_name')
             list_permissions.append({
-                'route_id': r.id,
+                'route_id': r['pk'],
                 'route': r,
                 'can_list': True,
                 'can_list_without_pag': True,

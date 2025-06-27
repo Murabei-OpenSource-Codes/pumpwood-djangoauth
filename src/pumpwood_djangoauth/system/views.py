@@ -6,6 +6,7 @@ from django.contrib.auth.decorators import login_required
 from rest_framework.response import Response
 from rest_framework.decorators import api_view
 from pumpwood_djangoviews.views import PumpWoodRestService
+from pumpwood_miscellaneous.storage import PumpWoodStorage
 from pumpwood_djangoauth.system.models import KongService, KongRoute
 from pumpwood_djangoauth.system.serializers import (
     KongServiceSerializer, KongRouteSerializer)
@@ -111,7 +112,7 @@ def view__dummy_raise(request):
         # Raise a simple server error
         raise Exception("Server error my friend!")
     else:
-        TempException = exceptions_dict.get(exception_class)
+        TempException = exceptions_dict.get(exception_class) # NOQA
         if TempException is None:
             msg = "Error class not implemented: %s" % exception_class
             raise PumpWoodException(message=msg, payload=request_data)
@@ -120,6 +121,7 @@ def view__dummy_raise(request):
 
 
 class RestKongRoute(PumpWoodRestService):
+    """Rest for model KongRoute."""
     endpoint_description = "Kong Route"
     dimensions = {
         "microservice": "pumpwood-auth-app",
@@ -157,6 +159,7 @@ class RestKongRoute(PumpWoodRestService):
     #######
 
     def save(self, request):
+        """Super save to create route using class function."""
         request_data = request.data
         return Response(KongRoute.create_route(
             availability=request_data.get("availability"),
@@ -172,6 +175,7 @@ class RestKongRoute(PumpWoodRestService):
 
 
 class RestKongService(PumpWoodRestService):
+    """Rest end-point for KongService."""
     endpoint_description = "Kong Services"
     dimensions = {
         "microservice": "pumpwood-auth-app",
@@ -209,6 +213,7 @@ class RestKongService(PumpWoodRestService):
     #######
 
     def save(self, request):
+        """Super save."""
         request_data = request.data
         return Response(KongService.create_service(
             service_url=request_data["service_url"],
@@ -223,14 +228,20 @@ class RestKongService(PumpWoodRestService):
 
 
 class ServeMediaFiles:
-    """
-    Class to serve files using Pumpwood Storage Object.
+    """Class to serve files using Pumpwood Storage Object.
 
     It checks for user authentication and serve files using streaming
     request.
     """
 
-    def __init__(self, storage_object):
+    def __init__(self, storage_object: PumpWoodStorage):
+        """__init__.
+
+        Args:
+            storage_object (PumpWoodStorage):
+                Pumpwood Storage object that will be used to retrieve
+                files from storage.
+        """
         self.storage_object = storage_object
 
     def as_view(self):

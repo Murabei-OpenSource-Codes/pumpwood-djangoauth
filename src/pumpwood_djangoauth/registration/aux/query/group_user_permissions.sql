@@ -10,6 +10,7 @@ SELECT
   BOOL_AND(can_run_actions) AS can_run_actions,
   BOOL_AND(can_save) AS can_save
 FROM (
+  -- Group permissions
   -- Use general policy to add permission to all avaiable routes
   SELECT
     route.id AS route_id,
@@ -80,7 +81,54 @@ FROM (
 
   UNION ALL
 
+  -- User permissions
+  SELECT
+    route.id AS route_id,
+    CASE
+      WHEN general_policy = 'read' THEN FALSE
+      WHEN general_policy = 'write' THEN TRUE
+      ELSE FALSE END AS can_delete,
+    CASE
+      WHEN general_policy = 'read' THEN FALSE
+      WHEN general_policy = 'write' THEN TRUE
+      ELSE FALSE END AS can_delete_file,
+    CASE
+      WHEN general_policy = 'read' THEN FALSE
+      WHEN general_policy = 'write' THEN TRUE
+      ELSE FALSE END AS can_delete_many,
+    CASE
+      WHEN general_policy = 'read' THEN TRUE
+      WHEN general_policy = 'write' THEN TRUE
+      ELSE FALSE END AS can_list,
+    CASE
+      WHEN general_policy = 'read' THEN TRUE
+      WHEN general_policy = 'write' THEN TRUE
+      ELSE FALSE END AS can_list_without_pag,
+    CASE
+      WHEN general_policy = 'read' THEN TRUE
+      WHEN general_policy = 'write' THEN TRUE
+      ELSE FALSE END AS can_retrieve,
+    CASE
+      WHEN general_policy = 'read' THEN TRUE
+      WHEN general_policy = 'write' THEN TRUE
+      ELSE FALSE END AS can_retrieve_file,
+    CASE
+      WHEN general_policy = 'read' THEN FALSE
+      WHEN general_policy = 'write' THEN TRUE
+      ELSE FALSE END AS can_run_actions,
+    CASE
+      WHEN general_policy = 'read' THEN FALSE
+      WHEN general_policy = 'write' THEN TRUE
+      ELSE FALSE END AS can_save
+  FROM public.api_permission__policy_user_m2m AS user_m2m
+  JOIN public.pumpwood__route AS route
+    ON 1=1
+  WHERE custom_policy_id IS NULL
+    AND user_m2m.user_id = %(user_id)s
+
   -- Fetch user related permissions
+  UNION ALL
+
   SELECT
     route_id,
     api_policy.can_delete,

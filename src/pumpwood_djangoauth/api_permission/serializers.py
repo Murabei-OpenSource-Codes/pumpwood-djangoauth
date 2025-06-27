@@ -1,7 +1,7 @@
 from rest_framework import serializers
 from pumpwood_djangoviews.serializers import (
     ClassNameField, DynamicFieldsModelSerializer, MicroserviceForeignKeyField,
-    MicroserviceRelatedField, LocalForeignKeyField)
+    LocalRelatedField, LocalForeignKeyField)
 from pumpwood_djangoauth.api_permission.models import (
     PumpwoodPermissionPolicy, PumpwoodPermissionPolicyAction,
     PumpwoodPermissionPolicyGroupM2M, PumpwoodPermissionPolicyUserM2M)
@@ -23,10 +23,10 @@ class SerializerPumpwoodPermissionPolicy(DynamicFieldsModelSerializer):
             "pumpwood_djangoauth.registration.serializers.SerializerUser"))
 
     # Related fields
-    action_set = MicroserviceRelatedField(
-        microservice=microservice,
-        model_class="PumpwoodPermissionPolicyAction",
-        foreign_key="policy_id", pk_field="id")
+    action_set = LocalRelatedField(
+        serializer=(
+            'api_permission.serializers.' +
+            'SerializerPumpwoodPermissionPolicyAction'))
 
     class Meta:
         """Meta."""
