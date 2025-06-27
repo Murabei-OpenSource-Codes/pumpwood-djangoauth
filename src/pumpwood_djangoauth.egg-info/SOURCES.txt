@@ -40,6 +40,7 @@ src/pumpwood_djangoauth/api_permission/migrations/0016_rename_can_delete_file_pu
 src/pumpwood_djangoauth/api_permission/migrations/0017_pumpwoodpermissionpolicy_can_delete_and_more.py
 src/pumpwood_djangoauth/api_permission/migrations/0018_fill_permissions.py
 src/pumpwood_djangoauth/api_permission/migrations/0019_remove_pumpwoodpermissionpolicy_can_delete_file_legacy_and_more.py
+src/pumpwood_djangoauth/api_permission/migrations/0020_remove_pumpwoodpermissionpolicygroupm2m_priority_and_more.py
 src/pumpwood_djangoauth/api_permission/migrations/__init__.py
 src/pumpwood_djangoauth/groups/__init__.py
 src/pumpwood_djangoauth/groups/admin.py
@@ -122,6 +123,7 @@ src/pumpwood_djangoauth/registration/urls.py
 src/pumpwood_djangoauth/registration/views.py
 src/pumpwood_djangoauth/registration/aux/__init__.py
 src/pumpwood_djangoauth/registration/aux/permission.py
+src/pumpwood_djangoauth/registration/aux/query/__init__.py
 src/pumpwood_djangoauth/registration/mfa_aux/__init__.py
 src/pumpwood_djangoauth/registration/mfa_aux/app_log.py
 src/pumpwood_djangoauth/registration/mfa_aux/main.py

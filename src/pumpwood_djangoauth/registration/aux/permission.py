@@ -1,6 +1,13 @@
 """Functions to help fetching permissions from user."""
 import pandas as pd
+import importlib.resources as pkg_resources
 from typing import List
+from django.db import connection
+
+# Read sql query from package resources
+sql_content = pkg_resources.read_text(
+    'pumpwood_djangoauth.registration.aux.query',
+    'group_user_permissions.sql')
 
 
 class PermissionAux:
@@ -18,10 +25,8 @@ class PermissionAux:
         """
         if user.is_superuser:
             return cls._get_superuser(request=request)
-
-        return [
-            'tem que implementar'
-        ]
+        else:
+            return cls._get_non_superuser(user=user, request=request)
 
     @classmethod
     def _get_superuser(cls, request) -> List[dict]:
@@ -47,60 +52,39 @@ class PermissionAux:
         for r in routed_data:
             r['__display_name__'] = r.get('route_name')
             list_permissions.append({
-                'description': '## superuser ##',
-                'notes': '## superuser ##',
+                'route_id': r.id,
                 'route': r,
-                'dimensions': {},
-                'can_list': 'allow',
-                'can_list_without_pag': 'allow',
-                'can_retrieve': 'allow',
-                'can_retrieve_file': 'allow',
-                'can_delete': 'allow',
-                'can_delete_many': 'allow',
-                'can_delete_file': 'allow',
-                'can_save': 'allow',
-                'can_run_actions': 'allow',
-                'extra_info': {},
-                'updated_by': None,
-                'updated_at': None})
+                'can_list': True,
+                'can_list_without_pag': True,
+                'can_retrieve': True,
+                'can_retrieve_file': True,
+                'can_delete': True,
+                'can_delete_many': True,
+                'can_delete_file': True,
+                'can_save': True,
+                'can_run_actions': True})
         return list_permissions
 
     @classmethod
     def _get_non_superuser(cls, user, request) -> List[dict]:
         """Get non superuser permissions associated with user."""
-        from pumpwood_djangoauth.api_permission.models import (
-            PumpwoodPermissionPolicy)
-        from pumpwood_djangoauth.api_permission.serializers import (
-            SerializerPumpwoodPermissionPolicy)
-        columns = [
-            'custom_policy_id', 'priority', 'general_policy',
-            'custom_policy__route_id']
-        pd_users_policies = pd.DataFrame(
-            user.api_permission_set.all().values(*columns),
-            columns=columns)
+        from pumpwood_djangoauth.system.models import KongRoute
+        from pumpwood_djangoauth.system.serializers import KongRouteSerializer
 
-        columns = [
-            'group__api_permission_set__custom_policy_id',
-            'group__api_permission_set__priority',
-            'group__api_permission_set__general_policy',
-            'group__api_permission_set__custom_policy__route_id']
-        pd_group_policies = pd.DataFrame(
-            user.user_group_m2m_set.all().values(*columns),
-            columns=columns)\
-            .rename(columns={
-                'group__api_permission_set__custom_policy_id':
-                    'custom_policy_id',
-                'group__api_permission_set__priority':
-                    'priority',
-                'group__api_permission_set__general_policy':
-                    'general_policy',
-                'group__api_permission_set__custom_policy__route_id':
-                    'custom_policy__route_id'})
+        query_parameters = {"user_id": user.id}
+        with connection.cursor() as cursor:
+            cursor.execute(sql_content, query_parameters)
+            rows = cursor.fetchall()
+            columns = [desc[0] for desc in cursor.description]
+        pd_results = pd.DataFrame(rows, columns=columns)
 
-        all_policies = pd.concat([pd_users_policies, pd_group_policies])
-        permission_objects = PumpwoodPermissionPolicy.objects.filter(
-            id__in=all_policies['custom_policy_id'])
-        all_policies_data = pd.DataFrame(SerializerPumpwoodPermissionPolicy(
-            permission_objects, many=True, related_fields=True,
-            context={'request': request}).data)
-        all_policies_data
+        query_result = KongRoute.objects.filter(id__in=pd_results['route_id'])
+        routed_data = KongRouteSerializer(
+            query_result, many=True, default_fields=True,
+            context={'request': request}).data
+        for r in routed_data:
+            r['__display_name__'] = r.get('route_name')
+        map_route = dict([(r['pk'], r) for r in routed_data])
+
+        pd_results['route'] = pd_results['route_id'].map(map_route)
+        return pd_results

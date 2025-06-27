@@ -8,6 +8,7 @@ from django.db import models
 from django.conf import settings
 from django.db.models.signals import post_save
 from django.dispatch import receiver
+from django.contrib.auth import get_user_model
 from pumpwood_communication.serializers import PumpWoodJSONEncoder
 from pumpwood_communication.exceptions import (
     PumpWoodForbidden, PumpWoodMFAError, PumpWoodNotImplementedError)
@@ -57,7 +58,7 @@ class UserProfile(models.Model):
         verbose_name_plural = 'Users profile'
 
     @classmethod
-    @action(info="List user assciated API permissions",
+    @action(info="List self assciated API permissions",
             request='request')
     def self_api_permissions(cls, request):
         """List users api permissions.
@@ -67,6 +68,22 @@ class UserProfile(models.Model):
                 Django request.
         """
         return PermissionAux.get(user=request.user, request=request)
+
+    @classmethod
+    @action(info="List user's assciated API permissions",
+            request='request')
+    def user_api_permissions(cls, user_id: int, request):
+        """List users api permissions.
+
+        Args:
+            user_id (int):
+                User's id associated with API permissions.
+            request:
+                Django request.
+        """
+        User = get_user_model() # NOQA
+        user = User.objects.get(id=user_id)
+        return PermissionAux.get(user=user, request=request)
 
 
 class PumpwoodMFAMethod(models.Model):
@@ -155,11 +172,11 @@ class PumpwoodMFAMethod(models.Model):
             super(PumpwoodMFAMethod, self).save(*args, **kwargs)
 
     def run_method(self, mfa_token: str):
-        """
-        Run MFA method.
+        """Run MFA method.
 
         Args:
-            mfa_token [str] MFA Token.
+            mfa_token (str):
+                MFA Token.
         Kwargs:
             No Kwargs.
         Return [dict]:
@@ -229,6 +246,7 @@ class PumpwoodMFAToken(models.Model):
         help_text=("MFA token will expire at"))
 
     class Meta:
+        """Meta."""
         db_table = 'pumpwood__mfa_token'
         verbose_name = 'MFA Token'
         verbose_name_plural = 'MFA Tokens'
@@ -238,13 +256,13 @@ class PumpwoodMFAToken(models.Model):
         if not self.pk:
             self.created_at = timezone.now()
 
-            rand_str = str(random.randint(0, 9999999999)).zfill(10)
+            rand_str = str(random.randint(0, 9999999999)).zfill(10) # NOQA
             m = hashlib.sha256((
                 self.created_at.isoformat() + '|' + rand_str).encode())
             self.token = m.hexdigest()
 
-            EXPIRATION_INTERVAL = int(os.getenv(
-                "PUMPWOOD__MFA__TOKEN_EXPIRATION_INTERVAL", 60*5))
+            EXPIRATION_INTERVAL = int(os.getenv(  # NOQA
+                "PUMPWOOD__MFA__TOKEN_EXPIRATION_INTERVAL", 60 * 5))
             expiration_time = (
                 self.created_at +
                 datetime.timedelta(seconds=EXPIRATION_INTERVAL))
@@ -258,8 +276,7 @@ class PumpwoodMFAToken(models.Model):
 
 
 class PumpwoodMFACode(models.Model):
-    """
-    Code associated with MFA session.
+    """Code associated with MFA session.
 
     It does not have expire date and will respect MFA token expire datetime.
     """
@@ -284,6 +301,7 @@ class PumpwoodMFACode(models.Model):
         help_text="Time was created at")
 
     class Meta:
+        """Meta."""
         db_table = 'pumpwood__mfa_code'
         verbose_name = 'MFA code'
         verbose_name_plural = 'MFA codes'
@@ -291,7 +309,7 @@ class PumpwoodMFACode(models.Model):
     def save(self, *args, **kwargs):
         """Create MFA Code."""
         if self.pk is None:
-            self.code = str(random.randint(0, 999999)).zfill(6)
+            self.code = str(random.randint(0, 999999)).zfill(6) # NOQA
 
         # Do not let update MFA codes
         else:
@@ -304,6 +322,7 @@ class PumpwoodMFACode(models.Model):
 
 
 class PumpwoodMFARecoveryCode(models.Model):
+    """Pumpwood MFA recovery codes."""
     user = models.ForeignKey(
         settings.AUTH_USER_MODEL, on_delete=models.CASCADE,
         related_name="recovery_codes_set",
@@ -319,6 +338,7 @@ class PumpwoodMFARecoveryCode(models.Model):
         help_text="Time was created at")
 
     class Meta:
+        """Meta."""
         db_table = 'pumpwood__mfa_recovery_code'
         verbose_name = 'MFA recovery code'
         verbose_name_plural = 'MFA recovery codes'

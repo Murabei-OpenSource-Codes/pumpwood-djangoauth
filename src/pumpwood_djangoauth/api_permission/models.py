@@ -108,41 +108,41 @@ class PumpwoodPermissionPolicy(models.Model):
         help_text="Route associated with permission.")
     """@private"""
     can_list = models.BooleanField(
-        default=False, verbose_name="List",
+        verbose_name="List", null=True, blank=True,
         help_text="Permission to list end-point and front-end page")
     """@private"""
     can_list_without_pag = models.BooleanField(
-        default=False, verbose_name="List Without Pag.",
+        verbose_name="List Without Pag.", null=True, blank=True,
         help_text=(
             "Permission to list without pagination end-point. Return all "
             "values associated with query (list paginate 50)"))
     """@private"""
     can_retrieve = models.BooleanField(
-        default=False, verbose_name="Retrieve",
+        verbose_name="Retrieve", null=True, blank=True,
         help_text="Permission to retrieve end-point and front-end page")
     """@private"""
     can_retrieve_file = models.BooleanField(
-        default=False, verbose_name="Retrieve File",
+        verbose_name="Retrieve File", null=True, blank=True,
         help_text="Permission to retrieve file end-point")
     """@private"""
     can_delete = models.BooleanField(
-        default=False, verbose_name="Delete",
+        verbose_name="Delete", null=True, blank=True,
         help_text="Permission to delete object end-point and front-end page")
     """@private"""
     can_delete_many = models.BooleanField(
-        default=False, verbose_name="Delete Many",
+        verbose_name="Delete Many", null=True, blank=True,
         help_text="Permission to delete many end-point")
     """@private"""
     can_delete_file = models.BooleanField(
-        default=False, verbose_name="Delete File",
+        verbose_name="Delete File", null=True, blank=True,
         help_text="Permission to delelte file end-point")
     """@private"""
     can_save = models.BooleanField(
-        default=False, verbose_name="Save",
+        verbose_name="Save", null=True, blank=True,
         help_text="Permission to save end-point and front-end page")
     """@private"""
     can_run_actions = models.BooleanField(
-        default=False, verbose_name="Actions",
+        verbose_name="Actions", null=True, blank=True,
         help_text="Permission to run actions")
     """@private"""
     extra_info = models.JSONField(
@@ -214,8 +214,7 @@ class PumpwoodPermissionPolicyAction(models.Model):
         help_text="Route action to which apply permission")
     """@private"""
     is_allowed = models.BooleanField(
-        default=False, null=False, blank=False,
-        verbose_name="Allow/Deny",
+        null=True, blank=True, verbose_name="Allow/Deny",
         help_text="If user can run or not this action")
     """@private"""
     extra_info = models.JSONField(
@@ -240,7 +239,8 @@ class PumpwoodPermissionPolicyAction(models.Model):
     class Meta:
         """Meta class."""
         db_table = 'api_permission__policy_action'
-        unique_together = [['policy', 'action'], ]
+        unique_together = [
+            ['policy', 'action'], ]
         """Fields to be considered that should be considered unique together
            on the database.."""
         verbose_name = 'Custom Action Policy'
@@ -278,10 +278,6 @@ class PumpwoodPermissionPolicyGroupM2M(models.Model):
     """Choices for general permission that are associated with all pumpwood
        end-points."""
 
-    priority = models.IntegerField(
-        null=False, default=0, verbose_name="Policy priority",
-        help_text="Policy priority, lower number will have precedence")
-    """@private"""
     group = models.ForeignKey(
         PumpwoodUserGroup, on_delete=models.CASCADE, null=False,
         db_index=True, related_name="api_permission_set", verbose_name="Group",
@@ -354,10 +350,6 @@ class PumpwoodPermissionPolicyUserM2M(models.Model):
     """Choices for general permission that are associated with all pumpwood
        end-points."""
 
-    priority = models.IntegerField(
-        null=False, default=0, verbose_name="Policy priority",
-        help_text="Policy priority, lower number will have precedence")
-    """@private"""
     user = models.ForeignKey(
         settings.AUTH_USER_MODEL, on_delete=models.CASCADE,
         related_name="api_permission_set",

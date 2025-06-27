@@ -111,7 +111,7 @@ class SerializerPumpwoodPermissionPolicyGroupM2M(DynamicFieldsModelSerializer):
         """Meta."""
         model = PumpwoodPermissionPolicyGroupM2M
         fields = (
-            'pk', 'model_class', 'priority', 'group', 'group_id',
+            'pk', 'model_class', 'group', 'group_id',
             'general_policy', 'custom_policy_id', "custom_policy",
             'extra_info', "updated_by_id", "updated_by", "updated_at")
         read_only = ["updated_by_id", "updated_at"]
@@ -154,7 +154,7 @@ class SerializerPumpwoodPermissionPolicyUserM2M(DynamicFieldsModelSerializer):
         """Meta."""
         model = PumpwoodPermissionPolicyUserM2M
         fields = (
-            'pk', 'model_class', 'priority', 'user_id', 'user',
+            'pk', 'model_class', 'user_id', 'user',
             'general_policy', 'custom_policy_id', 'custom_policy',
             'extra_info', "updated_by_id", "updated_by", "updated_at")
         read_only = ["updated_by_id", "updated_at"]
