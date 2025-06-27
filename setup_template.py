@@ -50,7 +50,7 @@ setup(
         "Operating System :: OS Independent",
     ],
     package_dir={"": "src"},
-    package_data={"": ['*.html']},
+    package_data={"": ['*.html', '*.sql']},
     install_requires=requirements,  # Uses parsed requirements.txt
     packages=find_packages(where="src"),
     python_requires=">=3.6",

@@ -124,6 +124,7 @@ src/pumpwood_djangoauth/registration/views.py
 src/pumpwood_djangoauth/registration/aux/__init__.py
 src/pumpwood_djangoauth/registration/aux/permission.py
 src/pumpwood_djangoauth/registration/aux/query/__init__.py
+src/pumpwood_djangoauth/registration/aux/query/group_user_permissions.sql
 src/pumpwood_djangoauth/registration/mfa_aux/__init__.py
 src/pumpwood_djangoauth/registration/mfa_aux/app_log.py
 src/pumpwood_djangoauth/registration/mfa_aux/main.py
