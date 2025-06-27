@@ -20,6 +20,9 @@ class SerializerUserProfile(DynamicFieldsModelSerializer):
         fields = (
             'pk', 'model_class', 'is_service_user', 'dimensions',
             'extra_fields')
+        list_fields = (
+            'pk', 'model_class', 'is_service_user', 'dimensions',
+            'extra_fields')
 
 
 class SerializerPumpwoodMFAMethod(DynamicFieldsModelSerializer):
@@ -38,6 +41,9 @@ class SerializerPumpwoodMFAMethod(DynamicFieldsModelSerializer):
         """Meta."""
         model = PumpwoodMFAMethod
         fields = (
+            'pk', 'model_class', 'is_enabled', 'priority', 'user_id',
+            'user', 'type', 'mfa_parameter', 'extra_info')
+        list_fields = (
             'pk', 'model_class', 'is_enabled', 'priority', 'user_id',
             'user', 'type', 'mfa_parameter', 'extra_info')
 
@@ -60,6 +66,9 @@ class SerializerPumpwoodMFAToken(DynamicFieldsModelSerializer):
         fields = (
             'pk', 'model_class', "token", "user_id", "user",
             "created_at", "expire_at")
+        list_fields = (
+            'pk', 'model_class', "token", "user_id", "user",
+            "created_at", "expire_at")
 
 
 class SerializerPumpwoodMFACode(DynamicFieldsModelSerializer):
@@ -71,6 +80,9 @@ class SerializerPumpwoodMFACode(DynamicFieldsModelSerializer):
         """Meta."""
         model = PumpwoodMFACode
         fields = (
+            'pk', 'model_class', 'token', 'mfa_method', 'code',
+            'created_at')
+        list_fields = (
             'pk', 'model_class', 'token', 'mfa_method', 'code',
             'created_at')
 
@@ -91,6 +103,8 @@ class SerializerPumpwoodMFARecoveryCode(DynamicFieldsModelSerializer):
         """Meta."""
         model = PumpwoodMFARecoveryCode
         fields = (
+            'pk', 'model_class', 'user_id', 'user', 'code', 'created_at')
+        list_fields = (
             'pk', 'model_class', 'user_id', 'user', 'code', 'created_at')
 
 

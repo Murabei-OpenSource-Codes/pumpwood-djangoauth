@@ -11,10 +11,6 @@ pumpwoodrouter.register(viewset=views.RestPumpwoodPermissionPolicyUserM2M)
 
 urlpatterns = [
     path(
-        'rest/api-permission/list-self-permissions/',
-        views.view__list_self_permissions,
-        name='rest__api_permission__list_self'),
-    path(
         'rest/api-permission/has-self-permission/',
         views.view__has_permission,
         name='rest__api_permission__has_permission'),

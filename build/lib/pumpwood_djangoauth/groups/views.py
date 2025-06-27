@@ -27,15 +27,9 @@ class RestPumpwoodUserGroup(PumpWoodRestService):
     serializer = SerializerPumpwoodUserGroup
     storage_object = storage_object
     microservice = microservice
-    foreign_keys = {
-        "updated_by_id": {
-            "model_class": "User", "many": False},
-    }
 
     #######
     # GUI #
-    list_fields = [
-        'pk', 'model_class', 'description', "updated_at"]
     gui_retrieve_fieldset = [{
             "name": "main",
             "fields": [
@@ -69,14 +63,6 @@ class RestPumpwoodUserGroupM2M(PumpWoodRestService):
     serializer = SerializerPumpwoodUserGroupM2M
     storage_object = storage_object
     microservice = microservice
-    foreign_keys = {
-        "user_id": {
-            "model_class": "User", "many": False},
-        "group_id": {
-            "model_class": "User", "many": False},
-        "updated_by_id": {
-            "model_class": "User", "many": False},
-    }
 
     #######
     # GUI #

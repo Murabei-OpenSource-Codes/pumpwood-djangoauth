@@ -7,6 +7,7 @@ from pumpwood_djangoauth.i8n.serializers import (
 
 
 class RestPumpwoodI8nTranslation(PumpWoodRestService):
+    """PumpwoodI8nTranslation View-set."""
     endpoint_description = "I8n Translations"
     notes = "Model to perform I8n on Pumpwood"
 
@@ -19,9 +20,6 @@ class RestPumpwoodI8nTranslation(PumpWoodRestService):
 
     #######
     # Gui #
-    list_fields = [
-        "pk", "model_class", "status", "alias", "description",
-        "updated_by", "updated_at"]
     gui_retrieve_fieldset = [{
             "name": "main",
             "fields": [

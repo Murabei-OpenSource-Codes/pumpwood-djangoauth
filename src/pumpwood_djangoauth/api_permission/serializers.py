@@ -37,6 +37,12 @@ class SerializerPumpwoodPermissionPolicy(DynamicFieldsModelSerializer):
             'can_delete', 'can_delete_many', 'can_delete_file', 'can_save',
             'can_run_actions', 'extra_info', 'updated_by_id',
             'updated_by', 'updated_at', 'action_set')
+        list_fields = [
+            'pk', 'model_class', 'description', 'notes', 'dimensions',
+            'route_id', 'route', 'can_retrieve', 'can_retrieve_file',
+            'can_delete', 'can_delete_many', 'can_delete_file', 'can_save',
+            'can_run_actions', 'extra_info', 'updated_by_id',
+            'updated_by', 'updated_at']
         read_only = ["updated_by_id", "updated_at"]
 
     def create(self, validated_data):
@@ -57,12 +63,11 @@ class SerializerPumpwoodPermissionPolicyAction(DynamicFieldsModelSerializer):
     policy_id = serializers.IntegerField(allow_null=False, required=True)
 
     # ForeignKey
-    policy = MicroserviceForeignKeyField(
-        source="policy_id", microservice=microservice,
-        model_class="PumpwoodPermissionPolicy", display_field="description")
-    updated_by = MicroserviceForeignKeyField(
-        source="updated_by_id", microservice=microservice,
-        model_class="User", display_field="username")
+    policy = LocalForeignKeyField(
+        serializer=SerializerPumpwoodPermissionPolicy)
+    updated_by = LocalForeignKeyField(
+        serializer=(
+            "pumpwood_djangoauth.registration.serializers.SerializerUser"))
 
     class Meta:
         """Meta."""
@@ -71,6 +76,10 @@ class SerializerPumpwoodPermissionPolicyAction(DynamicFieldsModelSerializer):
             'pk', 'model_class', 'policy_id', 'action', 'is_allowed',
             'extra_info', "updated_by_id", "updated_at",
             "policy", "updated_by")
+        list_fields = [
+            'pk', 'model_class', 'policy_id', 'action', 'is_allowed',
+            'extra_info', "updated_by_id", "updated_at",
+            "policy", "updated_by"]
         read_only = ["updated_by_id", "updated_at"]
 
     def create(self, validated_data):
@@ -91,17 +100,14 @@ class SerializerPumpwoodPermissionPolicyGroupM2M(DynamicFieldsModelSerializer):
 
     # ForeignKey
     group_id = serializers.IntegerField(allow_null=False, required=True)
-    group = MicroserviceForeignKeyField(
-        source="group_id", microservice=microservice,
-        model_class="PumpwoodPermissionGroup",
-        display_field="description")
-
+    group = LocalForeignKeyField(
+        serializer=(
+            "pumpwood_djangoauth.groups." +
+            "serializers.SerializerPumpwoodUserGroup"))
     custom_policy_id = serializers.IntegerField(
         allow_null=False, required=True)
-    custom_policy = MicroserviceForeignKeyField(
-        source="group_id", microservice=microservice,
-        model_class="PumpwoodPermissionPolicy",
-        display_field="description")
+    custom_policy = LocalForeignKeyField(
+        serializer=SerializerPumpwoodPermissionPolicy)
 
     updated_by = MicroserviceForeignKeyField(
         source="updated_by_id", microservice=microservice,
@@ -114,6 +120,10 @@ class SerializerPumpwoodPermissionPolicyGroupM2M(DynamicFieldsModelSerializer):
             'pk', 'model_class', 'group', 'group_id',
             'general_policy', 'custom_policy_id', "custom_policy",
             'extra_info', "updated_by_id", "updated_by", "updated_at")
+        list_fields = [
+            'pk', 'model_class', 'group', 'group_id',
+            'general_policy', 'custom_policy_id', "custom_policy",
+            'extra_info', "updated_by_id", "updated_by", "updated_at"]
         read_only = ["updated_by_id", "updated_at"]
 
     def create(self, validated_data):
@@ -153,7 +163,11 @@ class SerializerPumpwoodPermissionPolicyUserM2M(DynamicFieldsModelSerializer):
     class Meta:
         """Meta."""
         model = PumpwoodPermissionPolicyUserM2M
-        fields = (
+        fields = [
+            'pk', 'model_class', 'user_id', 'user',
+            'general_policy', 'custom_policy_id', 'custom_policy',
+            'extra_info', "updated_by_id", "updated_by", "updated_at"]
+        list_fields = (
             'pk', 'model_class', 'user_id', 'user',
             'general_policy', 'custom_policy_id', 'custom_policy',
             'extra_info', "updated_by_id", "updated_by", "updated_at")

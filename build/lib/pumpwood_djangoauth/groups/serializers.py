@@ -26,6 +26,9 @@ class SerializerPumpwoodUserGroup(DynamicFieldsModelSerializer):
         fields = (
             'pk', 'model_class', 'description', 'notes', 'dimensions',
             'extra_info', "updated_by_id", "updated_at", 'updated_by')
+        list_fields = (
+            'pk', 'model_class', 'description', 'notes', 'dimensions',
+            'extra_info', "updated_by_id", "updated_at", 'updated_by')
         read_only = ["updated_by_id", "updated_at"]
 
     def create(self, validated_data):
@@ -68,6 +71,9 @@ class SerializerPumpwoodUserGroupM2M(DynamicFieldsModelSerializer):
         """Meta class."""
         model = PumpwoodUserGroupM2M
         fields = (
+            'pk', 'model_class', 'user_id', 'user', 'group_id', 'group',
+            'extra_info', 'updated_by_id', 'updated_by', 'updated_at')
+        list_fields = (
             'pk', 'model_class', 'user_id', 'user', 'group_id', 'group',
             'extra_info', 'updated_by_id', 'updated_by', 'updated_at')
         read_only = ["updated_by_id", "updated_at"]

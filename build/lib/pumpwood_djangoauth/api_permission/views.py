@@ -5,11 +5,9 @@ from pumpwood_djangoviews.views import PumpWoodRestService
 from pumpwood_djangoauth.config import storage_object, microservice
 
 # Models
-from django.contrib.auth.models import User
 from pumpwood_djangoauth.api_permission.models import (
     PumpwoodPermissionPolicy, PumpwoodPermissionPolicyAction,
     PumpwoodPermissionPolicyGroupM2M, PumpwoodPermissionPolicyUserM2M)
-from pumpwood_djangoauth.system.models import KongRoute
 
 # Serializers
 from pumpwood_djangoauth.api_permission.serializers import (
@@ -17,99 +15,6 @@ from pumpwood_djangoauth.api_permission.serializers import (
     SerializerPumpwoodPermissionPolicyAction,
     SerializerPumpwoodPermissionPolicyGroupM2M,
     SerializerPumpwoodPermissionPolicyUserM2M)
-
-
-def get_user_permissions(user: User, route_name: str = None):
-    """Get user permission, including self and group related."""
-    if user.is_superuser:
-        all_routes = KongRoute.objects.all()
-        list_permissions = []
-        for r in all_routes:
-            list_permissions.append({
-                'description': '## superuser ##',
-                'notes': '## superuser ##',
-                'dimensions': {},
-                'route__description': r.description,
-                'route__id': r.id,
-                'route__url': r.route_url,
-                'route__type': r.route_type,
-                'can_list': 'allow',
-                'can_list_without_pag': 'allow',
-                'can_retrieve': 'allow',
-                'can_retrieve_file': 'allow',
-                'can_delete': 'allow',
-                'can_delete_many': 'allow',
-                'can_delete_file': 'allow',
-                'can_save': 'allow',
-                'can_run_actions': 'allow',
-                'extra_info': {},
-                'updated_by': None,
-                'updated_at': None})
-        return list_permissions
-
-    PumpwoodPermissionPolicyGroupM2M.objects\
-        .filter(group__user_group_m2m_set__user=user)
-    PumpwoodPermissionPolicyUserM2M.objects\
-        .filter(user=user)
-
-    user_permissions = PumpwoodPermissionPolicy.objects\
-        .filter(policy_user_set__user=user)
-    group_permissions = PumpwoodPermissionPolicy.objects\
-        .filter(user=user)
-
-
-    # user_permissions = PumpwoodPermissionPolicy.objects.filter(
-    # )
-
-    # query_results = None
-    # if route_name is not None:
-    #     PumpwoodPermissionPolicy.objects.filter()
-    #
-    #     query = """
-    #         SELECT *
-    #         FROM public.api_permission__list_all_permissions
-    #         WHERE user_id = %(user_id)s
-    #           AND route_name = %(route_name)s
-    #     """
-    #     query_results = pd.read_sql(
-    #         query, con=connection, params={
-    #             "user_id": user_id, "route_name": route_name})
-    # else:
-    #     query = """
-    #         SELECT *
-    #         FROM public.api_permission__list_all_permissions
-    #         WHERE user_id = %(user_id)s
-    #     """
-    #     query_results = pd.read_sql(
-    #         query, con=connection, params={
-    #             "user_id": user_id})
-    #
-    # # Custom action policy
-    # is_custom_action = query_results["can_run_actions"] == 'custom'
-    # custom_action = query_results[is_custom_action]
-    # unique_policy_id = custom_action["policy_id"].dropna().unique().tolist()
-    # action_policy = pd.DataFrame(
-    #     PumpwoodPermissionPolicyAction.objects
-    #     .filter(policy_id__in=unique_policy_id)
-    #     .values('policy_id', 'action', 'permission'),
-    #     columns=['policy_id', 'action', 'permission'])
-    # custom_action = custom_action[[
-    #     "policy_id", 'user_id', 'group_id', "priority",
-    #     "route_id", "route_name"]].merge(
-    #     action_policy, on="policy_id", validate="1:m")
-    # return {
-    #     "permission_policy": query_results.replace({np.nan: None}),
-    #     "permission_custom_action": custom_action.replace({np.nan: None})}
-
-
-@api_view(['GET'])
-def view__list_self_permissions(request):
-    """Get kong routes."""
-    user = request.user
-    route_name = request.GET.get('route_name')
-    query_results = get_user_permissions(
-        user_id=user, route_name=route_name)
-    return Response(query_results)
 
 
 @api_view(['GET'])
@@ -138,8 +43,6 @@ class RestPumpwoodPermissionPolicy(PumpWoodRestService):
 
     #######
     # GUI #
-    list_fields = [
-        'pk', 'model_class', 'description', 'notes']
     gui_retrieve_fieldset = [{
         "name": "main",
         "fields": [
@@ -178,9 +81,6 @@ class RestPumpwoodPermissionPolicyAction(PumpWoodRestService):
 
     #######
     # GUI #
-    list_fields = [
-        'pk', 'model_class', 'policy_id', 'action', 'is_allowed',
-        'extra_info', "updated_by_id", "updated_at"]
     gui_retrieve_fieldset = [{
             "name": "main",
             "fields": [
@@ -224,9 +124,6 @@ class RestPumpwoodPermissionPolicyGroupM2M(PumpWoodRestService):
 
     #######
     # GUI #
-    list_fields = [
-        'pk', 'model_class', 'group_id', 'general_policy',
-        'custom_policy_id']
     gui_retrieve_fieldset = [{
             "name": "main",
             "fields": [
@@ -263,9 +160,6 @@ class RestPumpwoodPermissionPolicyUserM2M(PumpWoodRestService):
 
     #######
     # GUI #
-    list_fields = [
-        'pk', 'model_class', 'user_id', 'general_policy',
-        'custom_policy_id']
     gui_retrieve_fieldset = [{
             "name": "main",
             "fields": [
