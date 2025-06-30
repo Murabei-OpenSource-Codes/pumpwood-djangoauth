@@ -8,6 +8,8 @@ from pumpwood_djangoauth.registration.models import (
     UserProfile, PumpwoodMFAMethod)
 from pumpwood_djangoauth.api_permission.models import (
     PumpwoodPermissionPolicyUserM2M)
+from pumpwood_djangoauth.groups.models import (
+    PumpwoodUserGroupM2M)
 
 
 ######################
@@ -27,13 +29,22 @@ class PumpwoodMFAMethodInline(admin.TabularInline):
         "extra_info", "msg"]
 
 
-class PumpwoodPermissionPolicyGroupM2MInline(admin.TabularInline):
-    """Pumpwood Permission Policy Group M2M Inline."""
+class PumpwoodPermissionPolicyUserM2MInline(admin.TabularInline):
+    """Pumpwood Permission Policy User M2M Inline."""
     model = PumpwoodPermissionPolicyUserM2M
     fk_name = 'user'
     extra = 0
     fields = ['user', 'general_policy', 'custom_policy', ]
     ordering = ('general_policy', 'custom_policy__description')
+
+
+class PumpwoodUserGroupM2MInline(admin.TabularInline):
+    """Pumpwood Permission Policy Group M2M Inline."""
+    model = PumpwoodUserGroupM2M
+    fk_name = 'user'
+    extra = 0
+    fields = ['group']
+    ordering = ('group__description', )
 
 
 class CustomUserChangeForm(UserChangeForm):
@@ -49,7 +60,8 @@ class CustomUserAdmin(UserAdmin):
     fieldsets = UserAdmin.fieldsets
     inlines = UserAdmin.inlines + (
         UserProfileInline, PumpwoodMFAMethodInline,
-        PumpwoodPermissionPolicyGroupM2MInline)
+        PumpwoodPermissionPolicyUserM2MInline,
+        PumpwoodUserGroupM2MInline)
     list_display = (
         "id", "username", "email", "is_staff", "is_superuser", "get_has_mfa",
         "get_is_service_user")
@@ -70,6 +82,8 @@ class CustomUserAdmin(UserAdmin):
                             mfa_parameter=instance.mfa_parameter)
                     messages.error(request, msg)
             if isinstance(instance, PumpwoodPermissionPolicyUserM2M):
+                instance.updated_by = request.user
+            if isinstance(instance, PumpwoodUserGroupM2MInline):
                 instance.updated_by = request.user
             else:
                 instance.save()

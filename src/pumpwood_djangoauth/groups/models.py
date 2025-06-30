@@ -63,6 +63,10 @@ class PumpwoodUserGroup(models.Model):
         help_text="Updated At")
     """@private"""
 
+    def __str__(self):
+        """__str__."""
+        return self.description
+
     class Meta:
         """Meta class."""
         db_table = 'groups__group'

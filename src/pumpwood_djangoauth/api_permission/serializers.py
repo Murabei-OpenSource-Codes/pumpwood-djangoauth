@@ -1,11 +1,10 @@
 from rest_framework import serializers
 from pumpwood_djangoviews.serializers import (
-    ClassNameField, DynamicFieldsModelSerializer, MicroserviceForeignKeyField,
+    ClassNameField, DynamicFieldsModelSerializer,
     LocalRelatedField, LocalForeignKeyField)
 from pumpwood_djangoauth.api_permission.models import (
     PumpwoodPermissionPolicy, PumpwoodPermissionPolicyAction,
     PumpwoodPermissionPolicyGroupM2M, PumpwoodPermissionPolicyUserM2M)
-from pumpwood_djangoauth.config import microservice
 
 
 class SerializerPumpwoodPermissionPolicy(DynamicFieldsModelSerializer):
@@ -17,10 +16,12 @@ class SerializerPumpwoodPermissionPolicy(DynamicFieldsModelSerializer):
     # Foreign Key
     route = LocalForeignKeyField(
         serializer=(
-            "pumpwood_djangoauth.system.serializers.KongRouteSerializer"))
+            "pumpwood_djangoauth.system.serializers.KongRouteSerializer"),
+            display_field="route_name")
     updated_by = LocalForeignKeyField(
         serializer=(
-            "pumpwood_djangoauth.registration.serializers.SerializerUser"))
+            "pumpwood_djangoauth.registration.serializers.SerializerUser"),
+        display_field="username")
 
     # Related fields
     action_set = LocalRelatedField(
@@ -31,12 +32,12 @@ class SerializerPumpwoodPermissionPolicy(DynamicFieldsModelSerializer):
     class Meta:
         """Meta."""
         model = PumpwoodPermissionPolicy
-        fields = (
+        fields = [
             'pk', 'model_class', 'description', 'notes', 'dimensions',
             'route_id', 'route', 'can_retrieve', 'can_retrieve_file',
             'can_delete', 'can_delete_many', 'can_delete_file', 'can_save',
             'can_run_actions', 'extra_info', 'updated_by_id',
-            'updated_by', 'updated_at', 'action_set')
+            'updated_by', 'updated_at', 'action_set']
         list_fields = [
             'pk', 'model_class', 'description', 'notes', 'dimensions',
             'route_id', 'route', 'can_retrieve', 'can_retrieve_file',
@@ -64,10 +65,12 @@ class SerializerPumpwoodPermissionPolicyAction(DynamicFieldsModelSerializer):
 
     # ForeignKey
     policy = LocalForeignKeyField(
-        serializer=SerializerPumpwoodPermissionPolicy)
+        serializer=SerializerPumpwoodPermissionPolicy,
+        display_field="description")
     updated_by = LocalForeignKeyField(
         serializer=(
-            "pumpwood_djangoauth.registration.serializers.SerializerUser"))
+            "pumpwood_djangoauth.registration.serializers.SerializerUser"),
+        display_field="username")
 
     class Meta:
         """Meta."""
@@ -103,15 +106,18 @@ class SerializerPumpwoodPermissionPolicyGroupM2M(DynamicFieldsModelSerializer):
     group = LocalForeignKeyField(
         serializer=(
             "pumpwood_djangoauth.groups." +
-            "serializers.SerializerPumpwoodUserGroup"))
+            "serializers.SerializerPumpwoodUserGroup"),
+        display_field="description")
     custom_policy_id = serializers.IntegerField(
         allow_null=False, required=True)
     custom_policy = LocalForeignKeyField(
-        serializer=SerializerPumpwoodPermissionPolicy)
+        serializer=SerializerPumpwoodPermissionPolicy,
+        display_field="description")
 
-    updated_by = MicroserviceForeignKeyField(
-        source="updated_by_id", microservice=microservice,
-        model_class="User", display_field="username")
+    updated_by = LocalForeignKeyField(
+        serializer=(
+            "pumpwood_djangoauth.registration.serializers.SerializerUser"),
+        display_field="username")
 
     class Meta:
         """Meta."""
@@ -145,20 +151,23 @@ class SerializerPumpwoodPermissionPolicyUserM2M(DynamicFieldsModelSerializer):
     # ForeignKey
     user_id = serializers.IntegerField(
         allow_null=False, required=True)
-    user = MicroserviceForeignKeyField(
-        source="user_id", microservice=microservice,
-        model_class="User", display_field="username")
+    user = LocalForeignKeyField(
+        serializer=(
+            "pumpwood_djangoauth.registration.serializers.SerializerUser"),
+        display_field="username")
 
     custom_policy_id = serializers.IntegerField(
         allow_null=False, required=True)
-    custom_policy = MicroserviceForeignKeyField(
-        source="custom_policy_id", microservice=microservice,
-        model_class="PumpwoodPermissionPolicy",
+    custom_policy = LocalForeignKeyField(
+        serializer=SerializerPumpwoodPermissionPolicy,
         display_field="description")
 
-    updated_by = MicroserviceForeignKeyField(
-        source="updated_by_id", microservice=microservice,
-        model_class="User", display_field="username")
+    updated_by_id = serializers.IntegerField(
+        allow_null=True, required=False)
+    updated_by = LocalForeignKeyField(
+        serializer=(
+            "pumpwood_djangoauth.registration.serializers.SerializerUser"),
+        display_field="username")
 
     class Meta:
         """Meta."""
