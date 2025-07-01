@@ -45,6 +45,7 @@ src/pumpwood_djangoauth/api_permission/migrations/__init__.py
 src/pumpwood_djangoauth/groups/__init__.py
 src/pumpwood_djangoauth/groups/admin.py
 src/pumpwood_djangoauth/groups/apps.py
+src/pumpwood_djangoauth/groups/forms.py
 src/pumpwood_djangoauth/groups/models.py
 src/pumpwood_djangoauth/groups/serializers.py
 src/pumpwood_djangoauth/groups/tests.py

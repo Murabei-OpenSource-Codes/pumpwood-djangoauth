@@ -34,8 +34,98 @@ class PumpwoodPermissionPolicyUserM2MInline(admin.TabularInline):
     model = PumpwoodPermissionPolicyUserM2M
     fk_name = 'user'
     extra = 0
-    fields = ['user', 'general_policy', 'custom_policy', ]
+    fields = [
+        'user', 'general_policy', 'custom_policy',
+        'get_route_name', 'get_can_list', 'get_can_list_without_pag',
+        'get_can_retrieve', 'get_can_retrieve_file', 'get_can_delete',
+        'get_can_delete_many', 'get_can_delete_file', 'get_can_save',
+        'get_can_run_actions', ]
+    readonly_fields = (
+        'get_route_name', 'get_can_list', 'get_can_list_without_pag',
+        'get_can_retrieve', 'get_can_retrieve_file', 'get_can_delete',
+        'get_can_delete_many', 'get_can_delete_file', 'get_can_save',
+        'get_can_run_actions', )
     ordering = ('general_policy', 'custom_policy__description')
+
+    def get_route_name(self, obj=None):
+        """Get route name to display on object."""
+        if obj is not None:
+            if obj.custom_policy is not None:
+                return obj.custom_policy.route.route_name
+        return None
+    get_route_name.__name__ = "Route"
+
+    def get_can_list(self, obj=None):
+        """Get route name to display on object."""
+        if obj is not None:
+            if obj.custom_policy is not None:
+                return obj.can_list
+        return None
+    get_can_list.__name__ = "List?"
+
+    def get_can_list_without_pag(self, obj=None):
+        """Get route name to display on object."""
+        if obj is not None:
+            if obj.custom_policy is not None:
+                return obj.can_list_without_pag
+        return None
+    get_can_list_without_pag.__name__ = "List no pag.?"
+
+    def get_can_retrieve(self, obj=None):
+        """Get route name to display on object."""
+        if obj is not None:
+            if obj.custom_policy is not None:
+                return obj.can_retrieve
+        return None
+    get_can_retrieve.__name__ = "Retrieve?"
+
+    def get_can_retrieve_file(self, obj=None):
+        """Get route name to display on object."""
+        if obj is not None:
+            if obj.custom_policy is not None:
+                return obj.can_retrieve_file
+        return None
+    get_can_retrieve_file.__name__ = "Retrieve file?"
+
+    def get_can_delete(self, obj=None):
+        """Get route name to display on object."""
+        if obj is not None:
+            if obj.custom_policy is not None:
+                return obj.can_delete
+        return None
+    get_can_delete.__name__ = "Delete?"
+
+    def get_can_delete_many(self, obj=None):
+        """Get route name to display on object."""
+        if obj is not None:
+            if obj.custom_policy is not None:
+                return obj.can_delete_many
+        return None
+    get_can_delete_many.__name__ = "Delete many?"
+
+    def get_can_delete_file(self, obj=None):
+        """Get route name to display on object."""
+        if obj is not None:
+            if obj.custom_policy is not None:
+                return obj.can_delete_file
+        return None
+    get_can_delete_file.__name__ = "Delete file?"
+
+    def get_can_save(self, obj=None):
+        """Get route name to display on object."""
+        if obj is not None:
+            if obj.custom_policy is not None:
+                return obj.can_save
+        return None
+    get_can_save.__name__ = "Save?"
+
+    def get_can_run_actions(self, obj=None):
+        """Get route name to display on object."""
+        if obj is not None:
+            if obj.custom_policy is not None:
+                return obj.can_run_actions
+        return None
+    get_can_run_actions.__name__ = "Run actions?"
 
 
 class PumpwoodUserGroupM2MInline(admin.TabularInline):
