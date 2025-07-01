@@ -9,7 +9,6 @@ from pumpwood_djangoauth.groups.models import (
 
 class SerializerPumpwoodUserGroup(DynamicFieldsModelSerializer):
     """Serializer associated with PumpwoodUserGroup object."""
-
     pk = serializers.IntegerField(source='id', allow_null=True, required=False)
     model_class = ClassNameField()
 
@@ -44,7 +43,6 @@ class SerializerPumpwoodUserGroup(DynamicFieldsModelSerializer):
 
 class SerializerPumpwoodUserGroupM2M(DynamicFieldsModelSerializer):
     """Serializer associated with PumpwoodUserGroupM2M object."""
-
     pk = serializers.IntegerField(source='id', allow_null=True, required=False)
     model_class = ClassNameField()
 

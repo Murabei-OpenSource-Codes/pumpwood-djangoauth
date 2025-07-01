@@ -153,11 +153,14 @@ src/pumpwood_djangoauth/row_permission/__init__.py
 src/pumpwood_djangoauth/row_permission/admin.py
 src/pumpwood_djangoauth/row_permission/apps.py
 src/pumpwood_djangoauth/row_permission/models.py
+src/pumpwood_djangoauth/row_permission/serializers.py
 src/pumpwood_djangoauth/row_permission/tests.py
+src/pumpwood_djangoauth/row_permission/urls.py
 src/pumpwood_djangoauth/row_permission/views.py
 src/pumpwood_djangoauth/row_permission/migrations/0001_initial.py
 src/pumpwood_djangoauth/row_permission/migrations/0002_alter_pumpwoodrowpermissionpolicygroupm2m_group_and_more.py
 src/pumpwood_djangoauth/row_permission/migrations/0003_rename_pumpwoodpermissionpolicyuserm2m_pumpwoodrowpermissionpolicyuserm2m.py
+src/pumpwood_djangoauth/row_permission/migrations/0004_remove_pumpwoodrowpermissionpolicygroupm2m_policy_and_more.py
 src/pumpwood_djangoauth/row_permission/migrations/__init__.py
 src/pumpwood_djangoauth/system/__init__.py
 src/pumpwood_djangoauth/system/admin.py

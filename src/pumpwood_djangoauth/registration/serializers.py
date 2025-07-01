@@ -11,7 +11,7 @@ from pumpwood_djangoauth.registration.models import (
 
 class SerializerUserProfile(DynamicFieldsModelSerializer):
     """Serializer for model UserProfile."""
-    pk = serializers.IntegerField(source='id', allow_null=True)
+    pk = serializers.IntegerField(source='id', allow_null=True, required=False)
     model_class = ClassNameField()
 
     class Meta:
@@ -27,7 +27,7 @@ class SerializerUserProfile(DynamicFieldsModelSerializer):
 
 class SerializerPumpwoodMFAMethod(DynamicFieldsModelSerializer):
     """Serializer for model PumpwoodMFAMethod."""
-    pk = serializers.IntegerField(source='id', allow_null=True)
+    pk = serializers.IntegerField(source='id', allow_null=True, required=False)
     model_class = ClassNameField()
 
     # ForeignKey
@@ -50,7 +50,7 @@ class SerializerPumpwoodMFAMethod(DynamicFieldsModelSerializer):
 
 class SerializerPumpwoodMFAToken(DynamicFieldsModelSerializer):
     """Serializer for model PumpwoodMFAToken."""
-    pk = serializers.IntegerField(source='token', allow_null=True)
+    pk = serializers.IntegerField(source='id', allow_null=True, required=False)
     model_class = ClassNameField()
 
     # ForeignKey
@@ -73,7 +73,7 @@ class SerializerPumpwoodMFAToken(DynamicFieldsModelSerializer):
 
 class SerializerPumpwoodMFACode(DynamicFieldsModelSerializer):
     """Serializer for model PumpwoodMFACode."""
-    pk = serializers.IntegerField(source='id', allow_null=True)
+    pk = serializers.IntegerField(source='id', allow_null=True, required=False)
     model_class = ClassNameField()
 
     class Meta:
@@ -89,7 +89,7 @@ class SerializerPumpwoodMFACode(DynamicFieldsModelSerializer):
 
 class SerializerPumpwoodMFARecoveryCode(DynamicFieldsModelSerializer):
     """Serializer for model PumpwoodMFARecoveryCode."""
-    pk = serializers.IntegerField(source='id', allow_null=True)
+    pk = serializers.IntegerField(source='id', allow_null=True, required=False)
     model_class = ClassNameField()
 
     # ForeignKey
@@ -110,7 +110,7 @@ class SerializerPumpwoodMFARecoveryCode(DynamicFieldsModelSerializer):
 
 class SerializerUser(DynamicFieldsModelSerializer):
     """Serializer for model User."""
-    pk = serializers.IntegerField(source='id', allow_null=True)
+    pk = serializers.IntegerField(source='id', allow_null=True, required=False)
     model_class = ClassNameField()
     user_profile = SerializerUserProfile(many=False, read_only=True)
     all_permissions = serializers.SerializerMethodField()
@@ -128,8 +128,13 @@ class SerializerUser(DynamicFieldsModelSerializer):
         order_by=["-id"])
     api_permission_set = LocalRelatedField(
         serializer=(
-            "pumpwood_djangoauth.api_permission." +
+            "pumpwood_djangoauth.row_permission." +
             "serializers.SerializerPumpwoodPermissionPolicyUserM2M"),
+        order_by=["-id"])
+    row_permission_set = LocalRelatedField(
+        serializer=(
+            "pumpwood_djangoauth.api_permission." +
+            "serializers.SerializerPumpwoodRowPermissionUserM2M"),
         order_by=["-id"])
     user_group_m2m_set = LocalRelatedField(
         serializer=(
@@ -146,7 +151,7 @@ class SerializerUser(DynamicFieldsModelSerializer):
             'is_superuser', 'all_permissions', 'group_permissions',
             'user_profile', 'mfa_method_set', 'api_permission_set',
             'user_group_m2m_set', 'mfa_method_set', 'mfa_token_set',
-            'recovery_codes_set')
+            'recovery_codes_set', 'row_permission_set')
         list_fields = [
             "pk", "model_class", 'is_active', 'is_superuser', 'is_staff',
             'username', 'email', 'last_login']

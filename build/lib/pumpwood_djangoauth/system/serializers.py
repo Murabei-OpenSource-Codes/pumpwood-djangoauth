@@ -10,6 +10,7 @@ class KongRouteSerializer(DynamicFieldsModelSerializer):
     """Serializer for KongRoute model."""
     pk = serializers.IntegerField(source='id', allow_null=True, required=False)
     model_class = ClassNameField()
+
     description__verbose = serializers.SerializerMethodField()
     notes__verbose = serializers.SerializerMethodField()
 
@@ -50,6 +51,7 @@ class KongServiceSerializer(DynamicFieldsModelSerializer):
     """Serializer for KongService model."""
     pk = serializers.IntegerField(source='id', allow_null=True, required=False)
     model_class = ClassNameField()
+
     description__verbose = serializers.SerializerMethodField()
     notes__verbose = serializers.SerializerMethodField()
 
