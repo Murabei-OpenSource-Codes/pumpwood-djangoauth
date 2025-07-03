@@ -37,8 +37,8 @@ class SerializerPumpwoodRowPermission(DynamicFieldsModelSerializer):
             'extra_info', 'updated_by', 'updated_at', 'updated_by_id',
             'group_set', 'user_set')
         list_fields = (
-            'pk', 'model_class', 'is_service_user', 'dimensions',
-            'extra_fields')
+            'pk', 'model_class', 'description', 'notes', 'updated_by',
+            'updated_at', 'updated_by_id')
 
     def create(self, validated_data):
         """Set updated_by_id using logged user."""

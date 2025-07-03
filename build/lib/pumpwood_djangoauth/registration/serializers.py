@@ -128,12 +128,12 @@ class SerializerUser(DynamicFieldsModelSerializer):
         order_by=["-id"])
     api_permission_set = LocalRelatedField(
         serializer=(
-            "pumpwood_djangoauth.row_permission." +
+            "pumpwood_djangoauth.api_permission." +
             "serializers.SerializerPumpwoodPermissionPolicyUserM2M"),
         order_by=["-id"])
     row_permission_set = LocalRelatedField(
         serializer=(
-            "pumpwood_djangoauth.api_permission." +
+            "pumpwood_djangoauth.row_permission." +
             "serializers.SerializerPumpwoodRowPermissionUserM2M"),
         order_by=["-id"])
     user_group_m2m_set = LocalRelatedField(
