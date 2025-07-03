@@ -53,6 +53,10 @@ class PumpwoodRowPermission(models.Model):
         help_text="Updated At")
     """@private"""
 
+    def __str__(self):
+        """__str__."""
+        return f"{self.id} || {self.description}"
+
     class Meta:
         """Meta class."""
         db_table = 'row_permission__description'

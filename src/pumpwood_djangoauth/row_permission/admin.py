@@ -4,7 +4,8 @@ from pumpwood_djangoauth.row_permission.models import (
     PumpwoodRowPermission, PumpwoodRowPermissionGroupM2M,
     PumpwoodRowPermissionUserM2M)
 from pumpwood_djangoauth.row_permission.forms import (
-    PumpwoodRowPermissionAdminForm)
+    PumpwoodRowPermissionAdminForm, PumpwoodRowPermissionGroupM2MAdminForm,
+    PumpwoodRowPermissionUserM2MAdminForm)
 
 
 class PumpwoodRowPermissionGroupM2MInline(admin.TabularInline):
@@ -67,12 +68,48 @@ class PumpwoodPermissionPolicyAdmin(admin.ModelAdmin):
             obj.delete()
 
         for instance in instances:
-            if isinstance(instance, PumpwoodRowPermissionGroupM2MInline):
+            if isinstance(instance, PumpwoodRowPermissionGroupM2M):
                 instance.updated_by = request.user
                 instance.save()
-            elif isinstance(instance, PumpwoodRowPermissionUserM2MInline):
+            elif isinstance(instance, PumpwoodRowPermissionUserM2M):
                 instance.updated_by = request.user
                 instance.save()
             else:
                 instance.save()
         formset.save_m2m()
+
+
+@admin.register(PumpwoodRowPermissionGroupM2M)
+class PumpwoodRowPermissionGroupM2MAdmin(admin.ModelAdmin):
+    """Admin for PumpwoodPermissionPolicy model."""
+    form = PumpwoodRowPermissionGroupM2MAdminForm
+
+    list_filter = []
+    search_fields = []
+
+    list_display = (
+        "group", "row_permission", "updated_by", "updated_at")
+    readonly_fields = ["updated_by", "updated_at"]
+
+    def save_model(self, request, obj, form, change):
+        """Save model add updated_by field."""
+        obj.updated_by = request.user
+        super().save_model(request, obj, form, change)
+
+
+@admin.register(PumpwoodRowPermissionUserM2M)
+class PumpwoodRowPermissionUserM2MAdmin(admin.ModelAdmin):
+    """Admin for PumpwoodPermissionPolicy model."""
+    form = PumpwoodRowPermissionUserM2MAdminForm
+
+    list_filter = []
+    search_fields = []
+
+    list_display = (
+        "user", "row_permission", "updated_by", "updated_at")
+    readonly_fields = ["updated_by", "updated_at"]
+
+    def save_model(self, request, obj, form, change):
+        """Save model add updated_by field."""
+        obj.updated_by = request.user
+        super().save_model(request, obj, form, change)

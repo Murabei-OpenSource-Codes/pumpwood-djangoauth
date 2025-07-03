@@ -166,13 +166,13 @@ class PumpwoodPermissionPolicy(models.Model):
 
     def __str__(self):
         """__str__."""
-        return self.description
+        return f"{self.id} | {self.description}"
 
     class Meta:
         """Meta class."""
         db_table = 'api_permission__policy'
-        verbose_name = 'Permission Policy'
-        verbose_name_plural = 'Permission Policies'
+        verbose_name = 'End-point Permission Policy'
+        verbose_name_plural = 'End-point Permission Policies'
 
 
 class PumpwoodPermissionPolicyAction(models.Model):
@@ -236,6 +236,10 @@ class PumpwoodPermissionPolicyAction(models.Model):
         help_text="Updated At")
     """@private"""
 
+    def __str__(self):
+        """__str__."""
+        return f"{self.policy} | {self.action}"
+
     class Meta:
         """Meta class."""
         db_table = 'api_permission__policy_action'
@@ -243,8 +247,8 @@ class PumpwoodPermissionPolicyAction(models.Model):
             ['policy', 'action'], ]
         """Fields to be considered that should be considered unique together
            on the database.."""
-        verbose_name = 'Custom Action Policy'
-        verbose_name_plural = 'Custom Action Policies'
+        verbose_name = 'Custom Action Permission Policy'
+        verbose_name_plural = 'Custom Action Permission Policies'
 
 
 class PumpwoodPermissionPolicyGroupM2M(models.Model):
@@ -316,8 +320,8 @@ class PumpwoodPermissionPolicyGroupM2M(models.Model):
     class Meta:
         """Meta class."""
         db_table = 'api_permission__policy_group_m2m'
-        verbose_name = 'Permission Policy -> Group'
-        verbose_name_plural = 'Permission Policy -> Group'
+        verbose_name = 'End-point Permission Policy -> Group'
+        verbose_name_plural = 'End-point Permission Policy -> Group'
 
 
 class PumpwoodPermissionPolicyUserM2M(models.Model):
@@ -389,5 +393,5 @@ class PumpwoodPermissionPolicyUserM2M(models.Model):
     class Meta:
         """Meta class."""
         db_table = 'api_permission__policy_user_m2m'
-        verbose_name = 'Permission Policy -> User'
-        verbose_name_plural = 'Permission Policy -> User'
+        verbose_name = 'End-point Permission Policy -> User'
+        verbose_name_plural = 'End-point Permission Policy -> User'

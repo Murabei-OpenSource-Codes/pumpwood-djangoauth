@@ -52,7 +52,7 @@ class PumpwoodUserGroupAdmin(admin.ModelAdmin):
             obj.delete()
 
         for instance in instances:
-            if isinstance(instance, PumpwoodUserGroupM2MInline):
+            if isinstance(instance, PumpwoodUserGroupM2M):
                 instance.updated_by = request.user
                 instance.save()
             else:
