@@ -7,10 +7,10 @@ from django.db import connection
 # Read sql query from package resources
 sql_content = pkg_resources.read_text(
     'pumpwood_djangoauth.registration.aux.query',
-    'group_user_permissions.sql')
+    'group_user_api_permissions.sql')
 
 
-class PermissionAux:
+class ApiPermissionAux:
     """Auxiliary class to fetch user's permissions."""
 
     @classmethod
