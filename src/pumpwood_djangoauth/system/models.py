@@ -2,11 +2,16 @@
 from typing import List
 from django.db import models
 from django.db.models import Q
+from django.contrib.auth import get_user_model
 from pumpwood_djangoviews.action import action
 from pumpwood_djangoauth.config import kong_api
 from pumpwood_communication import exceptions
 from pumpwood_communication.serializers import PumpWoodJSONEncoder
 from pumpwood_djangoauth.i8n.translate import t
+
+# Aux classes
+from pumpwood_djangoauth.system.aux import (
+    RouteAPIPermissionAux, MapHttpCallRoleAux)
 
 
 class KongService(models.Model):
@@ -408,3 +413,73 @@ class KongRoute(models.Model):
             registred_route.extra_info = extra_info
             registred_route.save()
         return KongRouteSerializer(registred_route, many=False).data
+
+    @action(
+        info="Check if logged user has end-point permission on route",
+        request="request")
+    def self_has_role(self, request, role: str) -> bool:
+        """Check if logged user has this role at route.
+
+        Args:
+            request:
+                Django request passed by the action end-point.
+            role (str):
+                Role to check if user has permission at the end-point. Role
+                values must be in `[can_delete can_delete_file,
+                can_delete_many, can_list, can_list_without_pag,
+                can_retrieve, can_retrieve_file, can_run_actions, can_save]`
+
+        Returns:
+            Return True is user is associated with role for this route and
+            False if not.
+        """
+        return RouteAPIPermissionAux.has_permission(
+            route_id=self.id, user=request.user, role=role)
+
+    @action(
+        info="Check if logged user has end-point permission on route",
+        request="request")
+    def user_has_role(self, request, user_id: int, role: str) -> bool:
+        """Check if user of `user_id` has this role at route.
+
+        Args:
+            request:
+                Django request passed by the action end-point.
+            user_id (int):
+                Id of the user to check for role.
+            role (str):
+                Role to check if user has permission at the end-point. Role
+                values must be in `[can_delete can_delete_file,
+                can_delete_many, can_list, can_list_without_pag,
+                can_retrieve, can_retrieve_file, can_run_actions, can_save]`
+
+        Returns:
+            Return True is user is associated with role for this route and
+            False if not.
+        """
+        User = get_user_model() # NOQA
+        user = User.objects.get(id=user_id)
+        return RouteAPIPermissionAux.has_permission(
+            route_id=self.id, user=user, role=role)
+
+    @classmethod
+    @action(info=(
+        "Receive end-point and HTTP method returning to correspondent role"))
+    def map_request_to_role(cls, endpoint: str, method: str) -> str:
+        """Map request end-point and HTTP method to Pumpwood role.
+
+        Args:
+            endpoint (str):
+                Endpoint call to translate to Pumpwood Role. Endpoint values
+                must be in `['list', 'list-without-pag', 'retrieve',
+                'retrieve-file', 'delete', 'remove-file-field',
+                'delete-field', 'save', 'actions', 'options', 'list-options',
+                'retrieve-options', 'aggregate', 'pivot', 'bulk-save']`.
+            method (str):
+                HTTP method to translate to Pumpwood Roles. It is case
+                insensitive and must be in `['get', 'post', 'delete']`.
+
+        Returns:
+            Return pumpwood role according to endpoint and method.
+        """
+        return MapHttpCallRoleAux.map(endpoint=endpoint, method=method)

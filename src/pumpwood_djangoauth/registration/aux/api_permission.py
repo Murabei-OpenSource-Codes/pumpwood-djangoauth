@@ -5,7 +5,7 @@ from typing import List
 from django.db import connection
 
 # Read sql query from package resources
-sql_content = pkg_resources.read_text(
+group_user_api_permissions = pkg_resources.read_text(
     'pumpwood_djangoauth.registration.aux.query',
     'group_user_api_permissions.sql')
 
@@ -73,7 +73,7 @@ class ApiPermissionAux:
 
         query_parameters = {"user_id": user.id}
         with connection.cursor() as cursor:
-            cursor.execute(sql_content, query_parameters)
+            cursor.execute(group_user_api_permissions, query_parameters)
             rows = cursor.fetchall()
             columns = [desc[0] for desc in cursor.description]
         pd_results = pd.DataFrame(rows, columns=columns)
