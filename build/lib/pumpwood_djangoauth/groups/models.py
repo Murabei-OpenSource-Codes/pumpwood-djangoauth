@@ -128,5 +128,5 @@ class PumpwoodUserGroupM2M(models.Model):
         """Meta class."""
         db_table = 'groups__group_user_m2m'
         unique_together = [['user', 'group', ], ]
-        verbose_name = 'Permission User -> Group'
-        verbose_name_plural = 'Permission User -> Group'
+        verbose_name = 'User -> Group'
+        verbose_name_plural = 'User -> Group'

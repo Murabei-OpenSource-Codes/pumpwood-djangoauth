@@ -190,6 +190,8 @@ class CustomUserAdmin(UserAdmin):
                 instance.updated_by = request.user
             if isinstance(instance, PumpwoodRowPermissionUserM2M):
                 instance.updated_by = request.user
+            if isinstance(instance, PumpwoodUserGroupM2M):
+                instance.updated_by = request.user
             else:
                 instance.save()
         super().save_formset(request, form, formset, change)

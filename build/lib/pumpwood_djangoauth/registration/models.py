@@ -3,6 +3,7 @@ import os
 import hashlib
 import random
 import datetime
+from typing import List
 from django.utils import timezone
 from django.db import models
 from django.conf import settings
@@ -17,7 +18,8 @@ from pumpwood_djangoauth.registration.mfa_aux.main import send_mfa_code
 from pumpwood_djangoauth.i8n.translate import t
 
 # Auxiliary classes and functions
-from pumpwood_djangoauth.registration.aux import PermissionAux
+from pumpwood_djangoauth.registration.aux import (
+    ApiPermissionAux, RowPermissionAux)
 
 
 @receiver(post_save, sender=settings.AUTH_USER_MODEL)
@@ -60,19 +62,19 @@ class UserProfile(models.Model):
     @classmethod
     @action(info="List self assciated API permissions",
             request='request')
-    def self_api_permissions(cls, request):
+    def self_api_permissions(cls, request) -> List[dict]:
         """List users api permissions.
 
         Args:
             request:
                 Django request.
         """
-        return PermissionAux.get(user=request.user, request=request)
+        return ApiPermissionAux.get(user=request.user, request=request)
 
     @classmethod
     @action(info="List user's assciated API permissions",
             request='request')
-    def user_api_permissions(cls, user_id: int, request):
+    def user_api_permissions(cls, user_id: int, request) -> List[dict]:
         """List users api permissions.
 
         Args:
@@ -83,7 +85,36 @@ class UserProfile(models.Model):
         """
         User = get_user_model() # NOQA
         user = User.objects.get(id=user_id)
-        return PermissionAux.get(user=user, request=request)
+        return ApiPermissionAux.get(user=user, request=request)
+
+    @classmethod
+    @action(info="List user's assciated API permissions",
+            request='request')
+    def self_row_permissions(cls, request) -> List[dict]:
+        """List users api permissions.
+
+        Args:
+            request:
+                Django request.
+        """
+        user = request.user
+        return RowPermissionAux.get(user=user, request=request)
+
+    @classmethod
+    @action(info="List user's assciated API permissions",
+            request='request')
+    def user_row_permissions(cls, user_id: int, request) -> List[dict]:
+        """List users api permissions.
+
+        Args:
+            user_id (int):
+                User's id associated with API permissions.
+            request:
+                Django request.
+        """
+        User = get_user_model() # NOQA
+        user = User.objects.get(id=user_id)
+        return RowPermissionAux.get(user=user, request=request)
 
 
 class PumpwoodMFAMethod(models.Model):

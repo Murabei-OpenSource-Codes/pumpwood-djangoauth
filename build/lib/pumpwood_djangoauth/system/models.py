@@ -1,12 +1,17 @@
 """Manage Kong routes for Pumpwood."""
-from typing import List
+from typing import List, Dict
 from django.db import models
 from django.db.models import Q
+from django.contrib.auth import get_user_model
 from pumpwood_djangoviews.action import action
 from pumpwood_djangoauth.config import kong_api
 from pumpwood_communication import exceptions
 from pumpwood_communication.serializers import PumpWoodJSONEncoder
 from pumpwood_djangoauth.i8n.translate import t
+
+# Aux classes
+from pumpwood_djangoauth.system.aux import (
+    RouteAPIPermissionAux, MapPathRoleAux, GetRouteAux)
 
 
 class KongService(models.Model):
@@ -408,3 +413,187 @@ class KongRoute(models.Model):
             registred_route.extra_info = extra_info
             registred_route.save()
         return KongRouteSerializer(registred_route, many=False).data
+
+    @classmethod
+    @action(
+        info="List possible roles associated with routes.",
+        request="request", permission_role="authenticated")
+    def list_route_roles(cls) -> List[str]:
+        """List possible route Pumpwood roles.
+
+        Returns:
+            A list with possible roles associated with each route.
+        """
+        return RouteAPIPermissionAux.get_role_options()
+
+    @action(
+        info="Check if logged user has end-point permission on route",
+        request="request", permission_role="authenticated")
+    def self_has_role(self, request, role: str, action: str = None) -> bool:
+        """Check if logged user has this role at route or can run action.
+
+        Args:
+            request:
+                Django request passed by the action end-point.
+            role (str):
+                Role to check if user has permission at the end-point. Role
+                values must be in `KongRoute.list_route_roles` roles.
+            action (str):
+                Action associated with route.
+            is_authenticated (bool):
+                Set if authenticated or not at permission validation.
+
+        Returns:
+            Return True is user is associated with role for this route and
+            False if not.
+        """
+        return RouteAPIPermissionAux.has_permission(
+            is_authenticated=True, route_id=self.id, user=request.user,
+            role=role)
+
+    @action(
+        info="Check if logged user has end-point permission on route",
+        request="request")
+    def user_has_role(self, request, user_id: int, role: str,
+                      action: str = None) -> bool:
+        """Check if logged user has this role at route or can run action.
+
+        Args:
+            request:
+                Django request passed by the action end-point.
+            user_id (int):
+                Id of the user to check for role.
+            role (str):
+                Role to check if user has permission at the end-point. Role
+                values must be in `KongRoute.list_route_roles` roles.
+            action (str):
+                Action associated with route.
+
+        Returns:
+            Return True is user is associated with role for this route and
+            False if not.
+        """
+        User = get_user_model() # NOQA
+        user = User.objects.filter(id=user_id).first()
+        return RouteAPIPermissionAux.has_permission(
+            is_authenticated=True, route_id=self.id, user=user, role=role)
+
+    @classmethod
+    @action(info=(
+        "Receive end-point and HTTP method returning to correspondent role"))
+    def map_path_to_role(cls, path: str, method: str) -> Dict[str, str]:
+        """Map request end-point and HTTP method to Pumpwood role.
+
+        Args:
+            path (str):
+                Path to resource to check if self has the permission.
+            method (str):
+                HTTP method to translate to Pumpwood Roles. It is case
+                insensitive and must be in `['get', 'post', 'delete']`.
+
+        Returns:
+            Return pumpwood role according to endpoint and method.
+        """
+        route = GetRouteAux.from_path(path=path)
+        return MapPathRoleAux.map(path=path, method=method, route=route)
+
+    @classmethod
+    @action(info=(
+        "Receive end-point and HTTP method returning to correspondent role"))
+    def get_route_from_path(cls, path: str) -> Dict[str, str]:
+        """Map request end-point and HTTP method to Pumpwood role.
+
+        Args:
+            path (str):
+                Path to resource to check if self has the permission.
+            method (str):
+                HTTP method to translate to Pumpwood Roles. It is case
+                insensitive and must be in `['get', 'post', 'delete']`.
+
+        Returns:
+            Return pumpwood role according to endpoint and method.
+        """
+        from pumpwood_djangoauth.system.serializers import (
+            KongRouteSerializer)
+        route = GetRouteAux.from_path(path=path)
+        return KongRouteSerializer(
+            route, many=False, foreign_key_fields=True,
+            related_fields=True).data
+
+    @classmethod
+    @action(info=("Verify if self has access to a path"), request="request")
+    def self_has_permission(cls, request, path: str, method: str) -> bool:
+        """Map request end-point and HTTP method to Pumpwood role.
+
+        Args:
+            request (str):
+                Django request.
+            path (str):
+                Path to resource to check if self has the permission.
+            method (str):
+                HTTP method to translate to Pumpwood Roles. It is case
+                insensitive and must be in `['get', 'post', 'delete']`.
+
+        Returns:
+            Return True if self user has access to path/method.
+        """
+        user = request.user
+        route_info = GetRouteAux.from_path(path=path)
+        role_endpoint = MapPathRoleAux.map(
+            route=route_info['route'], method=request.method,
+            model_class=route_info['model_class'],
+            endpoint=route_info['endpoint'],
+            action=route_info['action'])
+        has_permission = RouteAPIPermissionAux.has_permission(
+            is_authenticated=request.user.is_authenticated,
+            route_id=route_info['route'].id,
+            user=user, role=role_endpoint['role'])
+        return {
+            'has_permission': has_permission,
+            'model_class': route_info['model_class'],
+            'endpoint': route_info['endpoint'],
+            'role': role_endpoint['role'],
+            'action': route_info['action'],
+            'route_id': route_info['route'].id
+        }
+
+    @classmethod
+    @action(info=("Verify if self has access to a path"), request="request")
+    def user_has_permission(cls, request, user_id: int, path: str,
+                            method: str) -> bool:
+        """Check if user with id `user_id` has permission for a path.
+
+        Args:
+            request (str):
+                Django request.
+            user_id (int):
+                ID of the user to check for permission.
+            path (str):
+                Path to resource to check if self has the permission.
+            method (str):
+                HTTP method to translate to Pumpwood Roles. It is case
+                insensitive and must be in `['get', 'post', 'delete']`.
+
+        Returns:
+            Return True if self user has access to path/method.
+        """
+        User = get_user_model() # NOQA
+        user = User.objects.filter(id=user_id).first()
+        route_info = GetRouteAux.from_path(path=path)
+        role_endpoint = MapPathRoleAux.map(
+            route=route_info['route'], method=request.method,
+            model_class=route_info['model_class'],
+            endpoint=route_info['endpoint'],
+            action=route_info['action'])
+        has_permission = RouteAPIPermissionAux.has_permission(
+            is_authenticated=request.user.is_authenticated,
+            route_id=route_info['route'].id,
+            user=user, role=role_endpoint['role'])
+        return {
+            'has_permission': has_permission,
+            'model_class': route_info['model_class'],
+            'endpoint': route_info['endpoint'],
+            'role': role_endpoint['role'],
+            'action': route_info['action'],
+            'route_id': route_info['route'].id
+        }

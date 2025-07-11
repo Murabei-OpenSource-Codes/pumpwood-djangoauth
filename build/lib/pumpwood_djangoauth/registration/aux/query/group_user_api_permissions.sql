@@ -146,3 +146,4 @@ FROM (
   WHERE user_id = %(user_id)s
 ) AS sub
 GROUP BY sub.route_id
+WHERE 1=1
