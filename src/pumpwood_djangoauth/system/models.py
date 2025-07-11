@@ -521,7 +521,9 @@ class KongRoute(models.Model):
             related_fields=True).data
 
     @classmethod
-    @action(info=("Verify if self has access to a path"), request="request")
+    @action(
+        info=("Verify if self has access to a path"), request="request",
+        permission_role='is_authenticated')
     def self_has_permission(cls, request, path: str, method: str) -> bool:
         """Map request end-point and HTTP method to Pumpwood role.
 
