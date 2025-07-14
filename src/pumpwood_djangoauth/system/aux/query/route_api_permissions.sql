@@ -3,17 +3,18 @@ SELECT
 FROM (
   SELECT
     sub.route_id,
-    BOOL_AND(can_delete) AS can_delete,
-    BOOL_AND(can_delete_file) AS can_delete_file,
-    BOOL_AND(can_delete_many) AS can_delete_many,
-    BOOL_AND(can_list) AS can_list,
-    BOOL_AND(can_list_without_pag) AS can_list_without_pag,
-    BOOL_AND(can_retrieve) AS can_retrieve,
-    BOOL_AND(can_retrieve_file) AS can_retrieve_file,
-    BOOL_AND(can_run_actions) AS can_run_actions,
-    BOOL_AND(can_save) AS can_save
+    BOOL_OR(can_delete) AS can_delete,
+    BOOL_OR(can_delete_file) AS can_delete_file,
+    BOOL_OR(can_delete_many) AS can_delete_many,
+    BOOL_OR(can_list) AS can_list,
+    BOOL_OR(can_list_without_pag) AS can_list_without_pag,
+    BOOL_OR(can_retrieve) AS can_retrieve,
+    BOOL_OR(can_retrieve_file) AS can_retrieve_file,
+    BOOL_OR(can_run_actions) AS can_run_actions,
+    BOOL_OR(can_save) AS can_save
   FROM (
-    -- Group permissions
+    -----------------------
+    -- Group permissions --
     -- Use general policy to add permission to all avaiable routes
     SELECT
       route.id AS route_id,
@@ -80,11 +81,39 @@ FROM (
       ON group_m2m.group_id = group_user_m2m.group_id
     JOIN public.api_permission__policy AS api_policy
       ON api_policy.id = group_m2m.custom_policy_id
-    WHERE group_user_m2m.user_id = %(user_id)s
+    WHERE 1=1
+      AND group_user_m2m.user_id = %(user_id)s
 
     UNION ALL
 
-    -- User permissions
+    -- Action custom policy
+    SELECT
+      route_id,
+      NULL AS can_delete,
+      NULL AS can_delete_file,
+      NULL AS can_delete_many,
+      NULL AS can_list,
+      NULL AS can_list_without_pag,
+      NULL AS can_retrieve,
+      NULL AS can_retrieve_file,
+      -- Use custom action policy
+      policy_action.is_allowed AS can_run_actions,
+      NULL AS can_save
+    FROM public.api_permission__policy_group_m2m AS group_m2m
+    JOIN public.groups__group_user_m2m AS group_user_m2m
+      ON group_m2m.group_id = group_user_m2m.group_id
+    JOIN public.api_permission__policy AS api_policy
+      ON api_policy.id = group_m2m.custom_policy_id
+    JOIN public.api_permission__policy_action AS policy_action
+      ON policy_action.policy_id = api_policy.id
+    WHERE 1=1
+      AND group_user_m2m.user_id = %(user_id)s
+      AND policy_action.action = %(action)s
+
+    ----------------------
+    -- User permissions --
+    UNION ALL
+
     SELECT
       route.id AS route_id,
       CASE
@@ -147,7 +176,30 @@ FROM (
     JOIN public.api_permission__policy AS api_policy
       ON api_policy.id = user_m2m.custom_policy_id
     WHERE user_id = %(user_id)s
+
+    -- Action custom permissions
+    UNION ALL
+
+    SELECT
+      route_id,
+      NULL AS can_delete,
+      NULL AS can_delete_file,
+      NULL AS can_delete_many,
+      NULL AS can_list,
+      NULL AS can_list_without_pag,
+      NULL AS can_retrieve,
+      NULL AS can_retrieve_file,
+      -- Use custom action policy
+      policy_action.is_allowed AS can_run_actions,
+      NULL AS can_save
+    FROM public.api_permission__policy_user_m2m AS user_m2m
+    JOIN public.api_permission__policy AS api_policy
+      ON api_policy.id = user_m2m.custom_policy_id
+    JOIN public.api_permission__policy_action AS policy_action
+      ON policy_action.policy_id = api_policy.id
+    WHERE user_id = %(user_id)s
+      AND policy_action.action = %(action)s
   ) AS sub
+  WHERE route_id = %(route_id)s
   GROUP BY sub.route_id
 ) AS sub
-WHERE route_id = %(route_id)s

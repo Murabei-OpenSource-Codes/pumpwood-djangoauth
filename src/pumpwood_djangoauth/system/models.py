@@ -448,7 +448,7 @@ class KongRoute(models.Model):
             False if not.
         """
         return RouteAPIPermissionAux.has_permission(
-            is_authenticated=True, route_id=self.id, user=request.user,
+            is_authenticated=True, route_id=self.id, user_id=request.user.id,
             role=role)
 
     @action(
@@ -473,10 +473,9 @@ class KongRoute(models.Model):
             Return True is user is associated with role for this route and
             False if not.
         """
-        User = get_user_model() # NOQA
-        user = User.objects.filter(id=user_id).first()
         return RouteAPIPermissionAux.has_permission(
-            is_authenticated=True, route_id=self.id, user=user, role=role)
+            is_authenticated=True, route_id=self.id, user_id=user_id,
+            role=role)
 
     @classmethod
     @action(info=(
@@ -549,7 +548,8 @@ class KongRoute(models.Model):
         has_permission = RouteAPIPermissionAux.has_permission(
             is_authenticated=request.user.is_authenticated,
             route_id=route_info['route'].id,
-            user=user, role=role_endpoint['role'])
+            user_id=user.id, role=role_endpoint['role'],
+            action=route_info['action'])
         return {
             'has_permission': has_permission,
             'model_class': route_info['model_class'],
@@ -579,8 +579,6 @@ class KongRoute(models.Model):
         Returns:
             Return True if self user has access to path/method.
         """
-        User = get_user_model() # NOQA
-        user = User.objects.filter(id=user_id).first()
         route_info = GetRouteAux.from_path(path=path)
         role_endpoint = MapPathRoleAux.map(
             route=route_info['route'], method=request.method,
@@ -590,7 +588,8 @@ class KongRoute(models.Model):
         has_permission = RouteAPIPermissionAux.has_permission(
             is_authenticated=request.user.is_authenticated,
             route_id=route_info['route'].id,
-            user=user, role=role_endpoint['role'])
+            user_id=user_id, role=role_endpoint['role'],
+            action=route_info['action'])
         return {
             'has_permission': has_permission,
             'model_class': route_info['model_class'],

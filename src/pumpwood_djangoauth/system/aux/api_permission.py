@@ -3,6 +3,7 @@ import copy
 import importlib.resources as pkg_resources
 from typing import List, Dict, Union, Any
 from django.db import connection
+from django.contrib.auth import get_user_model
 from pumpwood_djangoauth.config import (
     diskcache, DISKCACHE_EXPIRATION, microservice)
 
@@ -53,6 +54,11 @@ class MapPathRoleAux:
     """Possible roles to check for permission. This will be used to validate
        roles at `has_permission` call."""
 
+    ACTION_ROLE_CACHE_TAG = "action-role"
+    """Tag that will be used to tag action permision cache."""
+    ACTION_ROLE_CACHE_TEMPLATE = "action-role--[{model_class}]"
+    """Template that will be used to generate key at action permissio cache."""
+
     @classmethod
     def _validate_endpoint_options(cls, endpoint: str) -> bool:
         """Check if endpoint is implemented.
@@ -84,11 +90,22 @@ class MapPathRoleAux:
     @classmethod
     def _get_action_permission(cls, model_class: str, action: str) -> str:
         """Get action permission_role."""
-        action_list = microservice.list_actions(model_class=model_class)
-        dict_actions = dict(
-            [[x['action_name'], x.get('permission_role', 'can_run_actions')]
-            for x in action_list])
-        print('dict_actions:', dict_actions)
+        # Try to retrieve cache from local before retrieving action
+        # data from microservice.
+        dict_actions = cls._get_action_roles_cache(
+            model_class=model_class)
+        if dict_actions is None:
+            action_list = microservice.list_actions(model_class=model_class)
+            dict_actions = dict(
+                [[x['action_name'],
+                  x.get('permission_role', 'can_run_actions')]
+                for x in action_list])
+
+            # Set diskcache to reduce call on microservice to check for
+            # action permission
+            cls._set_action_roles_cache(
+                model_class=model_class, action_roles=dict_actions)
+
         if action not in dict_actions.keys():
             msg = (
                 "Action [{action}] was is not avaiable at " +
@@ -99,6 +116,54 @@ class MapPathRoleAux:
 
         permission_role = dict_actions.get(action)
         return permission_role
+
+    @classmethod
+    def _get_action_role_cache_key(cls, model_class: str) -> str:
+        """Get action permission from diskcache.
+
+        Args:
+            model_class (str):
+                Model class associated with action.
+
+        Returns:
+            Return key for model classe action permission roles.
+        """
+        return cls.ACTION_ROLE_CACHE_TEMPLATE.format(
+            model_class=model_class)
+
+    @classmethod
+    def _get_action_roles_cache(cls, model_class: str) -> str:
+        """Get action permission from diskcache.
+
+        Args:
+            model_class (str):
+                Model class associated with action.
+
+        Returns:
+            Return a dictionary with associated roles of model_class
+            actions.
+        """
+        key = cls._get_action_role_cache_key(model_class=model_class)
+        return diskcache.get(key)
+
+    @classmethod
+    def _set_action_roles_cache(cls, model_class: str,
+                                action_roles: str) -> bool:
+        """Get action associated roles from diskcache.
+
+        Args:
+            model_class (str):
+                Model class associated with action.
+            action_roles (str):
+                Association between action and roles.
+
+        Returns:
+            True if cache is set.
+        """
+        key = cls._get_action_role_cache_key(model_class=model_class)
+        return diskcache.set(
+            key=key, value=action_roles, expire=DISKCACHE_EXPIRATION,
+            tag=cls.ACTION_ROLE_CACHE_TAG)
 
     @classmethod
     def get_role_options(cls) -> List[str]:
@@ -254,14 +319,102 @@ class MapPathRoleAux:
 
 class RouteAPIPermissionAux:
     """Auxiliary class to check user's permissions for a route."""
+
+    HAS_PERMISSION_CACHE_TAG = "has-permission"
+    """Tag used to set cache values for has permission."""
+    HAS_PERMISSION_CACHE_TEMPLATE = (
+        "has-permission--auth[{is_authenticated}]_r{route_id}_u[{user_id}]_" +
+        "r[{role}]_a[{action}]")
+    """Template used to create a key for cache."""
+
     @classmethod
     def get_role_options(cls):
         """Return role options."""
         return copy.deepcopy(cls.ROLE_OPTIONS)
 
     @classmethod
-    def has_permission(cls, is_authenticated: bool, route_id: int, user,
-                       role: str) -> bool:
+    def _get_has_permission_cache_key(cls, is_authenticated: bool,
+                                      route_id: int, user_id: int, role: str,
+                                      action: str) -> str:
+        """Get key for cache of has permission function.
+
+        Args:
+            is_authenticated (bool):
+                If user is authenticated.
+            route_id (int):
+                ID of the route that will be checked for authorization.
+            user_id (int):
+                ID of the user to check for permission.
+            role (str):
+                Role that will be checked for permission.
+            action (str):
+                Action associated with permission check.
+        """
+        # Set types to avoid SQL injection.
+        return cls.HAS_PERMISSION_CACHE_TEMPLATE.format(
+            is_authenticated=is_authenticated, route_id=route_id,
+            user_id=user_id, role=role, action=action)
+
+    @classmethod
+    def _get_has_permission_cache(cls, is_authenticated: bool,
+                                  route_id: int, user_id: int, role: str,
+                                  action: str) -> bool:
+        """Get key for cache of has permission function.
+
+        Args:
+            is_authenticated (bool):
+                If user is authenticated.
+            route_id (int):
+                ID of the route that will be checked for authorization.
+            user_id (int):
+                ID of the user to check for permission.
+            role (str):
+                Role that will be checked for permission.
+            action (str):
+                Action associated with permission check.
+
+        Returns:
+            Return cached value for `has_permission` function.
+        """
+        key = cls._get_has_permission_cache_key(
+            is_authenticated=is_authenticated, route_id=route_id,
+            user_id=user_id, role=role, action=action)
+        return diskcache.get(key)
+
+    @classmethod
+    def _set_has_permission_cache(cls, is_authenticated: bool,
+                                  route_id: int, user_id: int, role: str,
+                                  action: str, value: bool) -> bool:
+        """Get key for cache of has permission function.
+
+        Args:
+            is_authenticated (bool):
+                If user is authenticated.
+            route_id (int):
+                ID of the route that will be checked for authorization.
+            user_id (int):
+                ID of the user to check for permission.
+            role (str):
+                Role that will be checked for permission.
+            action (str):
+                Action associated with permission check.
+            value (bool):
+                Valeu to be set as cached value for `has_permission`
+                function.
+
+        Returns:
+            Return `True` if cache was set.
+        """
+        key = cls._get_has_permission_cache_key(
+            is_authenticated=is_authenticated, route_id=route_id,
+            user_id=user_id, role=role, action=action)
+        return diskcache.set(
+            key=key, value=value, tag=cls.HAS_PERMISSION_CACHE_TAG,
+            expire=DISKCACHE_EXPIRATION)
+
+    @classmethod
+    def has_permission(cls, is_authenticated: bool, route_id: int,
+                       user_id: int, role: str, action: str) -> bool:
         """Get user permission, including self and group related.
 
         It is considered that the URL paths follow de default pattern of
@@ -280,34 +433,71 @@ class RouteAPIPermissionAux:
                 Boolean value indicating if request is authenticated.
             route_id (KongRoute):
                 KongRoute id that will be checked for permision.
-            user (User):
-                User object that will be checked for permision.
+            user_id (int):
+                ID of user object that will be checked for permision.
             role (str):
                 Name of the role that is associated with the request to check
                 for permission.
+            action (str):
+                If action, check also at action custom policies.
 
         Returns:
             Return a boolean value flaging if user has access to end-point/
             action.
         """
+        ####################################
+        # Set types to avoid SQL injection #
+        is_authenticated = bool(is_authenticated)
+        route_id = int(route_id)
+        user_id = int(user_id)
+
+        action = "###no_action###" if action is None else action
+        if role != 'can_run_actions':
+            action = "###no_action###"
+
+        # Substitute empty action values to ingect on SQL
+        if ' ' in action:
+            # Check for spaces to reduce SQL injection
+            msg = (
+                'Action [{action}] should not have spaces on name '
+                'definition')
+            raise PumpWoodActionArgsException(
+                msg, payload={'action': action})
+        ####################################
+
+        has_permission_cache = cls._get_has_permission_cache(
+            is_authenticated=is_authenticated, route_id=route_id,
+            user_id=user_id, role=role, action=action)
+        if has_permission_cache is not None:
+            return has_permission_cache
+
+        User = get_user_model() # NOQA
+        user = User.objects.get(id=user_id)
+
         # It is not expected that any route end-point is set to allow
         # only authenticated users
+        has_permission_results = None
         if user.is_superuser:
             print('user.is_superuser')
-            return True
-        if role == 'allow_any':
+            has_permission_results = True
+        elif role == 'allow_any':
             print('allow_any')
-            return True
-        if role == 'is_authenticated':
+            has_permission_results = True
+        elif role == 'is_authenticated':
             print('is_authenticated')
-            return is_authenticated
-        if role == 'is_staff':
+            has_permission_results = is_authenticated
+        elif role == 'is_staff':
             print('is_staff')
-            return user.is_staff
+            has_permission_results = user.is_staff
         else:
-            print('_get_non_general_roles')
-            return cls._get_non_general_roles(
-                route_id=route_id, user_id=user.id, role=role)
+            has_permission_results = cls._get_non_general_roles(
+                route_id=route_id, user_id=user.id, role=role,
+                action=action)
+        cls._set_has_permission_cache(
+            is_authenticated=is_authenticated, route_id=route_id,
+            user_id=user_id, role=role, action=action,
+            value=has_permission_results)
+        return has_permission_results
 
     @classmethod
     def _validate_role_options(cls, role: str) -> None:
@@ -332,26 +522,22 @@ class RouteAPIPermissionAux:
 
     @classmethod
     def _get_non_general_roles(cls, route_id: int, user_id: int,
-                               role: str) -> List[dict]:
+                               role: str, action: str) -> List[dict]:
         """Get non superuser permissions associated with user."""
         # Validate role option to not allow SQL injection
         cls._validate_role_options(role=role)
-        route_id = int(route_id)
-        user_id = int(user_id)
 
         # Use role to inject on query to filter the correct column
         query = route_api_permissions.format(role=role)
 
         # Set parameters and run query
         query_parameters = {
-            "user_id": user_id, "route_id": route_id, "role": role}
+            "user_id": user_id, "route_id": route_id, "role": role,
+            "action": action}
+        print("query_parameters:", query_parameters)
         with connection.cursor() as cursor:
             cursor.execute(query, query_parameters)
             rows = cursor.fetchall()
-
-        print('rows:', rows)
-        if len(rows) == 0:
-            return False
 
         if 1 < len(rows):
             msg = (
@@ -359,7 +545,13 @@ class RouteAPIPermissionAux:
                 "This should not occour, ask tecnical team for debug and " +
                 "validation.")
             raise PumpWoodOtherException(message=msg)
-        return rows[0][0]
+
+        permission_result = rows[0][0]
+        print("permission_result:", permission_result)
+        if permission_result is not None:
+            return permission_result
+        else:
+            return False
 
 
 class GetRouteAux:
@@ -379,6 +571,7 @@ class GetRouteAux:
             A KongRoute object with path correspondent to the start the path
             of the function argument.
         """
+        splited_path = cls._split_path(path=path)
         query_template = """
             SELECT *
             FROM public.pumpwood__route
@@ -388,8 +581,8 @@ class GetRouteAux:
         query_results = list(
             KongRoute.objects.raw(query_template, {'path': path}))
         if len(query_results) == 0:
-            msg = "Route with begging path [{path}] not found".format(
-                path=path)
+            msg = "Route with begging path [{path}] not found"\
+                .format(path=path)
             raise PumpWoodObjectDoesNotExist(message=msg)
         elif 1 < len(query_results):
             routes_returned = '\n'.join([r.route_url for r in query_results])
@@ -401,7 +594,6 @@ class GetRouteAux:
             raise PumpWoodObjectDoesNotExist(message=msg)
 
         route = query_results[0]
-        splited_path = cls._split_path(path=path)
         splited_path['route'] = route
         return splited_path
 
