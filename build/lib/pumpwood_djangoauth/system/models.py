@@ -448,7 +448,7 @@ class KongRoute(models.Model):
             False if not.
         """
         return RouteAPIPermissionAux.has_permission(
-            is_authenticated=True, route_id=self.id, user=request.user,
+            is_authenticated=True, route_id=self.id, user_id=request.user.id,
             role=role)
 
     @action(
@@ -473,10 +473,9 @@ class KongRoute(models.Model):
             Return True is user is associated with role for this route and
             False if not.
         """
-        User = get_user_model() # NOQA
-        user = User.objects.filter(id=user_id).first()
         return RouteAPIPermissionAux.has_permission(
-            is_authenticated=True, route_id=self.id, user=user, role=role)
+            is_authenticated=True, route_id=self.id, user_id=user_id,
+            role=role)
 
     @classmethod
     @action(info=(
@@ -524,7 +523,8 @@ class KongRoute(models.Model):
     @action(
         info=("Verify if self has access to a path"), request="request",
         permission_role='is_authenticated')
-    def self_has_permission(cls, request, path: str, method: str) -> bool:
+    def self_has_permission(cls, request, path: str, method: str,
+                            role: str = None) -> bool:
         """Map request end-point and HTTP method to Pumpwood role.
 
         Args:
@@ -535,6 +535,11 @@ class KongRoute(models.Model):
             method (str):
                 HTTP method to translate to Pumpwood Roles. It is case
                 insensitive and must be in `['get', 'post', 'delete']`.
+            role (str):
+                Overwrite expected role at path/method, it will return
+                if user has this role on the correspondent route according
+                to the path. It will be validated if role passed is
+                valid. Check `list_route_roles` for possible roles.
 
         Returns:
             Return True if self user has access to path/method.
@@ -546,10 +551,15 @@ class KongRoute(models.Model):
             model_class=route_info['model_class'],
             endpoint=route_info['endpoint'],
             action=route_info['action'])
+
+        # Overwrite expected role parameter if passed as argument
+        role_arg = role or role_endpoint['role']
+
         has_permission = RouteAPIPermissionAux.has_permission(
             is_authenticated=request.user.is_authenticated,
             route_id=route_info['route'].id,
-            user=user, role=role_endpoint['role'])
+            user_id=user.id, role=role_arg,
+            action=route_info['action'])
         return {
             'has_permission': has_permission,
             'model_class': route_info['model_class'],
@@ -562,7 +572,7 @@ class KongRoute(models.Model):
     @classmethod
     @action(info=("Verify if self has access to a path"), request="request")
     def user_has_permission(cls, request, user_id: int, path: str,
-                            method: str) -> bool:
+                            method: str, role: str = None) -> bool:
         """Check if user with id `user_id` has permission for a path.
 
         Args:
@@ -575,22 +585,31 @@ class KongRoute(models.Model):
             method (str):
                 HTTP method to translate to Pumpwood Roles. It is case
                 insensitive and must be in `['get', 'post', 'delete']`.
+            role (str):
+                Overwrite expected role at path/method, it will return
+                if user has this role on the correspondent route according
+                to the path. It will be validated if role passed is
+                valid. Check `list_route_roles` for possible roles.
 
         Returns:
             Return True if self user has access to path/method.
         """
-        User = get_user_model() # NOQA
-        user = User.objects.filter(id=user_id).first()
         route_info = GetRouteAux.from_path(path=path)
         role_endpoint = MapPathRoleAux.map(
             route=route_info['route'], method=request.method,
             model_class=route_info['model_class'],
             endpoint=route_info['endpoint'],
             action=route_info['action'])
+
+        # Overwrite expected role parameter if passed as argument
+        role_arg = role or role_endpoint['role']
+
         has_permission = RouteAPIPermissionAux.has_permission(
             is_authenticated=request.user.is_authenticated,
             route_id=route_info['route'].id,
-            user=user, role=role_endpoint['role'])
+            user_id=user_id,
+            role=role_arg,
+            action=route_info['action'])
         return {
             'has_permission': has_permission,
             'model_class': route_info['model_class'],

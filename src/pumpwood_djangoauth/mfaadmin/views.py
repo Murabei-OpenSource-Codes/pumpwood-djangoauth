@@ -18,8 +18,7 @@ from django.utils.translation import gettext as _
 
 
 class MFALoginView(LoginView):
-    """
-    Custom login view that will generate a MFA Code.
+    """Custom login view that will generate a MFA Code.
 
     It will generate MFA Method.
     """

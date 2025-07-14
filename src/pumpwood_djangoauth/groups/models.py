@@ -1,9 +1,4 @@
-"""
-Django models to set custom groups permission for Pumpwood end-points.
-
-.. warning::
-    End-points not functional yet.
-"""
+"""Django models to set custom groups permission for Pumpwood end-points."""
 from django.db import models
 from django.conf import settings
 from pumpwood_communication.serializers import PumpWoodJSONEncoder

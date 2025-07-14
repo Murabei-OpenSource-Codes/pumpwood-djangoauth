@@ -4,7 +4,7 @@ import pandas as pd
 from django.http import StreamingHttpResponse
 from django.contrib.auth.decorators import login_required
 from rest_framework.response import Response
-from rest_framework.decorators import api_view
+from rest_framework.decorators import api_view, permission_classes
 from pumpwood_djangoviews.views import PumpWoodRestService
 from pumpwood_miscellaneous.storage import PumpWoodStorage
 from pumpwood_djangoauth.system.models import KongService, KongRoute
@@ -14,14 +14,19 @@ from pumpwood_djangoauth.config import kong_api, microservice_no_login
 from pumpwood_communication.exceptions import (
     exceptions_dict, PumpWoodException, PumpWoodWrongParameters)
 
+from pumpwood_djangoauth.permissions import (
+    PumpwoodIsAuthenticated, PumpwoodCanRetrieveFile)
+
 
 @api_view(['GET'])
+@permission_classes([PumpwoodIsAuthenticated])
 def view__get_kong_routes(request):
     """Get kong routes."""
     return Response(kong_api.list_all_routes())
 
 
 @api_view(['GET'])
+@permission_classes([PumpwoodIsAuthenticated])
 def view__get_registred_endpoints(request):
     """Filter end-point to expose to frontend."""
     # Check if it is to hide routes from list
@@ -70,6 +75,7 @@ def view__get_registred_endpoints(request):
 
 
 @api_view(['GET', 'POST'])
+@permission_classes([PumpwoodIsAuthenticated])
 def view__dummy_call(request):
     """Expose a dummy endpoint for testing."""
     return Response({
@@ -81,6 +87,7 @@ def view__dummy_call(request):
 
 
 @api_view(['POST'])
+@permission_classes([PumpwoodIsAuthenticated])
 def view__dummy_raise(request):
     """End-point to test error handling in Pumpwood."""
     # Get auth header for recursive error test
@@ -246,7 +253,9 @@ class ServeMediaFiles:
 
     def as_view(self):
         """Return a view function using storage_object set on object."""
+
         @login_required
+        @permission_classes([PumpwoodCanRetrieveFile])
         def download_from_storage_view(request, file_path):
             file_interator = self.storage_object.get_read_file_iterator(
                 file_path)

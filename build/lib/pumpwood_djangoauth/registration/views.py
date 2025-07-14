@@ -9,7 +9,12 @@ from rest_framework.response import Response
 from rest_framework.decorators import api_view, permission_classes
 from pumpwood_communication import exceptions
 from pumpwood_djangoviews.views import PumpWoodRestService
+
+# Aux imports
 from pumpwood_djangoauth.config import storage_object, microservice
+from pumpwood_djangoauth.permissions import PumpwoodIsAuthenticated
+
+# Models and serializers
 from pumpwood_djangoauth.registration.models import (
     PumpwoodMFAToken, UserProfile)
 from pumpwood_djangoauth.registration.serializers import SerializerUser
@@ -305,6 +310,7 @@ class CheckAuthentication(APIView):
 
 
 @api_view(['GET'])
+@permission_classes([PumpwoodIsAuthenticated])
 def retrieve_authenticated_user(request):
     """Retrieve information about the authenticated user."""
     self_user_data = SerializerUser(

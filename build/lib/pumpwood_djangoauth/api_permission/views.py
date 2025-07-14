@@ -1,6 +1,4 @@
 """Views for permission at end-points."""
-from rest_framework.response import Response
-from rest_framework.decorators import api_view
 from pumpwood_djangoviews.views import PumpWoodRestService
 from pumpwood_djangoauth.config import storage_object, microservice
 
@@ -15,12 +13,6 @@ from pumpwood_djangoauth.api_permission.serializers import (
     SerializerPumpwoodPermissionPolicyAction,
     SerializerPumpwoodPermissionPolicyGroupM2M,
     SerializerPumpwoodPermissionPolicyUserM2M)
-
-
-@api_view(['GET'])
-def view__has_permission(request):
-    """Get kong routes."""
-    return Response(True)
 
 
 class RestPumpwoodPermissionPolicy(PumpWoodRestService):
