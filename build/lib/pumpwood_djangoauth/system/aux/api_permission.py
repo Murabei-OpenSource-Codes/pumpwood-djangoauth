@@ -445,8 +445,6 @@ class RouteAPIPermissionAux:
             Return a boolean value flaging if user has access to end-point/
             action.
         """
-        print("has_permission: ", role)
-
         ####################################
         # Set types to avoid SQL injection #
         is_authenticated = bool(is_authenticated)
@@ -480,16 +478,12 @@ class RouteAPIPermissionAux:
         # only authenticated users
         has_permission_results = None
         if user.is_superuser:
-            print('user.is_superuser')
             has_permission_results = True
         elif role == 'allow_any':
-            print('allow_any')
             has_permission_results = True
         elif role == 'is_authenticated':
-            print('is_authenticated')
             has_permission_results = is_authenticated
         elif role == 'is_staff':
-            print('is_staff')
             has_permission_results = user.is_staff
         else:
             has_permission_results = cls._get_non_general_roles(
@@ -536,7 +530,6 @@ class RouteAPIPermissionAux:
         query_parameters = {
             "user_id": user_id, "route_id": route_id, "role": role,
             "action": action}
-        print("query_parameters:", query_parameters)
         with connection.cursor() as cursor:
             cursor.execute(query, query_parameters)
             rows = cursor.fetchall()
