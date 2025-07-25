@@ -449,7 +449,7 @@ class KongRoute(models.Model):
         print("role:", role)
         return RouteAPIPermissionAux.has_permission(
             is_authenticated=True, route_id=self.id,
-            user_id=request.user.id, role=role)
+            user_id=request.user.id, role=role, action=action)
 
     @action(
         info="Check if logged user has end-point permission on route",
@@ -475,7 +475,7 @@ class KongRoute(models.Model):
         """
         return RouteAPIPermissionAux.has_permission(
             is_authenticated=True, route_id=self.id, user_id=user_id,
-            role=role)
+            role=role, action=action)
 
     @classmethod
     @action(info=(
