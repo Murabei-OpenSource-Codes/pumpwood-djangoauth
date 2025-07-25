@@ -2,7 +2,6 @@
 from typing import List, Dict
 from django.db import models
 from django.db.models import Q
-from django.contrib.auth import get_user_model
 from pumpwood_djangoviews.action import action
 from pumpwood_djangoauth.config import kong_api
 from pumpwood_communication import exceptions
@@ -417,7 +416,7 @@ class KongRoute(models.Model):
     @classmethod
     @action(
         info="List possible roles associated with routes.",
-        request="request", permission_role="authenticated")
+        request="request", permission_role="is_authenticated")
     def list_route_roles(cls) -> List[str]:
         """List possible route Pumpwood roles.
 
@@ -428,7 +427,7 @@ class KongRoute(models.Model):
 
     @action(
         info="Check if logged user has end-point permission on route",
-        request="request", permission_role="authenticated")
+        request="request", permission_role="is_authenticated")
     def self_has_role(self, request, role: str, action: str = None) -> bool:
         """Check if logged user has this role at route or can run action.
 
@@ -447,9 +446,10 @@ class KongRoute(models.Model):
             Return True is user is associated with role for this route and
             False if not.
         """
+        print("role:", role)
         return RouteAPIPermissionAux.has_permission(
-            is_authenticated=True, route_id=self.id, user_id=request.user.id,
-            role=role)
+            is_authenticated=True, route_id=self.id,
+            user_id=request.user.id, role=role)
 
     @action(
         info="Check if logged user has end-point permission on route",
@@ -551,6 +551,7 @@ class KongRoute(models.Model):
             model_class=route_info['model_class'],
             endpoint=route_info['endpoint'],
             action=route_info['action'])
+        print("role_endpoint:", role_endpoint)
 
         # Overwrite expected role parameter if passed as argument
         role_arg = role or role_endpoint['role']

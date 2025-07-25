@@ -445,6 +445,8 @@ class RouteAPIPermissionAux:
             Return a boolean value flaging if user has access to end-point/
             action.
         """
+        print("has_permission: ", role)
+
         ####################################
         # Set types to avoid SQL injection #
         is_authenticated = bool(is_authenticated)
@@ -546,12 +548,16 @@ class RouteAPIPermissionAux:
                 "validation.")
             raise PumpWoodOtherException(message=msg)
 
-        permission_result = rows[0][0]
-        print("permission_result:", permission_result)
-        if permission_result is not None:
-            return permission_result
-        else:
+        # Case no permission is avaiable at database
+        if len(rows) == 0:
             return False
+        else:
+            permission_result = rows[0][0]
+            # Case case that user has other permission, but not this one
+            if permission_result is None:
+                return False
+            else:
+                return permission_result
 
 
 class GetRouteAux:
