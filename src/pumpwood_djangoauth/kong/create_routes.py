@@ -77,7 +77,7 @@ def register_auth_kong_objects(service_url: str, service_description: str,
     from pumpwood_djangoauth.system.models import KongService, KongRoute
 
     temp_routes = deepcopy(routes)
-    sleep_time = random.uniform(0, 5) # NOQA
+    sleep_time = random.uniform(0, 5)/60 # NOQA
     print("Slepping random time to not crash workers: ", sleep_time)
     time.sleep(sleep_time)
 
