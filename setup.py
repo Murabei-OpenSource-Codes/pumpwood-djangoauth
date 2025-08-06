@@ -36,7 +36,7 @@ requirements = parse_requirements(requirements_path)
 
 setup(
     name='pumpwood-djangoauth',
-    version='2.1.3',
+    version='2.1.4',
     include_package_data=True,
     license='BSD-3-Clause License',
     description='Assist creating views for Django using Pumpwood pattern.',
