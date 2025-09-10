@@ -262,8 +262,7 @@ class KongRoute(models.Model):
         verbose_name="Route Name",
         help_text="Name of the route (must be unique)")
     route_kong_id = models.TextField(
-        null=False, unique=True,
-        verbose_name="Kong ID",
+        null=False, unique=False, verbose_name="Kong ID",
         help_text="Route identification on Kong")
     route_type = models.CharField(
         max_length=10, choices=ROUTE_TYPES,

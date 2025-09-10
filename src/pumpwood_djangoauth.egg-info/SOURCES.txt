@@ -193,6 +193,7 @@ src/pumpwood_djangoauth/system/migrations/0008_auto_20240209_2228.py
 src/pumpwood_djangoauth/system/migrations/0009_auto_20240209_2229.py
 src/pumpwood_djangoauth/system/migrations/0010_add_routes_avaiability.py
 src/pumpwood_djangoauth/system/migrations/0011_add_order.py
+src/pumpwood_djangoauth/system/migrations/0012_remove_unique_route_id.py
 src/pumpwood_djangoauth/system/migrations/__init__.py
 src/pumpwood_djangoauth/templates/tags/__init__.py
 src/pumpwood_djangoauth/templates/tags/metabase.py
