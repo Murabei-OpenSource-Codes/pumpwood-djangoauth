@@ -25,7 +25,7 @@ setup(
     ],
     package_dir={"": "src"},
     package_data={"": ['*.html', '*.sql']},
-    install_requires={
+    install_requires=[
         "Django>=4.0.0",
         "djangorestframework>=3.13",
         "python-slugify>=8.0.1",
@@ -36,7 +36,7 @@ setup(
         "pumpwood-communication>=1.0",
         "pumpwood-kong",
         "twilio==8.11.0",
-        "lazy-string==1.0.0"},
+        "lazy-string==1.0.0"],
     packages=find_packages(where="src"),
     python_requires=">=3.6",
 )

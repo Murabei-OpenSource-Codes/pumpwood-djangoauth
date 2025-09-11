@@ -4,6 +4,7 @@ README.md
 pyproject.toml
 setup.py
 src/pumpwood_djangoauth/__init__.py
+src/pumpwood_djangoauth/auth.py
 src/pumpwood_djangoauth/config.py
 src/pumpwood_djangoauth/exception_handler.py
 src/pumpwood_djangoauth/permissions.py
@@ -133,9 +134,11 @@ src/pumpwood_djangoauth/registration/aux/query/__init__.py
 src/pumpwood_djangoauth/registration/aux/query/group_user_api_permissions.sql
 src/pumpwood_djangoauth/registration/aux/query/group_user_row_permissions.sql
 src/pumpwood_djangoauth/registration/mfa_aux/__init__.py
-src/pumpwood_djangoauth/registration/mfa_aux/app_log.py
-src/pumpwood_djangoauth/registration/mfa_aux/main.py
-src/pumpwood_djangoauth/registration/mfa_aux/twilio_sms.py
+src/pumpwood_djangoauth/registration/mfa_aux/login.py
+src/pumpwood_djangoauth/registration/mfa_aux/message_delivery/__init__.py
+src/pumpwood_djangoauth/registration/mfa_aux/message_delivery/app_log.py
+src/pumpwood_djangoauth/registration/mfa_aux/message_delivery/main.py
+src/pumpwood_djangoauth/registration/mfa_aux/message_delivery/twilio_sms.py
 src/pumpwood_djangoauth/registration/mfa_aux/views/__init__.py
 src/pumpwood_djangoauth/registration/mfa_aux/views/code.py
 src/pumpwood_djangoauth/registration/mfa_aux/views/oauth2.py
