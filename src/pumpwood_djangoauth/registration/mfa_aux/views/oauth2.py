@@ -9,53 +9,50 @@ from rest_framework import status, permissions
 from rest_framework.response import Response
 from rest_framework.decorators import api_view, permission_classes
 from pumpwood_communication import exceptions
-from pumpwood_djangoauth.registration.models import (
-    PumpwoodMFAMethod, PumpwoodMFAToken, PumpwoodMFACode,
-    PumpwoodMFARecoveryCode)
+from pumpwood_djangoauth.registration.models import PumpwoodMFAToken
 from pumpwood_djangoauth.registration.serializers import SerializerUser
 
 # Knox Views
 from knox.models import AuthToken
 from knox.views import LoginView as KnoxLoginView
 
-# Loging API calls
-from pumpwood_djangoauth.log.functions import log_api_request
-
 # I8N
-from pumpwood_djangoauth.i8n.models import PumpwoodI8nTranslation as t
+from pumpwood_djangoauth.i8n.models import PumpwoodI8nTranslation as t # NOQA
 
 # SSO classes
-from pumpwood_djangoauth.registration.mfa_aux.views.sso.microsoft_entra import (
+from pumpwood_djangoauth.registration.mfa_aux.views.sso.microsoft_entra import ( # NOQA
     MicrosoftEntraSSO)
 
 
 def create_sso_client():
-    PUMPWOOD__SSO__PROVIDER = os.getenv("PUMPWOOD__SSO__PROVIDER")
-    if PUMPWOOD__SSO__PROVIDER is None:
+    """Using env variables, create a SSO client object."""
+    pumpwood__sso__provider = os.getenv("PUMPWOOD__SSO__PROVIDER")
+    if pumpwood__sso__provider is None:
         msg = (
-            "PUMPWOOD__SSO__PROVIDER is not set. It is not possible to use "
-            "SSO login.")
+            "PUMPWOOD__SSO__PROVIDER env variable is not set. It is not "
+            "possible to use SSO login.")
         raise exceptions.PumpWoodNotImplementedError(msg)
 
-    if PUMPWOOD__SSO__PROVIDER == "microsoft-entra":
+    if pumpwood__sso__provider == "microsoft-entra":
         return MicrosoftEntraSSO()
     else:
         msg = (
             "Single Sign-On provider [{sso_provider}] not "
             "implemented")
         raise exceptions.PumpWoodNotImplementedError(
-            msg, payload={"sso_provider": PUMPWOOD__SSO__PROVIDER})
+            msg, payload={"sso_provider": pumpwood__sso__provider})
 
 
 @api_view(['POST'])
 @permission_classes([permissions.AllowAny])
-def oauth2_get_authorization_url(request):
-    """
-    Processs callback from Auth2.
+def oauth2_get_authorization_url(request) -> Response:
+    """Processs callback from Auth2.
 
     Args:
-        email [str]: User e-mail to generate SSO log-in.
-    Return [str]:
+        request (str):
+            Django request.
+
+    Returns:
         .
     """
     #####################################################################
@@ -68,9 +65,7 @@ def oauth2_get_authorization_url(request):
     if payload_keys != {'email', }:
         msg = (
             "SSO Login payload must have just email:\n"
-            "espected: ['email']"
-            "\npayload:{payload_keys}").format(
-                payload_keys=payload_keys)
+            "espected: ['email']\npayload:{payload_keys}")
         raise exceptions.PumpWoodWrongParameters(
             message=msg, payload={'payload_keys': payload_keys})
 
@@ -88,8 +83,8 @@ def oauth2_get_authorization_url(request):
     if mfa_method is None:
         msg = "User is not associated with SSO authentication"
         raise exceptions.PumpWoodUnauthorized(msg)
-    ####################################################################
 
+    # Generate an MFA token
     new_mfa_token = PumpwoodMFAToken(user=user)
     new_mfa_token.save()
 
@@ -121,15 +116,18 @@ def oauth2_get_authorization_url(request):
 
 
 class SSOLoginView(KnoxLoginView):
+    """View to allow login at Pumpwood using SSO."""
+
     permission_classes = (permissions.AllowAny, )
 
     def post(self, request, format=None):
+        """Raise PumpWoodForbidden for post requests."""
         msg = (
             "SSO Login must be done using get request using authentication "
             "redirect url")
         raise exceptions.PumpWoodForbidden(msg)
 
-    def get(self, request):
+    def get(self, request) -> Response:
         """Login user with MFA Token and MFA Code."""
         is_ingress_request = request.headers.get(
             "X-PUMPWOOD-Ingress-Request", 'NOT-EXTERNAL')

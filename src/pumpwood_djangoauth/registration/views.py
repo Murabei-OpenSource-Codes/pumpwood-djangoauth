@@ -1,8 +1,8 @@
 """Views for authentication and user end-point."""
-from django.utils import timezone
-from django.contrib.auth import authenticate, login
-from django.contrib.auth.models import User
 from django.conf import settings
+from django.utils import timezone
+from django.contrib.auth.models import User
+from django.contrib.auth import authenticate, login
 from rest_framework import permissions
 from rest_framework.views import APIView
 from rest_framework.response import Response
@@ -13,6 +13,8 @@ from pumpwood_djangoviews.views import PumpWoodRestService
 # Aux imports
 from pumpwood_djangoauth.config import storage_object, microservice
 from pumpwood_djangoauth.permissions import PumpwoodIsAuthenticated
+from pumpwood_djangoauth.registration.mfa_aux import MFALoginResponse
+from pumpwood_communication.exceptions import PumpWoodUnauthorized
 
 # Models and serializers
 from pumpwood_djangoauth.registration.models import (
@@ -42,6 +44,7 @@ class LoginView(KnoxLoginView):
         """
         is_ingress_request = request.headers.get(
             "X-PUMPWOOD-Ingress-Request", 'NOT-EXTERNAL')
+        full_path = request.path.strip("/")
         request_data = request.data
 
         # Validating Request
@@ -50,16 +53,45 @@ class LoginView(KnoxLoginView):
             msg = (
                 "Login payload must have just username and password:\n"
                 "espected: ['username', 'password']"
-                "\npayload:{validate_keys}").format(
-                    validate_keys=validate_keys)
+                "\npayload:{validate_keys}")
+            log_api_request(
+                user_id=None,
+                permission_check='failed',
+                request_method='post', path=full_path,
+                model_class='registration',
+                end_point='login',
+                first_arg='',
+                second_arg='',
+                ingress_request=is_ingress_request,
+                payload='Login payload must have just username and password')
             raise exceptions.PumpWoodWrongParameters(
-                message=msg)
+                message=msg, payload={'validate_keys': validate_keys})
         if not request_data["password"]:
-            msg = ("Login password is empty")
+            msg = "Login password is empty"
+            log_api_request(
+                user_id=None,
+                permission_check='failed',
+                request_method='post', path=full_path,
+                model_class='registration',
+                end_point='login',
+                first_arg='',
+                second_arg='',
+                ingress_request=is_ingress_request,
+                payload=msg)
             raise exceptions.PumpWoodWrongParameters(
                 message=msg)
         if not request_data["username"]:
-            msg = ("Login username is empty")
+            msg = "Login username is empty"
+            log_api_request(
+                user_id=None,
+                permission_check='failed',
+                request_method='post', path=full_path,
+                model_class='registration',
+                end_point='login',
+                first_arg='',
+                second_arg='',
+                ingress_request=is_ingress_request,
+                payload=msg)
             raise exceptions.PumpWoodWrongParameters(
                 message=msg)
 
@@ -67,87 +99,74 @@ class LoginView(KnoxLoginView):
         user = authenticate(
             username=request_data["username"],
             password=request_data["password"])
-        # Loging authentication attempts
-        user_id = None
-        if user is not None:
-            user_id = user.id
-        full_path = request.path.strip("/")
-        log_api_request(
-            user_id=user_id,
-            permission_check='failed' if user_id is None else 'ok',
-            request_method='post', path=full_path,
-            model_class='registration', end_point='login',
-            first_arg=request_data["username"], second_arg='',
-            ingress_request=is_ingress_request,
-            payload=None)
 
-        if user is not None:
-            is_service_user = user.user_profile.is_service_user
-            priority_mfa = user.mfa_method_set.filter(
-                is_enabled=True, is_validated=True).\
-                order_by('priority').first()
-
-            ###############################################################
-            # If user is not a service and a MFA associated it will get a
-            # MFA token, not the authentication token
-            if (priority_mfa is not None) and (not is_service_user):
-                # Create a token to validate MFA login and creation
-                new_mfa_token = PumpwoodMFAToken(user=user)
-                new_mfa_token.save()
-                method_result = priority_mfa.run_method(
-                    mfa_token=new_mfa_token.token)
-
-                response = Response({
-                    'mfa_method_type': priority_mfa.type,
-                    'mfa_method_result': method_result,
-                    'expiry': new_mfa_token.expire_at,
-                    'mfa_token': new_mfa_token.token,
-                    'user': None,
-                    "ingress-call": is_ingress_request})
-                response.set_cookie(
-                    'PumpwoodMFAToken', new_mfa_token.token,
-                    httponly=settings.SESSION_COOKIE_HTTPONLY,
-                    secure=settings.SESSION_COOKIE_SECURE,
-                    samesite=settings.SESSION_COOKIE_SAMESITE)
-                response.set_cookie(
-                    'PumpwoodMFATokenExpiry', new_mfa_token.expire_at,
-                    httponly=settings.SESSION_COOKIE_HTTPONLY,
-                    secure=settings.SESSION_COOKIE_SECURE,
-                    samesite=settings.SESSION_COOKIE_SAMESITE)
-                return response
-
-            # Users without priority_mfa will receive authentication token
-            # when loging with username/password
-            else:
-                login(request, user)
-                is_service_user = user.user_profile.is_service_user
-                is_external_call = is_ingress_request == "EXTERNAL"
-                if is_external_call and is_service_user:
-                    msg = ("EXTERNAL call using service users is not allowed")
-                    raise exceptions.PumpWoodUnauthorized(message=msg)
-
-                resp = super(LoginView, self).post(request, format=None).data
-                response = Response({
-                    'expiry': resp['expiry'], 'token': resp['token'],
-                    'user': SerializerUser(request.user, many=False).data,
-                    "ingress-call": is_ingress_request})
-                response.set_cookie(
-                    'PumpwoodAuthorization', resp['token'],
-                    httponly=settings.SESSION_COOKIE_HTTPONLY,
-                    secure=settings.SESSION_COOKIE_SECURE,
-                    samesite=settings.SESSION_COOKIE_SAMESITE,
-                    expires=resp['expiry'])
-                response.set_cookie(
-                    'PumpwoodAuthorizationExpiry', resp['expiry'],
-                    expires=resp['expiry'],
-                    httponly=settings.SESSION_COOKIE_HTTPONLY,
-                    secure=settings.SESSION_COOKIE_SECURE,
-                    samesite=settings.SESSION_COOKIE_SAMESITE)
-                return response
-        else:
+        # If not possible to authenticate
+        if user is None:
             msg = ("Username/Password incorrect")
+            log_api_request(
+                user_id=None,
+                permission_check='ok',
+                request_method='post', path=full_path,
+                model_class='registration', end_point='login',
+                first_arg=request_data["username"], second_arg='',
+                ingress_request=is_ingress_request,
+                payload=msg)
             raise exceptions.PumpWoodUnauthorized(
                 message=msg, payload={"error": "incorrect_login"})
+
+        # Check if user is is_service_user and for MFA
+        is_service_user = user.user_profile.is_service_user
+        priority_mfa = user.mfa_method_set.filter(
+            is_enabled=True, is_validated=True).\
+            order_by('priority').first()
+
+        # If user is not a service and a MFA associated it will get a
+        # MFA token, not the authentication token, this will be
+        # used to msg MFAs that has authorization as first step
+        if (priority_mfa is not None) and (not is_service_user):
+            return MFALoginResponse.run(
+                priority_mfa=priority_mfa, user=user,
+                is_ingress_request=is_ingress_request,
+                full_path=full_path)
+
+        # Users without priority_mfa will receive authentication token
+        # when loging with username/password
+        else:
+            # Service users should not log from outside of the cluster
+            is_service_user = user.user_profile.is_service_user
+            is_external_call = is_ingress_request == "EXTERNAL"
+            if is_external_call and is_service_user:
+                msg = ("EXTERNAL call using service users is not allowed")
+                raise PumpWoodUnauthorized(message=msg)
+
+            # Authenticate the request
+            login(request, user)
+            resp = super().post(request, format=None).data
+            response = Response({
+                'expiry': resp['expiry'], 'token': resp['token'],
+                'user': SerializerUser(request.user, many=False).data,
+                "ingress-call": is_ingress_request})
+            response.set_cookie(
+                'PumpwoodAuthorization', resp['token'],
+                httponly=settings.SESSION_COOKIE_HTTPONLY,
+                secure=settings.SESSION_COOKIE_SECURE,
+                samesite=settings.SESSION_COOKIE_SAMESITE,
+                expires=resp['expiry'])
+            response.set_cookie(
+                'PumpwoodAuthorizationExpiry', resp['expiry'],
+                expires=resp['expiry'],
+                httponly=settings.SESSION_COOKIE_HTTPONLY,
+                secure=settings.SESSION_COOKIE_SECURE,
+                samesite=settings.SESSION_COOKIE_SAMESITE)
+            log_api_request(
+                user_id=user.id,
+                permission_check='ok',
+                request_method='post', path=full_path,
+                model_class='registration', end_point='login',
+                first_arg=user.username, second_arg='',
+                ingress_request=is_ingress_request,
+                payload='Password login')
+            return response
 
 
 # Fuction to validate MFA Token

@@ -4,7 +4,6 @@ from .api_permission import ApiPermissionAux
 from .row_permission import RowPermissionAux
 
 
-# You might also want to define what happens with 'from my_package import *'
-# by defining __all__
+__docformat__ = "google"
 __all__ = [
-    "ApiPermissionAux", "RowPermissionAux"]
+    ApiPermissionAux, RowPermissionAux]

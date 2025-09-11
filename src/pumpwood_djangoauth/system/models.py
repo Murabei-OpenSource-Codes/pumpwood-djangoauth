@@ -1,4 +1,5 @@
 """Manage Kong routes for Pumpwood."""
+import os
 from typing import List, Dict
 from django.db import models
 from django.db.models import Q
@@ -6,11 +7,17 @@ from pumpwood_djangoviews.action import action
 from pumpwood_djangoauth.config import kong_api
 from pumpwood_communication import exceptions
 from pumpwood_communication.serializers import PumpWoodJSONEncoder
+from pumpwood_communication.cache import default_cache
 from pumpwood_djangoauth.i8n.translate import t
 
 # Aux classes
 from pumpwood_djangoauth.system.aux import (
     RouteAPIPermissionAux, MapPathRoleAux, GetRouteAux)
+
+
+PUMPWOOD__AUTH__TOKEN_CACHE_EXPIRE = int(os.getenv(
+    'PUMPWOOD__AUTH__PERMISSION_CACHE_EXPIRE', 300))
+"""Time to set expire at permission cache."""
 
 
 class KongService(models.Model):
@@ -544,13 +551,20 @@ class KongRoute(models.Model):
             Return True if self user has access to path/method.
         """
         user = request.user
+
+        hash_dict = {
+            'context': 'has-permission',
+            'user_id': user.id}
+        cache_data = default_cache.get(hash_dict=hash_dict)
+        if cache_data is not None:
+            return cache_data
+
         route_info = GetRouteAux.from_path(path=path)
         role_endpoint = MapPathRoleAux.map(
             route=route_info['route'], method=request.method,
             model_class=route_info['model_class'],
             endpoint=route_info['endpoint'],
             action=route_info['action'])
-        print("role_endpoint:", role_endpoint)
 
         # Overwrite expected role parameter if passed as argument
         role_arg = role or role_endpoint['role']
@@ -560,14 +574,17 @@ class KongRoute(models.Model):
             route_id=route_info['route'].id,
             user_id=user.id, role=role_arg,
             action=route_info['action'])
-        return {
+        return_dict = {
             'has_permission': has_permission,
             'model_class': route_info['model_class'],
             'endpoint': route_info['endpoint'],
             'role': role_endpoint['role'],
             'action': route_info['action'],
-            'route_id': route_info['route'].id
-        }
+            'route_id': route_info['route'].id}
+        default_cache.set(
+            hash_dict=hash_dict, value=return_dict,
+            expire=PUMPWOOD__AUTH__TOKEN_CACHE_EXPIRE)
+        return return_dict
 
     @classmethod
     @action(info=("Verify if self has access to a path"), request="request")

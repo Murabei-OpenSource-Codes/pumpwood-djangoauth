@@ -14,7 +14,8 @@ from pumpwood_communication.serializers import PumpWoodJSONEncoder
 from pumpwood_communication.exceptions import (
     PumpWoodForbidden, PumpWoodMFAError, PumpWoodNotImplementedError)
 from pumpwood_djangoviews.action import action
-from pumpwood_djangoauth.registration.mfa_aux.main import send_mfa_code
+from pumpwood_djangoauth.registration.mfa_aux.message_delivery import (
+    send_mfa_code)
 from pumpwood_djangoauth.i8n.translate import t
 
 # Auxiliary classes and functions
@@ -349,7 +350,7 @@ class PumpwoodMFACode(models.Model):
 
         # Send MFA code according to method choosen by the user
         send_mfa_code(mfa_method=self.mfa_method, code=self.code)
-        super(PumpwoodMFACode, self).save(*args, **kwargs)
+        super().save(*args, **kwargs)
 
 
 class PumpwoodMFARecoveryCode(models.Model):

@@ -3,7 +3,10 @@ from django.urls import path
 from knox import views as knox_views
 from pumpwood_djangoviews.routers import PumpWoodRouter
 from pumpwood_djangoauth.registration import views
-from pumpwood_djangoauth.registration.mfa_aux.views import oauth2, code
+from pumpwood_djangoauth.registration.mfa_aux.views import (
+    create_new_mfa_code, CodeLoginView,
+    oauth2_get_authorization_url, SSOLoginView)
+
 
 pumpwoodrouter = PumpWoodRouter()
 pumpwoodrouter.register(viewset=views.RestUser)
@@ -38,21 +41,21 @@ urlpatterns = [
     # MFA code end-points
     path(
         'rest/registration/mfa-generate-code/<int:pk>/',
-        code.create_new_mfa_code,
+        create_new_mfa_code,
         name='rest__registration__mfa_code_generate_code'),
     path(
         'rest/registration/mfa-validate-code/',
-        code.MFALoginView.as_view(),
+        CodeLoginView.as_view(),
         name='rest__registration__mfa_code_validate_code'),
 
     # MFA SSO OAuth2 End-points
     path(
         'rest/registration/oauth2-login/',
-        oauth2.oauth2_get_authorization_url,
+        oauth2_get_authorization_url,
         name='rest__registration__mfa_oauth2_login'),
     path(
         'rest/registration/oauth2-callback/',
-        oauth2.SSOLoginView.as_view(),
+        SSOLoginView.as_view(),
         name='rest__registration__mfa_oauth2_callback'),
 ]
 
