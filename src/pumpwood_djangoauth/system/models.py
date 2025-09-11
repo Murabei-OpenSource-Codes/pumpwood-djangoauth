@@ -452,7 +452,6 @@ class KongRoute(models.Model):
             Return True is user is associated with role for this route and
             False if not.
         """
-        print("role:", role)
         return RouteAPIPermissionAux.has_permission(
             is_authenticated=True, route_id=self.id,
             user_id=request.user.id, role=role, action=action)

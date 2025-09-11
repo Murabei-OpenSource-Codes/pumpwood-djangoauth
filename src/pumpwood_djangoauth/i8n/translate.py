@@ -1,7 +1,6 @@
 """Create a class to make lazy translation of strings."""
 import os
 import datetime
-from lazy_string import LazyString
 
 # Translation cache to reduce backend calls
 _translation_cache: dict = {}
@@ -12,19 +11,24 @@ CACHE_KEY_TEMPLATE: str = (
 
 
 def aux_translate_string(sentence, tag, plural, language, user_type) -> str:
-    """
-    Translate string using microservice.
+    """Translate string using microservice.
 
     Cache results to reduce database calls.
 
     Args:
-        sentence [str]: Sentence to be translated.
-        tag [str]: Tag used in translation.
-        plural [str]: If should be translated on plural.
-        language [str]: Language to translate.
-        user_type [str]: It is possible to set diferente types of user for
+        sentence (str):
+            Sentence to be translated.
+        tag (str):
+            Tag used in translation.
+        plural (str):
+            If should be translated on plural.
+        language (str):
+            Language to translate.
+        user_type (str):
+            It is possible to set diferente types of user for
             translation.
-    Return [str]:
+
+    Returns:
         Return translated sentence.
     """
     if sentence is None:
@@ -54,8 +58,7 @@ def aux_translate_string(sentence, tag, plural, language, user_type) -> str:
         translation = PumpwoodI8nTranslation.translate(
             sentence=sentence, tag=tag, plural=plural,
             language=language, user_type=user_type)
-    except Exception as e:
-        print("aux_translate_string Exception:", str(e))
+    except Exception:
         return sentence
 
     expiry_time = now_time + datetime.timedelta(hours=_cache_expiry)
