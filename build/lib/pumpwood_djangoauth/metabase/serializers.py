@@ -1,15 +1,15 @@
+"""Metabase end-points."""
 from rest_framework import serializers
 from pumpwood_djangoviews.serializers import (
     ClassNameField, DynamicFieldsModelSerializer, MicroserviceForeignKeyField,
-    MicroserviceRelatedField, LocalForeignKeyField,
-    LocalRelatedField)
-from django.contrib.auth.models import User
+    MicroserviceRelatedField)
 from pumpwood_djangoauth.metabase.models import (
     MetabaseDashboard, MetabaseDashboardParameter)
 from pumpwood_djangoauth.config import microservice
 
 
 class MetabaseDashboardSerializer(DynamicFieldsModelSerializer):
+    """MetabaseDashboard Serializer."""
     pk = serializers.IntegerField(source='id', allow_null=True, required=False)
     model_class = ClassNameField()
 
@@ -27,6 +27,7 @@ class MetabaseDashboardSerializer(DynamicFieldsModelSerializer):
         order_by=["name"])
 
     class Meta:
+        """Meta."""
         model = MetabaseDashboard
         fields = (
             "pk", "model_class", "status", "alias", "description", "notes",
@@ -40,11 +41,13 @@ class MetabaseDashboardSerializer(DynamicFieldsModelSerializer):
         read_only = ["updated_by_id", "updated_by", "updated_at"]
 
     def create(self, validated_data):
+        """Super create to add updated_by_id."""
         validated_data["updated_by_id"] = self.context['request'].user.id
         return super().create(validated_data)
 
 
 class MetabaseDashboardParameterSerializer(DynamicFieldsModelSerializer):
+    """MetabaseDashboardParameter Serializer."""
     pk = serializers.IntegerField(source='id', allow_null=True, required=False)
     model_class = ClassNameField()
     dashboard_id = serializers.IntegerField(allow_null=False, required=True)
@@ -54,6 +57,7 @@ class MetabaseDashboardParameterSerializer(DynamicFieldsModelSerializer):
         display_field='description')
 
     class Meta:
+        """Meta."""
         model = MetabaseDashboardParameter
         fields = (
             "pk", "model_class", "dashboard", "dashboard_id", "name",

@@ -1,36 +1,34 @@
 """View for MFA using codes like SMS, email, etc..."""
 from django.conf import settings
 from django.contrib.auth import login
-from django.conf import settings
 from rest_framework import permissions
 from rest_framework.response import Response
 from rest_framework.decorators import api_view, permission_classes
 from pumpwood_communication import exceptions
 from pumpwood_djangoauth.registration.models import (
-    PumpwoodMFAMethod, PumpwoodMFAToken, PumpwoodMFACode,
-    PumpwoodMFARecoveryCode)
+    PumpwoodMFAMethod, PumpwoodMFACode)
 from pumpwood_djangoauth.registration.serializers import SerializerUser
 from pumpwood_djangoauth.registration.views import validate_mfa_token
 
 # Knox Views
 from knox.views import LoginView as KnoxLoginView
 
-# Loging API calls
-from pumpwood_djangoauth.log.functions import log_api_request
-
 # I8N
-from pumpwood_djangoauth.i8n.models import PumpwoodI8nTranslation as t
+from pumpwood_djangoauth.i8n.models import PumpwoodI8nTranslation as t # NOQA
 
 
 @api_view(['GET'])
 @permission_classes([permissions.AllowAny])
-def create_new_mfa_code(request, pk=None):
-    """
-    Create a new MFA code.
+def create_new_mfa_code(request, pk: int = None):
+    """Create a new MFA code.
 
     Args:
-        request: Django Rest request.
-    Return [bool]:
+        request:
+            Django Rest request.
+        pk (int):
+            PumpwoodMFAMethod object primary key.
+
+    Returns:
         Return True if code sent to MFA.
     """
     # Validate MFA token
@@ -44,15 +42,15 @@ def create_new_mfa_code(request, pk=None):
     if mfa_method is None:
         msg = (
             'MFA code with pk[{pk}] does not exists or is not '
-            'associated with current user').format(pk=pk)
-        raise exceptions.PumpWoodObjectDoesNotExist(msg)
+            'associated with current user')
+        raise exceptions.PumpWoodObjectDoesNotExist(
+            message=msg, payload={'pk': pk})
 
     # Run MFA method
     method_results = mfa_method.run_method(
         mfa_token=mfa_token_obj.token)
     is_ingress_request = request.headers.get(
         "X-PUMPWOOD-Ingress-Request", 'NOT-EXTERNAL')
-
     return Response({
         'mfa_method_type': mfa_method.type,
         'mfa_method_result': method_results,
@@ -62,7 +60,8 @@ def create_new_mfa_code(request, pk=None):
         "ingress-call": is_ingress_request})
 
 
-class MFALoginView(KnoxLoginView):
+class CodeLoginView(KnoxLoginView):
+    """Login at Pumpwood using MFA."""
     permission_classes = (permissions.AllowAny,)
 
     def post(self, request, format=None):

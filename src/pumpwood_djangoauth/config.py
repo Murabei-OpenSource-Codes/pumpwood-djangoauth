@@ -33,6 +33,7 @@ from pumpwood_miscellaneous.rabbitmq import PumpWoodRabbitMQ
 from pumpwood_kong.kong_api import KongAPI
 from pumpwood_i8n.translate import PumpwoodI8n
 from pumpwood_i8n.singletons import pumpwood_i8n
+from diskcache import Cache
 
 #####################
 # Singleton objects #
@@ -139,3 +140,14 @@ else:
 
 # Initiante I8n using django model as backend
 pumpwood_i8n.init(microservice=microservice)
+
+# Create a diskcache object to cache row and API permission calls
+# default size of 100Mb. It is restricted to not consume K8s cluster too
+# much disk at PODs
+DISKCACHE_EXPIRATION = os.getenv(
+    'DISKCACHE__SIZELIMIT_MB', 100) * 1024 * 1024
+diskcache = Cache(size_limit=DISKCACHE_EXPIRATION)
+"""Diskcache object that can be used to cache request persistent
+   information. Exemples of this is Pumpwood row and API permission."""
+# Default 1 minute for cache expiration
+DISKCACHE_EXPIRATION = os.getenv('DISKCACHE__EXPIRATION', 60)

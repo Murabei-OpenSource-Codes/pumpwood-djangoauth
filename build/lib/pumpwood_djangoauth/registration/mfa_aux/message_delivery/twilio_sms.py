@@ -6,32 +6,34 @@ from pumpwood_communication.exceptions import (
     PumpWoodException, PumpWoodMFAError)
 from twilio.base.exceptions import TwilioRestException
 
+# Set enviroment variables
+APPLICATION_NAME = os.getenv("PUMPWOOD__MFA__APPLICATION_NAME", "Pumpwood")
+# Twilio authentication variables
+TWILIO_ACCOUNT_SID = os.getenv(
+    "PUMPWOOD__MFA__TWILIO_ACCOUNT_SID")
+TWILIO_AUTH_TOKEN = os.getenv(
+    "PUMPWOOD__MFA__TWILIO_AUTH_TOKEN")
+TWILIO_SENDER_PHONE_NUMBER = os.getenv(
+    "PUMPWOOD__MFA__TWILIO_SENDER_PHONE_NUMBER")
+TWILIO_DELIVERY_TIMEOUT = int(os.getenv(
+    "PUMPWOOD__MFA__TWILIO_DELIVERY_TIMEOUT", "10"))
+IS_TWILIO_ACCOUNT_SID = TWILIO_ACCOUNT_SID is None
+IS_TWILIO_AUTH_TOKEN = TWILIO_AUTH_TOKEN is None
+IS_TWILIO_SENDER_PHONE_NUMBER = TWILIO_SENDER_PHONE_NUMBER is None
 
-def send_code(code: str, mfa_method):
-    """
-    Send MFA authenticatication code to stdout.
+
+def send_code(code: str, mfa_method: object):
+    """Send MFA authenticatication code to stdout.
 
     Args:
-        code [str]: MFA code.
-        mfa_method: PumpwoodMFAMethod object.
+        code (str):
+            MFA code.
+        mfa_method:
+            PumpwoodMFAMethod object.
     """
-    APPLICATION_NAME = os.getenv("PUMPWOOD__MFA__APPLICATION_NAME", "Pumpwood")
     msg = "{application_name} MFA autorization code:\n{code}".format(
         application_name=APPLICATION_NAME, code=code)
 
-    # Twilio authentication variables
-    TWILIO_ACCOUNT_SID = os.getenv(
-        "PUMPWOOD__MFA__TWILIO_ACCOUNT_SID")
-    TWILIO_AUTH_TOKEN = os.getenv(
-        "PUMPWOOD__MFA__TWILIO_AUTH_TOKEN")
-    TWILIO_SENDER_PHONE_NUMBER = os.getenv(
-        "PUMPWOOD__MFA__TWILIO_SENDER_PHONE_NUMBER")
-    TWILIO_DELIVERY_TIMEOUT = int(os.getenv(
-        "PUMPWOOD__MFA__TWILIO_DELIVERY_TIMEOUT", "10"))
-
-    IS_TWILIO_ACCOUNT_SID = TWILIO_ACCOUNT_SID is None
-    IS_TWILIO_AUTH_TOKEN = TWILIO_AUTH_TOKEN is None
-    IS_TWILIO_SENDER_PHONE_NUMBER = TWILIO_SENDER_PHONE_NUMBER is None
     val_parameter = (
         IS_TWILIO_ACCOUNT_SID or IS_TWILIO_AUTH_TOKEN or
         IS_TWILIO_SENDER_PHONE_NUMBER)

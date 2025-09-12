@@ -1,11 +1,23 @@
 """Manage Kong routes for Pumpwood."""
+import os
+from typing import List, Dict
 from django.db import models
 from django.db.models import Q
 from pumpwood_djangoviews.action import action
 from pumpwood_djangoauth.config import kong_api
 from pumpwood_communication import exceptions
 from pumpwood_communication.serializers import PumpWoodJSONEncoder
+from pumpwood_communication.cache import default_cache
 from pumpwood_djangoauth.i8n.translate import t
+
+# Aux classes
+from pumpwood_djangoauth.system.aux import (
+    RouteAPIPermissionAux, MapPathRoleAux, GetRouteAux)
+
+
+PUMPWOOD__AUTH__TOKEN_CACHE_EXPIRE = int(os.getenv(
+    'PUMPWOOD__AUTH__PERMISSION_CACHE_EXPIRE', 300))
+"""Time to set expire at permission cache."""
 
 
 class KongService(models.Model):
@@ -54,10 +66,12 @@ class KongService(models.Model):
         encoder=PumpWoodJSONEncoder)
 
     def __str__(self):
+        """__str__."""
         return 'microservice: %s; endpoint: %s' % (
             self.service_name, self.service_url)
 
     class Meta:
+        """Meta."""
         db_table = 'pumpwood__service'
         unique_together = [
             ['service_url', 'service_name'],
@@ -73,16 +87,14 @@ class KongService(models.Model):
     @classmethod
     @action(info='Load service/routes on Kong.')
     def load_kong_service(cls, list_service_id: list = None) -> bool:
-        """
-        Load kong services and routes.
+        """Load kong services and routes.
 
         Load services and routes in database at Kong. This action does not
         remove other kongs end-points.
 
-        Args
-            No Args.
-        Kwargs:
-            list_service_id [list]: List of ids to reload routes on Kong.
+        Args:
+            list_service_id (list):
+                List of ids to reload routes on Kong.
         Return [bool]:
             Return true.
         """
@@ -118,17 +130,15 @@ class KongService(models.Model):
 
     @classmethod
     @action(info='Delete services/routes and reload them on Kong')
-    def reload_kong_service(cls, list_service_id: list = None) -> bool:
-        """
-        Reload kong services, a small down time may occur.
+    def reload_kong_service(cls, list_service_id: List[int] = None) -> bool:
+        """Reload kong services, a small down time may occur.
 
         Remove and recreate all services and kong routes if list_service_id
         not passed as argument.
 
-        Args
-            No Args.
-        Kwargs:
-            list_service_id [list]: List of ids to reload routes on Kong.
+        Args:
+            list_service_id (list):
+                List of ids to reload routes on Kong.
         Return [bool]:
             Return true.
         """
@@ -157,25 +167,30 @@ class KongService(models.Model):
                        description: str, notes: str, icon: str = None,
                        healthcheck_route: str = None,
                        dimensions: dict = {}, extra_info: dict = {}) -> dict:
-        """
-        Create a Kong service to redirect calls.
+        """Create a Kong service to redirect calls.
 
         Save calls use same object to create or patch already created object.
 
         Args:
-            service_url [str]: URL of the service to which call to this service
+            service_url (str):
+                URL of the service to which call to this service
                 will be redicted as is.
-            service_name [str]: Unique name for the service
-            description [str]: Unique description for the service.
-            notes [str]: A long description for the service.
-        Kwargs:
-            healthcheck_route [str] = None: A health check end-point for the
-                service.
-            dimensions [dict] = {}: A dimensions for the service to help
-                quering.
-            extra_info [dict] = {}: Extra information to be saved with service.
-            icon [str] = None: An icon associated with the service.
-        Returns [dict] -> dict:
+            service_name (str):
+                Unique name for the service
+            description (str):
+                Unique description for the service.
+            notes (str):
+                A long description for the service.
+            healthcheck_route (str): = None
+                A health check end-point for the service.
+            dimensions (dict): = {}
+                A dimensions for the service to help quering.
+            extra_info (dict): = {}
+                Extra information to be saved with service.
+            icon (str): = None
+                An icon associated with the service.
+
+        Returns (dict):
             Return a serialized KongService object.
         """
         from pumpwood_djangoauth.system.serializers import (
@@ -254,8 +269,7 @@ class KongRoute(models.Model):
         verbose_name="Route Name",
         help_text="Name of the route (must be unique)")
     route_kong_id = models.TextField(
-        null=False, unique=True,
-        verbose_name="Kong ID",
+        null=False, unique=False, verbose_name="Kong ID",
         help_text="Route identification on Kong")
     route_type = models.CharField(
         max_length=10, choices=ROUTE_TYPES,
@@ -285,12 +299,14 @@ class KongRoute(models.Model):
         encoder=PumpWoodJSONEncoder)
 
     class Meta:
+        """Meta."""
         db_table = 'pumpwood__route'
         unique_together = [['route_name', 'route_url']]
         verbose_name = 'Route'
         verbose_name_plural = 'Routes'
 
     def __str__(self):
+        """__str__."""
         return 'service: %s; route: %s; route name: %s' % (
             self.service.service_name, self.route_name, self.route_url)
 
@@ -301,29 +317,36 @@ class KongRoute(models.Model):
                      availability: str = None, icon: str = None,
                      strip_path: bool = False, dimensions: dict = {},
                      extra_info: dict = {}) -> dict:
-        """
-        Create a Kong route to redirect calls.
+        """Create a Kong route to redirect calls.
 
         Save calls use same object to create or patch already created object.
 
         Args:
-            service_id [int]: Id of the service associated with route on
-                PumpWood.
-            route_url [str]: Route URL to redirect the calls to service.
-            route_name [str]: Unique name for the route.
-            route_type [str]: Type of the route to create values must be in:
+            service_id (int):
+                Id of the service associated with route on PumpWood.
+            route_url (str):
+                Route URL to redirect the calls to service.
+            route_name (str):
+                Unique name for the route.
+            route_type (str):
+                Type of the route to create values must be in:
                 ['endpoint', 'aux', 'gui', 'static', 'admin']
-            description [str]: Unique description for the service.
-            notes [str]: A long description for the service.
-        Kwargs:
-            availability [str]: If route should be avaiable at frontend.
-            strip_path [bool]: If kong will strip path when routing downstream.
-            icon [str] = None: An icon associated with the service.
-            dimensions [dict] = {}: A dimensions for the service to help
-                quering.
-            extra_info [dict] = {}: Extra information to be saved with
-                service.
-        Returns [dict]:
+            description (str):
+                Unique description for the service.
+            notes (str):
+                A long description for the service.
+            availability (str):
+                If route should be avaiable at frontend.
+            strip_path (bool):
+                If kong will strip path when routing downstream.
+            icon (str): = None
+                An icon associated with the service.
+            dimensions (dict): = {}
+                A dimensions for the service to help quering.
+            extra_info (dict): = {}
+                Extra information to be saved with service.
+
+        Returns:
             Return a serialized KongRoute object.
         """
         from pumpwood_djangoauth.system.serializers import (
@@ -395,3 +418,220 @@ class KongRoute(models.Model):
             registred_route.extra_info = extra_info
             registred_route.save()
         return KongRouteSerializer(registred_route, many=False).data
+
+    @classmethod
+    @action(
+        info="List possible roles associated with routes.",
+        request="request", permission_role="is_authenticated")
+    def list_route_roles(cls) -> List[str]:
+        """List possible route Pumpwood roles.
+
+        Returns:
+            A list with possible roles associated with each route.
+        """
+        return RouteAPIPermissionAux.get_role_options()
+
+    @action(
+        info="Check if logged user has end-point permission on route",
+        request="request", permission_role="is_authenticated")
+    def self_has_role(self, request, role: str, action: str = None) -> bool:
+        """Check if logged user has this role at route or can run action.
+
+        Args:
+            request:
+                Django request passed by the action end-point.
+            role (str):
+                Role to check if user has permission at the end-point. Role
+                values must be in `KongRoute.list_route_roles` roles.
+            action (str):
+                Action associated with route.
+            is_authenticated (bool):
+                Set if authenticated or not at permission validation.
+
+        Returns:
+            Return True is user is associated with role for this route and
+            False if not.
+        """
+        print("role:", role)
+        return RouteAPIPermissionAux.has_permission(
+            is_authenticated=True, route_id=self.id,
+            user_id=request.user.id, role=role, action=action)
+
+    @action(
+        info="Check if logged user has end-point permission on route",
+        request="request")
+    def user_has_role(self, request, user_id: int, role: str,
+                      action: str = None) -> bool:
+        """Check if logged user has this role at route or can run action.
+
+        Args:
+            request:
+                Django request passed by the action end-point.
+            user_id (int):
+                Id of the user to check for role.
+            role (str):
+                Role to check if user has permission at the end-point. Role
+                values must be in `KongRoute.list_route_roles` roles.
+            action (str):
+                Action associated with route.
+
+        Returns:
+            Return True is user is associated with role for this route and
+            False if not.
+        """
+        return RouteAPIPermissionAux.has_permission(
+            is_authenticated=True, route_id=self.id, user_id=user_id,
+            role=role, action=action)
+
+    @classmethod
+    @action(info=(
+        "Receive end-point and HTTP method returning to correspondent role"))
+    def map_path_to_role(cls, path: str, method: str) -> Dict[str, str]:
+        """Map request end-point and HTTP method to Pumpwood role.
+
+        Args:
+            path (str):
+                Path to resource to check if self has the permission.
+            method (str):
+                HTTP method to translate to Pumpwood Roles. It is case
+                insensitive and must be in `['get', 'post', 'delete']`.
+
+        Returns:
+            Return pumpwood role according to endpoint and method.
+        """
+        route = GetRouteAux.from_path(path=path)
+        return MapPathRoleAux.map(path=path, method=method, route=route)
+
+    @classmethod
+    @action(info=(
+        "Receive end-point and HTTP method returning to correspondent role"))
+    def get_route_from_path(cls, path: str) -> Dict[str, str]:
+        """Map request end-point and HTTP method to Pumpwood role.
+
+        Args:
+            path (str):
+                Path to resource to check if self has the permission.
+            method (str):
+                HTTP method to translate to Pumpwood Roles. It is case
+                insensitive and must be in `['get', 'post', 'delete']`.
+
+        Returns:
+            Return pumpwood role according to endpoint and method.
+        """
+        from pumpwood_djangoauth.system.serializers import (
+            KongRouteSerializer)
+        route = GetRouteAux.from_path(path=path)
+        return KongRouteSerializer(
+            route, many=False, foreign_key_fields=True,
+            related_fields=True).data
+
+    @classmethod
+    @action(
+        info=("Verify if self has access to a path"), request="request",
+        permission_role='is_authenticated')
+    def self_has_permission(cls, request, path: str, method: str,
+                            role: str = None) -> bool:
+        """Map request end-point and HTTP method to Pumpwood role.
+
+        Args:
+            request (str):
+                Django request.
+            path (str):
+                Path to resource to check if self has the permission.
+            method (str):
+                HTTP method to translate to Pumpwood Roles. It is case
+                insensitive and must be in `['get', 'post', 'delete']`.
+            role (str):
+                Overwrite expected role at path/method, it will return
+                if user has this role on the correspondent route according
+                to the path. It will be validated if role passed is
+                valid. Check `list_route_roles` for possible roles.
+
+        Returns:
+            Return True if self user has access to path/method.
+        """
+        user = request.user
+
+        hash_dict = {
+            'context': 'has-permission',
+            'user_id': user.id}
+        cache_data = default_cache.get(hash_dict=hash_dict)
+        if cache_data is not None:
+            return cache_data
+
+        route_info = GetRouteAux.from_path(path=path)
+        role_endpoint = MapPathRoleAux.map(
+            route=route_info['route'], method=request.method,
+            model_class=route_info['model_class'],
+            endpoint=route_info['endpoint'],
+            action=route_info['action'])
+
+        # Overwrite expected role parameter if passed as argument
+        role_arg = role or role_endpoint['role']
+
+        has_permission = RouteAPIPermissionAux.has_permission(
+            is_authenticated=request.user.is_authenticated,
+            route_id=route_info['route'].id,
+            user_id=user.id, role=role_arg,
+            action=route_info['action'])
+        return_dict = {
+            'has_permission': has_permission,
+            'model_class': route_info['model_class'],
+            'endpoint': route_info['endpoint'],
+            'role': role_endpoint['role'],
+            'action': route_info['action'],
+            'route_id': route_info['route'].id}
+        default_cache.set(
+            hash_dict=hash_dict, value=return_dict,
+            expire=PUMPWOOD__AUTH__TOKEN_CACHE_EXPIRE)
+        return return_dict
+
+    @classmethod
+    @action(info=("Verify if self has access to a path"), request="request")
+    def user_has_permission(cls, request, user_id: int, path: str,
+                            method: str, role: str = None) -> bool:
+        """Check if user with id `user_id` has permission for a path.
+
+        Args:
+            request (str):
+                Django request.
+            user_id (int):
+                ID of the user to check for permission.
+            path (str):
+                Path to resource to check if self has the permission.
+            method (str):
+                HTTP method to translate to Pumpwood Roles. It is case
+                insensitive and must be in `['get', 'post', 'delete']`.
+            role (str):
+                Overwrite expected role at path/method, it will return
+                if user has this role on the correspondent route according
+                to the path. It will be validated if role passed is
+                valid. Check `list_route_roles` for possible roles.
+
+        Returns:
+            Return True if self user has access to path/method.
+        """
+        route_info = GetRouteAux.from_path(path=path)
+        role_endpoint = MapPathRoleAux.map(
+            route=route_info['route'], method=request.method,
+            model_class=route_info['model_class'],
+            endpoint=route_info['endpoint'],
+            action=route_info['action'])
+
+        # Overwrite expected role parameter if passed as argument
+        role_arg = role or role_endpoint['role']
+
+        has_permission = RouteAPIPermissionAux.has_permission(
+            is_authenticated=request.user.is_authenticated,
+            route_id=route_info['route'].id,
+            user_id=user_id,
+            role=role_arg,
+            action=route_info['action'])
+        return {
+            'has_permission': has_permission,
+            'model_class': route_info['model_class'],
+            'endpoint': route_info['endpoint'],
+            'role': role_endpoint['role'],
+            'action': route_info['action'],
+            'route_id': route_info['route'].id
+        }

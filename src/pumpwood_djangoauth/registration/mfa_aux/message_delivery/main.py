@@ -1,6 +1,8 @@
 """Main method to send MFA codes."""
-from pumpwood_djangoauth.registration.mfa_aux import app_log
-from pumpwood_djangoauth.registration.mfa_aux import twilio_sms
+from pumpwood_djangoauth.registration.mfa_aux.message_delivery import (
+    app_log)
+from pumpwood_djangoauth.registration.mfa_aux.message_delivery import (
+    twilio_sms)
 from pumpwood_communication.exceptions import PumpWoodNotImplementedError
 
 
@@ -11,12 +13,13 @@ type_function_dict = {
 
 
 def send_mfa_code(mfa_method: str, code: str):
-    """
-    Send mfa code using enviroment variable PUMPWOOD__MFA__APPLICATION_NAME.
+    """Send mfa code using enviroment variable PUMPWOOD__MFA__APPLICATION_NAME.
 
     Args:
-        type [str]: Type of the MFA backend.
-        code [str]: Code to be send for mfa validation.
+        mfa_method (str):
+            Type of the MFA backend.
+        code (str):
+            Code to be send for mfa validation.
     """
     fun_send_code = type_function_dict.get(mfa_method.type)
     if fun_send_code is not None:

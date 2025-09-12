@@ -2,18 +2,15 @@ import pumpwood_djangoauth.i8n.translate as _
 from rest_framework import serializers
 from pumpwood_djangoviews.serializers import (
     ClassNameField, DynamicFieldsModelSerializer,
-    MicroserviceForeignKeyField, MicroserviceRelatedField,
     LocalForeignKeyField, LocalRelatedField)
-from pumpwood_communication.serializers import PumpWoodJSONEncoder
 from pumpwood_djangoauth.system.models import KongService, KongRoute
-from pumpwood_djangoauth.config import microservice
 
 
-########
-# List #
 class KongRouteSerializer(DynamicFieldsModelSerializer):
+    """Serializer for KongRoute model."""
     pk = serializers.IntegerField(source='id', allow_null=True, required=False)
     model_class = ClassNameField()
+
     description__verbose = serializers.SerializerMethodField()
     notes__verbose = serializers.SerializerMethodField()
 
@@ -26,6 +23,7 @@ class KongRouteSerializer(DynamicFieldsModelSerializer):
         display_field='service_name')
 
     class Meta:
+        """Meta."""
         model = KongRoute
         fields = (
             "pk", "model_class", "availability", "service_id", "service",
@@ -50,8 +48,10 @@ class KongRouteSerializer(DynamicFieldsModelSerializer):
 
 
 class KongServiceSerializer(DynamicFieldsModelSerializer):
+    """Serializer for KongService model."""
     pk = serializers.IntegerField(source='id', allow_null=True, required=False)
     model_class = ClassNameField()
+
     description__verbose = serializers.SerializerMethodField()
     notes__verbose = serializers.SerializerMethodField()
 
@@ -60,6 +60,7 @@ class KongServiceSerializer(DynamicFieldsModelSerializer):
         serializer=KongRouteSerializer, order_by=["-id"])
 
     class Meta:
+        """Meta."""
         model = KongService
         fields = (
             "pk", "model_class", "service_url", "service_name",

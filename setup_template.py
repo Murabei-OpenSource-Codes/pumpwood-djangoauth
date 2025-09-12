@@ -1,17 +1,14 @@
 """setup."""
+"""Setup template file."""
 import os
-import setuptools
+from setuptools import setup, find_packages
 
-with open(os.path.join(os.path.dirname(__file__), 'README.md')) as readme:
-    README = readme.read()
+# Read README
+with open(os.path.join(os.path.dirname(__file__), 'README.md'),
+          encoding='utf-8') as f:
+    README = f.read()
 
-requirements_path = os.path.join(
-    os.path.dirname(__file__), 'requirements.txt')
-
-# allow setup.py to be run from any path
-os.chdir(os.path.normpath(os.path.join(os.path.abspath(__file__), os.pardir)))
-
-setuptools.setup(
+setup(
     name='pumpwood-djangoauth',
     version='{VERSION}',
     include_package_data=True,
@@ -27,7 +24,7 @@ setuptools.setup(
         "Operating System :: OS Independent",
     ],
     package_dir={"": "src"},
-    package_data={"": ['*.html']},
+    package_data={"": ['*.html', '*.sql']},
     install_requires=[
         "Django>=4.0.0",
         "djangorestframework>=3.13",
@@ -39,8 +36,7 @@ setuptools.setup(
         "pumpwood-communication>=1.0",
         "pumpwood-kong",
         "twilio==8.11.0",
-        "lazy-string==1.0.0",
-    ],
-    packages=setuptools.find_packages(where="src"),
+        "lazy-string==1.0.0"],
+    packages=find_packages(where="src"),
     python_requires=">=3.6",
 )

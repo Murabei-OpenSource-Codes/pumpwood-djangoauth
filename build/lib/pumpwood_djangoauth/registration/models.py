@@ -3,29 +3,38 @@ import os
 import hashlib
 import random
 import datetime
+from typing import List
 from django.utils import timezone
 from django.db import models
 from django.conf import settings
 from django.db.models.signals import post_save
 from django.dispatch import receiver
+from django.contrib.auth import get_user_model
 from pumpwood_communication.serializers import PumpWoodJSONEncoder
 from pumpwood_communication.exceptions import (
     PumpWoodForbidden, PumpWoodMFAError, PumpWoodNotImplementedError)
-from pumpwood_djangoauth.registration.mfa_aux.main import send_mfa_code
+from pumpwood_djangoviews.action import action
+from pumpwood_djangoauth.registration.mfa_aux.message_delivery import (
+    send_mfa_code)
 from pumpwood_djangoauth.i8n.translate import t
+
+# Auxiliary classes and functions
+from pumpwood_djangoauth.registration.aux import (
+    ApiPermissionAux, RowPermissionAux)
 
 
 @receiver(post_save, sender=settings.AUTH_USER_MODEL)
-def create_auth_token(sender, instance=None, created=False, **kwargs):
+def create_auth_profile(sender, instance=None, created=False, **kwargs):
+    """Create a auth profile when user is created."""
     if created:
         UserProfile.objects.create(user=instance)
 
 
 class UserProfile(models.Model):
+    """User profile with extra information."""
     user = models.OneToOneField(
         settings.AUTH_USER_MODEL, on_delete=models.CASCADE,
-        verbose_name="User",
-        help_text="User",
+        verbose_name="User", help_text="User",
         related_name="user_profile")
     is_service_user = models.BooleanField(
         default=False,
@@ -35,15 +44,78 @@ class UserProfile(models.Model):
         default=dict, blank=True, encoder=PumpWoodJSONEncoder,
         verbose_name="Dimentions",
         help_text="Key/value tags to help retrieve database information")
+    # default_row_permission = models.ForeignKey(
+    #     'api_permission.models.', on_delete=models.CASCADE,
+    #     related_name="mfa_method_set",
+    #     verbose_name="User",
+    #     help_text="User associated with MFA")
     extra_fields = models.JSONField(
         default=dict, blank=True, encoder=PumpWoodJSONEncoder,
         verbose_name="Extra Info",
         help_text="Extra Info")
 
     class Meta:
+        """Meta class."""
         db_table = 'pumpwood__userprofile'
         verbose_name = 'User profile'
         verbose_name_plural = 'Users profile'
+
+    @classmethod
+    @action(info="List self assciated API permissions",
+            request='request')
+    def self_api_permissions(cls, request) -> List[dict]:
+        """List users api permissions.
+
+        Args:
+            request:
+                Django request.
+        """
+        return ApiPermissionAux.get(user=request.user, request=request)
+
+    @classmethod
+    @action(info="List user's assciated API permissions",
+            request='request')
+    def user_api_permissions(cls, user_id: int, request) -> List[dict]:
+        """List users api permissions.
+
+        Args:
+            user_id (int):
+                User's id associated with API permissions.
+            request:
+                Django request.
+        """
+        User = get_user_model() # NOQA
+        user = User.objects.get(id=user_id)
+        return ApiPermissionAux.get(user=user, request=request)
+
+    @classmethod
+    @action(info="List user's assciated API permissions",
+            request='request')
+    def self_row_permissions(cls, request) -> List[dict]:
+        """List users api permissions.
+
+        Args:
+            request:
+                Django request.
+        """
+        user = request.user
+        return RowPermissionAux.get(user=user, request=request)
+
+    @classmethod
+    @action(info="List user's assciated API permissions",
+            request='request')
+    def user_row_permissions(cls, user_id: int, request) -> List[dict]:
+        """List users api permissions.
+
+        Args:
+            user_id (int):
+                User's id associated with API permissions.
+            request:
+                Django request.
+        """
+        User = get_user_model() # NOQA
+        user = User.objects.get(id=user_id)
+        return RowPermissionAux.get(user=user, request=request)
 
 
 class PumpwoodMFAMethod(models.Model):
@@ -95,6 +167,7 @@ class PumpwoodMFAMethod(models.Model):
             tag="PumpwoodMFAMethod__admin__extra_info"))
 
     class Meta:
+        """Meta class."""
         db_table = 'pumpwood__mfa'
         unique_together = [
             ['user_id', 'type'],
@@ -131,11 +204,11 @@ class PumpwoodMFAMethod(models.Model):
             super(PumpwoodMFAMethod, self).save(*args, **kwargs)
 
     def run_method(self, mfa_token: str):
-        """
-        Run MFA method.
+        """Run MFA method.
 
         Args:
-            mfa_token [str] MFA Token.
+            mfa_token (str):
+                MFA Token.
         Kwargs:
             No Kwargs.
         Return [dict]:
@@ -205,6 +278,7 @@ class PumpwoodMFAToken(models.Model):
         help_text=("MFA token will expire at"))
 
     class Meta:
+        """Meta."""
         db_table = 'pumpwood__mfa_token'
         verbose_name = 'MFA Token'
         verbose_name_plural = 'MFA Tokens'
@@ -214,13 +288,13 @@ class PumpwoodMFAToken(models.Model):
         if not self.pk:
             self.created_at = timezone.now()
 
-            rand_str = str(random.randint(0, 9999999999)).zfill(10)
+            rand_str = str(random.randint(0, 9999999999)).zfill(10) # NOQA
             m = hashlib.sha256((
                 self.created_at.isoformat() + '|' + rand_str).encode())
             self.token = m.hexdigest()
 
-            EXPIRATION_INTERVAL = int(os.getenv(
-                "PUMPWOOD__MFA__TOKEN_EXPIRATION_INTERVAL", 60*5))
+            EXPIRATION_INTERVAL = int(os.getenv(  # NOQA
+                "PUMPWOOD__MFA__TOKEN_EXPIRATION_INTERVAL", 60 * 5))
             expiration_time = (
                 self.created_at +
                 datetime.timedelta(seconds=EXPIRATION_INTERVAL))
@@ -234,8 +308,7 @@ class PumpwoodMFAToken(models.Model):
 
 
 class PumpwoodMFACode(models.Model):
-    """
-    Code associated with MFA session.
+    """Code associated with MFA session.
 
     It does not have expire date and will respect MFA token expire datetime.
     """
@@ -260,6 +333,7 @@ class PumpwoodMFACode(models.Model):
         help_text="Time was created at")
 
     class Meta:
+        """Meta."""
         db_table = 'pumpwood__mfa_code'
         verbose_name = 'MFA code'
         verbose_name_plural = 'MFA codes'
@@ -267,7 +341,7 @@ class PumpwoodMFACode(models.Model):
     def save(self, *args, **kwargs):
         """Create MFA Code."""
         if self.pk is None:
-            self.code = str(random.randint(0, 999999)).zfill(6)
+            self.code = str(random.randint(0, 999999)).zfill(6) # NOQA
 
         # Do not let update MFA codes
         else:
@@ -276,10 +350,11 @@ class PumpwoodMFACode(models.Model):
 
         # Send MFA code according to method choosen by the user
         send_mfa_code(mfa_method=self.mfa_method, code=self.code)
-        super(PumpwoodMFACode, self).save(*args, **kwargs)
+        super().save(*args, **kwargs)
 
 
 class PumpwoodMFARecoveryCode(models.Model):
+    """Pumpwood MFA recovery codes."""
     user = models.ForeignKey(
         settings.AUTH_USER_MODEL, on_delete=models.CASCADE,
         related_name="recovery_codes_set",
@@ -295,6 +370,7 @@ class PumpwoodMFARecoveryCode(models.Model):
         help_text="Time was created at")
 
     class Meta:
+        """Meta."""
         db_table = 'pumpwood__mfa_recovery_code'
         verbose_name = 'MFA recovery code'
         verbose_name_plural = 'MFA recovery codes'

@@ -1,7 +1,7 @@
-"""Create routes and services."""
+"""Auxiliar module to create routes and services."""
 import os
-import random
 import time
+import random
 import textwrap
 from copy import deepcopy
 from slugify import slugify
@@ -13,15 +13,24 @@ def register_auth_kong_objects(service_url: str, service_description: str,
                                healthcheck_route: str, routes: list = [],
                                viewsets: list = [], service_icon: str = None,
                                service_extra_info: dict = {}):
-    """
-    Register auth objects in kong and add them to database.
+    """Register auth objects in kong and add them to database.
 
     Args:
-        service_url [str]: Microservice endpoint url.
-        service_name [str]: Service name
-        healthcheck_route [str]: Health-check url for the microservice.
-        routes [list[dict]]: List of information to create routes associated
-            with the microservice. Ex:
+        service_url (str):
+            Microservice endpoint url.
+        service_description (str):
+            Service sort description.
+        service_name (str):
+            Name of the service.
+        service_notes (str):
+            Service long description.
+        service_dimensions (dict):
+            Dictionary with tag/value to organize services on database.
+        healthcheck_route (str):
+            Health-check url for the microservice.
+        routes (List[dict]):
+            List of information to create routes associated with the
+            microservice. Ex:
                 {
                     "route_url": "/rest/kongroute/",
                     "route_name": "pumpwood-auth-app--kongroute",
@@ -52,6 +61,12 @@ def register_auth_kong_objects(service_url: str, service_description: str,
                         "route_type": "admin"},
                     "icon": ""
                 }
+        viewsets (List[ViewSet]):
+            List of PumpwoodViews to create routes at Kong.
+        service_icon (str):
+            Icon that will be associated with service.
+        service_extra_info (dict):
+            Extra info that will be saved with service.
     """
     from django import db
     from django.core.wsgi import get_wsgi_application
@@ -62,7 +77,7 @@ def register_auth_kong_objects(service_url: str, service_description: str,
     from pumpwood_djangoauth.system.models import KongService, KongRoute
 
     temp_routes = deepcopy(routes)
-    sleep_time = random.uniform(0, 5)
+    sleep_time = random.uniform(0, 5)/60 # NOQA
     print("Slepping random time to not crash workers: ", sleep_time)
     time.sleep(sleep_time)
 

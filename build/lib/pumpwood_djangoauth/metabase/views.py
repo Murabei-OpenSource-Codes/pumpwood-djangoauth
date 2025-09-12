@@ -8,6 +8,7 @@ from pumpwood_djangoauth.metabase.serializers import (
 
 
 class RestMetabaseDashboard(PumpWoodRestService):
+    """Rest MetabaseDashboard."""
     endpoint_description = "Metabase Dashboard"
     notes = "Register and generate url to embed Metabase dashboards"
 
@@ -47,6 +48,7 @@ class RestMetabaseDashboard(PumpWoodRestService):
 
 
 class RestMetabaseDashboardParameter(PumpWoodRestService):
+    """MetabaseDashboardParameter View-set."""
     endpoint_description = "Metabase Dashboard parameters"
     notes = "Metabase Dashboard parameters"
     service_model = MetabaseDashboardParameter

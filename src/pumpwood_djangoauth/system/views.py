@@ -4,8 +4,9 @@ import pandas as pd
 from django.http import StreamingHttpResponse
 from django.contrib.auth.decorators import login_required
 from rest_framework.response import Response
-from rest_framework.decorators import api_view
+from rest_framework.decorators import api_view, permission_classes
 from pumpwood_djangoviews.views import PumpWoodRestService
+from pumpwood_miscellaneous.storage import PumpWoodStorage
 from pumpwood_djangoauth.system.models import KongService, KongRoute
 from pumpwood_djangoauth.system.serializers import (
     KongServiceSerializer, KongRouteSerializer)
@@ -13,14 +14,19 @@ from pumpwood_djangoauth.config import kong_api, microservice_no_login
 from pumpwood_communication.exceptions import (
     exceptions_dict, PumpWoodException, PumpWoodWrongParameters)
 
+from pumpwood_djangoauth.permissions import (
+    PumpwoodIsAuthenticated, PumpwoodCanRetrieveFile)
+
 
 @api_view(['GET'])
+@permission_classes([PumpwoodIsAuthenticated])
 def view__get_kong_routes(request):
     """Get kong routes."""
     return Response(kong_api.list_all_routes())
 
 
 @api_view(['GET'])
+@permission_classes([PumpwoodIsAuthenticated])
 def view__get_registred_endpoints(request):
     """Filter end-point to expose to frontend."""
     # Check if it is to hide routes from list
@@ -69,6 +75,7 @@ def view__get_registred_endpoints(request):
 
 
 @api_view(['GET', 'POST'])
+@permission_classes([PumpwoodIsAuthenticated])
 def view__dummy_call(request):
     """Expose a dummy endpoint for testing."""
     return Response({
@@ -80,6 +87,7 @@ def view__dummy_call(request):
 
 
 @api_view(['POST'])
+@permission_classes([PumpwoodIsAuthenticated])
 def view__dummy_raise(request):
     """End-point to test error handling in Pumpwood."""
     # Get auth header for recursive error test
@@ -111,7 +119,7 @@ def view__dummy_raise(request):
         # Raise a simple server error
         raise Exception("Server error my friend!")
     else:
-        TempException = exceptions_dict.get(exception_class)
+        TempException = exceptions_dict.get(exception_class) # NOQA
         if TempException is None:
             msg = "Error class not implemented: %s" % exception_class
             raise PumpWoodException(message=msg, payload=request_data)
@@ -120,6 +128,7 @@ def view__dummy_raise(request):
 
 
 class RestKongRoute(PumpWoodRestService):
+    """Rest for model KongRoute."""
     endpoint_description = "Kong Route"
     dimensions = {
         "microservice": "pumpwood-auth-app",
@@ -157,6 +166,7 @@ class RestKongRoute(PumpWoodRestService):
     #######
 
     def save(self, request):
+        """Super save to create route using class function."""
         request_data = request.data
         return Response(KongRoute.create_route(
             availability=request_data.get("availability"),
@@ -172,6 +182,7 @@ class RestKongRoute(PumpWoodRestService):
 
 
 class RestKongService(PumpWoodRestService):
+    """Rest end-point for KongService."""
     endpoint_description = "Kong Services"
     dimensions = {
         "microservice": "pumpwood-auth-app",
@@ -209,6 +220,7 @@ class RestKongService(PumpWoodRestService):
     #######
 
     def save(self, request):
+        """Super save."""
         request_data = request.data
         return Response(KongService.create_service(
             service_url=request_data["service_url"],
@@ -223,19 +235,27 @@ class RestKongService(PumpWoodRestService):
 
 
 class ServeMediaFiles:
-    """
-    Class to serve files using Pumpwood Storage Object.
+    """Class to serve files using Pumpwood Storage Object.
 
     It checks for user authentication and serve files using streaming
     request.
     """
 
-    def __init__(self, storage_object):
+    def __init__(self, storage_object: PumpWoodStorage):
+        """__init__.
+
+        Args:
+            storage_object (PumpWoodStorage):
+                Pumpwood Storage object that will be used to retrieve
+                files from storage.
+        """
         self.storage_object = storage_object
 
     def as_view(self):
         """Return a view function using storage_object set on object."""
+
         @login_required
+        @permission_classes([PumpwoodCanRetrieveFile])
         def download_from_storage_view(request, file_path):
             file_interator = self.storage_object.get_read_file_iterator(
                 file_path)
