@@ -552,8 +552,8 @@ class KongRoute(models.Model):
         user = request.user
 
         hash_dict = {
-            'context': 'has-permission',
-            'user_id': user.id}
+            'context': 'has-permission', 'user_id': user.id,
+            'method': method, 'path': path, 'role': role}
         cache_data = default_cache.get(hash_dict=hash_dict)
         if cache_data is not None:
             return cache_data
