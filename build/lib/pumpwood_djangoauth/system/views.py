@@ -81,7 +81,7 @@ def view__dummy_call(request):
     return Response({
         "full_path": request.build_absolute_uri(),
         "method": request.method,
-        "headers": request.headers,
+        "headers": dict(request.headers),
         "data": request.data
     })
 
