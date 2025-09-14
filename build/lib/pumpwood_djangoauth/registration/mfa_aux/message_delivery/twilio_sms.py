@@ -1,6 +1,7 @@
 """Implement MFA using Twilio SMS."""
 import os
 import time
+from loguru import logger
 from twilio.rest import Client
 from pumpwood_communication.exceptions import (
     PumpWoodException, PumpWoodMFAError)
@@ -57,7 +58,7 @@ def send_code(code: str, mfa_method: object):
     i = 0
     while True:
         message = message.fetch()
-        if message.status == 'failed':
+        if message.status == 'failed' or 30 < i:
             msg = "MFA Twilio SMS received a 'failed' status"
             raise PumpWoodMFAError(
                 msg, payload={"mfa_code": "failed_status"})
@@ -74,8 +75,9 @@ def send_code(code: str, mfa_method: object):
             return True
 
         print_msg = (
-            "### Waiting 1 second to check if MFA Twilio SMS was "
-            "delivered or queued [{status}]###").format(status=message.status)
-        print(print_msg)
+            "Waiting 1 second to check if MFA Twilio SMS was " +
+            "delivered or queued [{status}]###")\
+            .format(status=message.status)
+        logger.info(print_msg)
         time.sleep(1)
         i = i + 1

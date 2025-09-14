@@ -1,7 +1,4 @@
 """Logging Middlewares."""
-import socket
-import time
-import json
 import logging
 from pumpwood_djangoauth.log.functions import log_api_request
 from knox.auth import TokenAuthentication
@@ -11,6 +8,7 @@ request_logger = logging.getLogger(__name__)
 
 
 def list_get_or_none(list_obj, i):
+    """Get an element from a list or return None."""
     return list_obj[i] if i < len(list_obj) else None
 
 
@@ -20,9 +18,11 @@ class RequestLogMiddleware:
     knox_auth_token = None
 
     def __init__(self, get_response):
+        """__init__."""
         self.get_response = get_response
 
     def __call__(self, request):
+        """__call__."""
         content_type = request.content_type
         full_path = request.path.strip("/")
         splited_full_path = full_path.split("/")
@@ -36,8 +36,10 @@ class RequestLogMiddleware:
                 not_login = 'rest/registration/login' not in full_path
                 if not_check and not_login:
                     self.log_rest_calls(request)
+
         elif full_path.startswith(media_path):
             self.log_media_calls(request)
+
         else:
             if (root_path == 'admin') and ('jsi18n' not in full_path):
                 self.log_admin_calls(request)
@@ -106,8 +108,7 @@ class RequestLogMiddleware:
             if auth_resp is None:
                 return None
             user, auth_token = auth_resp
-        except Exception as e:
-            print("log_rest_calls; Exception", e)
+        except Exception:
             return None
 
         ingress_request = request.headers.get(
@@ -129,9 +130,6 @@ class RequestLogMiddleware:
             is_multipart = request.content_type == "multipart/form-data"
             if request_method == 'post' and not is_multipart:
                 payload = request.body[:300]
-
-            print("## log_rest_calls ##")
-            print("full_path:", full_path)
             log_api_request(
                 user_id=user_id,
                 permission_check='ok',

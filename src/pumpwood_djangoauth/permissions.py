@@ -36,11 +36,11 @@ class PumpwoodPermission(IsAuthenticated):
 
         if not has_permission_result['has_permission']:
             msg = (
-                "You have valid credentials, but do not have permission"
-                "to perform this action. Endpoint information:\n"
-                "- model_class: {model_class}\n"
-                "- endpoint: {endpoint}\n"
-                "- action: {action}"
+                "You have valid credentials, but do not have permission " +
+                "to perform this action. Endpoint information:\n" +
+                "- model_class: {model_class}\n" +
+                "- endpoint: {endpoint}\n" +
+                "- action: {action}" +
                 "- expected role: {role}")
             raise PumpWoodForbidden(
                 msg, payload={

@@ -87,7 +87,7 @@ class CodeLoginView(KnoxLoginView):
         user = mfa_token_obj.user
         login(request, user)
 
-        resp = super(MFALoginView, self).post(request, format=None).data
+        resp = super().post(request, format=None).data
         response = Response({
             'expiry': resp['expiry'], 'token': resp['token'],
             'user': SerializerUser(request.user, many=False).data,
