@@ -10,7 +10,7 @@ with open(os.path.join(os.path.dirname(__file__), 'README.md'),
 
 setup(
     name='pumpwood-djangoauth',
-    version='2.1.12',
+    version='2.1.13',
     include_package_data=True,
     license='BSD-3-Clause License',
     description='Assist creating views for Django using Pumpwood pattern.',

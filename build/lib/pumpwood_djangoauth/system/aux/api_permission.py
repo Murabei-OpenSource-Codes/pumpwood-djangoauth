@@ -10,7 +10,8 @@ from pumpwood_djangoauth.config import (
 # Pumpwood Exceptions
 from pumpwood_communication.exceptions import (
     PumpWoodActionArgsException, PumpWoodOtherException,
-    PumpWoodNotImplementedError, PumpWoodObjectDoesNotExist)
+    PumpWoodNotImplementedError, PumpWoodObjectDoesNotExist,
+    PumpWoodForbidden)
 
 # Read sql query from package resources
 route_api_permissions = pkg_resources.read_text(
@@ -445,6 +446,13 @@ class RouteAPIPermissionAux:
             Return a boolean value flaging if user has access to end-point/
             action.
         """
+        # Allow any will always return true
+        if role == 'allow_any':
+            return True
+        # Only allow any end-point can be used without authentication
+        elif user_id is None:
+            return False
+
         ####################################
         # Set types to avoid SQL injection #
         is_authenticated = bool(is_authenticated)
@@ -461,7 +469,7 @@ class RouteAPIPermissionAux:
             msg = (
                 'Action [{action}] should not have spaces on name '
                 'definition')
-            raise PumpWoodActionArgsException(
+            raise PumpWoodForbidden(
                 msg, payload={'action': action})
         ####################################
 
@@ -478,8 +486,6 @@ class RouteAPIPermissionAux:
         # only authenticated users
         has_permission_results = None
         if user.is_superuser:
-            has_permission_results = True
-        elif role == 'allow_any':
             has_permission_results = True
         elif role == 'is_authenticated':
             has_permission_results = is_authenticated
