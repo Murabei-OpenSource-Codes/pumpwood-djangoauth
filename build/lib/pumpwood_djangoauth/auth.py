@@ -25,32 +25,38 @@ class PumpwoodAuthentication(TokenAuthentication):
         """Authenticate request using header or cookie and cache results."""
         auth = get_authorization_header(request).split()
         prefix = knox_settings.AUTH_HEADER_PREFIX.encode()
-        auth_cookie = request.COOKIES.get('PumpwoodAuthorization')
-        auth = auth or auth_cookie
 
         token = None
-        if not auth:
-            # Check if token was passed as a cookie at the request
-            token = request.COOKIES.get('PumpwoodAuthorization')
-            if token is None:
+        if len(auth) != 0:
+            # Check if token was passed as header at the request
+            if auth[0].lower() != prefix.lower():
+                # Authorization header is possibly for another backend
                 return None
-
-        # Validate and get token from auth header
-        if auth[0].lower() != prefix.lower():
-            # Authorization header is possibly for another backend
-            return None
-        if len(auth) == 1:
-            msg = _(
-                'Invalid token header. No credentials provided.')
-            raise exceptions.AuthenticationFailed(msg)
-        elif len(auth) > 2:
-            msg = _(
-                'Invalid token header. ' +
-                'Token string should not contain spaces.')
-            raise exceptions.AuthenticationFailed(msg)
+            if len(auth) == 1:
+                msg = _(
+                    'Invalid token header. No credentials provided.')
+                raise exceptions.AuthenticationFailed(msg)
+            elif len(auth) > 2:
+                msg = _(
+                    'Invalid token header. ' +
+                    'Token string should not contain spaces.')
+                raise exceptions.AuthenticationFailed(msg)
+            else:
+                token = auth[1]
         else:
-            token = auth[1]
+            # Check if token was passed as a cookie at the request
+            # Encode token to bytes for compatibility with header behavior
+            cookie_token = request.COOKIES.get('PumpwoodAuthorization')
+            if cookie_token is not None:
+                token = cookie_token.encode("utf-8")
 
+        # If authentication headers were not found, return None
+        # as defaulf behavior of TokenAuthentication view.
+        if token is None:
+            return None
+
+        # Try to retrieve user authentication from cache to reduce database
+        # calls
         hash_dict = {
             'context': 'authentication_token',
             'token': token.decode("utf-8")}
@@ -63,6 +69,8 @@ class PumpwoodAuthentication(TokenAuthentication):
             logger.info(msg)
             return (cache_data['user'], cache_data['auth_token'])
 
+        # If not possible, autheticate with the credentials and set
+        # returned values for next calls cache
         user, auth_token = self.authenticate_credentials(token)
         default_cache.set(
             hash_dict=hash_dict,
