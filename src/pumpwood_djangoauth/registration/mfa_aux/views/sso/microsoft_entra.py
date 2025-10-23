@@ -1,14 +1,13 @@
 """Make calls to perform SSO using MicrosoftEntra."""
 import os
 import jwt
+import json
 from pumpwood_communication import exceptions
 from requests_oauthlib import OAuth2Session
 
 
 class MicrosoftEntraSSO:
     """Class to help performing Microsoft Entra SSO."""
-
-    SCOPE = ['openid', 'profile', 'email']
 
     def __init__(self, ):
         """."""
@@ -22,6 +21,9 @@ class MicrosoftEntraSSO:
             "PUMPWOOD__SSO__CLIENT_ID")
         PUMPWOOD__SSO__SECRET = os.getenv(
             "PUMPWOOD__SSO__SECRET")
+        PUMPWOOD__SSO__SCOPE = os.getenv(
+            "PUMPWOOD__SSO__SCOPE",
+            '["openid", "profile", "email"]')
 
         is_BASE_REDIRECT_URL_set = \
             (PUMPWOOD__SSO__REDIRECT_URL is None)
@@ -68,16 +70,16 @@ class MicrosoftEntraSSO:
             PUMPWOOD__SSO__CLIENT_ID
         self.PUMPWOOD__SSO__SECRET = \
             PUMPWOOD__SSO__SECRET
+        self.SCOPE = json.loads(PUMPWOOD__SSO__SCOPE)
 
     def create_authorization_url(self, state: str):
-        """
-        Create authentication URL for Microsoft Entra SSO.
+        """Create authentication URL for Microsoft Entra SSO.
 
         Args:
-            state [str]: Random string used to counter CSRF attacks.
-        Kwargs:
-            No Kwargs.
-        Return [dict]:
+            state (str):
+                Random string used to counter CSRF attacks.
+
+        Returns:
             Dictionary with generated authorization_url and state parameter.
         """
         oauth = OAuth2Session(
@@ -91,14 +93,12 @@ class MicrosoftEntraSSO:
             "state": state}
 
     def fetch_token(self, authorization_response_url: str):
-        """
-        Fetch authorization token and user information.
+        """Fetch authorization token and user information.
 
         Args:
-            authorization_response_url [str]: Autorization response url
-                passed after redirect of SSO authentication.
-        Kwargs:
-
+            authorization_response_url (str):
+                Autorization response url passed after redirect of SSO
+                authentication.
         """
         ##############################################################
         # Set OAUTHLIB_INSECURE_TRANSPORT it crashs with sub-domains #
