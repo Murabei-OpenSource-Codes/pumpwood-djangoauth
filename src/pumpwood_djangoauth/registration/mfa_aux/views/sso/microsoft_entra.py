@@ -5,6 +5,13 @@ import json
 from pumpwood_communication import exceptions
 from requests_oauthlib import OAuth2Session
 
+# If OAUTHLIB_RELAX_TOKEN_SCOPE is not explicity set, than set to 1
+# this will relax the SCOPE validation from OAuth package.
+# It seems that entra might change the SCOPE giving more access than
+# requested
+if 'OAUTHLIB_RELAX_TOKEN_SCOPE' not in os.environ:
+    os.environ['OAUTHLIB_RELAX_TOKEN_SCOPE'] = '1' # NOQA
+
 
 class MicrosoftEntraSSO:
     """Class to help performing Microsoft Entra SSO."""
@@ -106,8 +113,7 @@ class MicrosoftEntraSSO:
 
         oauth = OAuth2Session(
             self.PUMPWOOD__SSO__CLIENT_ID,
-            redirect_uri=self._redirect_uri,
-            scope=self.SCOPE)
+            redirect_uri=self._redirect_uri)
         token = oauth.fetch_token(
             self.PUMPWOOD__SSO__TOKEN_URL,
             authorization_response=authorization_response_url,

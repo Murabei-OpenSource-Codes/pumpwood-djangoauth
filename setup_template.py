@@ -34,9 +34,9 @@ setup(
         "PyJWT>=2.7.0",
         "django-rest-knox==4.2.0",
         "pumpwood-communication>=1.0",
+        "requests-oauthlib>=2.0.0",
         "pumpwood-kong",
-        "twilio==8.11.0",
-        "lazy-string==1.0.0"],
+        "twilio>=8.11.0"],
     packages=find_packages(where="src"),
     python_requires=">=3.6",
 )
