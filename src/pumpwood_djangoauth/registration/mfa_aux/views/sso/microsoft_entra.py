@@ -16,6 +16,8 @@ if 'OAUTHLIB_RELAX_TOKEN_SCOPE' not in os.environ:
 class MicrosoftEntraSSO:
     """Class to help performing Microsoft Entra SSO."""
 
+    PUMPWOOD__SSO__SCOPE = ["openid", "profile", "email"]
+
     def __init__(self, ):
         """."""
         pumpwood__sso__redirect_url = os.getenv(
@@ -30,7 +32,7 @@ class MicrosoftEntraSSO:
             "PUMPWOOD__SSO__SECRET")
         pumpwood__sso__scope = os.getenv(
             "PUMPWOOD__SSO__SCOPE",
-            '["openid", "profile", "email"]')
+            '')
 
         is_base_redirect_url_set = \
             (pumpwood__sso__redirect_url is None)
@@ -93,7 +95,8 @@ class MicrosoftEntraSSO:
             self.PUMPWOOD__SSO__CLIENT_ID,
             redirect_uri=self._redirect_uri)
         authorization_url, state = oauth.authorization_url(
-            self.PUMPWOOD__SSO__AUTHORIZATION_URL, state=state)
+            self.PUMPWOOD__SSO__AUTHORIZATION_URL, state=state,
+            scope=self.PUMPWOOD__SSO__SCOPE)
         return {
             "authorization_url": authorization_url,
             "state": state}
@@ -112,8 +115,8 @@ class MicrosoftEntraSSO:
         ##############################################################
 
         oauth = OAuth2Session(
-            self.PUMPWOOD__SSO__CLIENT_ID,
-            redirect_uri=self._redirect_uri)
+            self.PUMPWOOD__SSO__CLIENT_ID, redirect_uri=self._redirect_uri,
+            scope=self.PUMPWOOD__SSO__SCOPE)
         token = oauth.fetch_token(
             self.PUMPWOOD__SSO__TOKEN_URL,
             authorization_response=authorization_response_url,
