@@ -13,6 +13,10 @@ if 'OAUTHLIB_RELAX_TOKEN_SCOPE' not in os.environ:
     os.environ['OAUTHLIB_RELAX_TOKEN_SCOPE'] = '1' # NOQA
 
 
+# Set OAUTHLIB_INSECURE_TRANSPORT it crashs with sub-domains #
+os.environ['OAUTHLIB_INSECURE_TRANSPORT'] = '1'
+
+
 class MicrosoftEntraSSO:
     """Class to help performing Microsoft Entra SSO."""
 
@@ -93,10 +97,10 @@ class MicrosoftEntraSSO:
         """
         oauth = OAuth2Session(
             self.PUMPWOOD__SSO__CLIENT_ID,
-            redirect_uri=self._redirect_uri)
-        authorization_url, state = oauth.authorization_url(
-            self.PUMPWOOD__SSO__AUTHORIZATION_URL, state=state,
+            redirect_uri=self._redirect_uri,
             scope=self.PUMPWOOD__SSO__SCOPE)
+        authorization_url, state = oauth.authorization_url(
+            self.PUMPWOOD__SSO__AUTHORIZATION_URL, state=state)
         return {
             "authorization_url": authorization_url,
             "state": state}
@@ -109,13 +113,9 @@ class MicrosoftEntraSSO:
                 Autorization response url passed after redirect of SSO
                 authentication.
         """
-        ##############################################################
-        # Set OAUTHLIB_INSECURE_TRANSPORT it crashs with sub-domains #
-        os.environ['OAUTHLIB_INSECURE_TRANSPORT'] = '1'
-        ##############################################################
-
         oauth = OAuth2Session(
-            self.PUMPWOOD__SSO__CLIENT_ID, redirect_uri=self._redirect_uri,
+            self.PUMPWOOD__SSO__CLIENT_ID,
+            redirect_uri=self._redirect_uri,
             scope=self.PUMPWOOD__SSO__SCOPE)
         token = oauth.fetch_token(
             self.PUMPWOOD__SSO__TOKEN_URL,
