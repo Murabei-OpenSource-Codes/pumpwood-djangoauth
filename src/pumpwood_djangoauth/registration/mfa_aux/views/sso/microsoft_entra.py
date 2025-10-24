@@ -11,33 +11,33 @@ class MicrosoftEntraSSO:
 
     def __init__(self, ):
         """."""
-        PUMPWOOD__SSO__REDIRECT_URL = os.getenv(
+        pumpwood__sso__redirect_url = os.getenv(
             "PUMPWOOD__SSO__REDIRECT_URL")
-        PUMPWOOD__SSO__AUTHORIZATION_URL = os.getenv(
+        pumpwood__sso__authorization_url = os.getenv(
             "PUMPWOOD__SSO__AUTHORIZATION_URL")
-        PUMPWOOD__SSO__TOKEN_URL = os.getenv(
+        pumpwood__sso__token_url = os.getenv(
             "PUMPWOOD__SSO__TOKEN_URL")
-        PUMPWOOD__SSO__CLIENT_ID = os.getenv(
+        pumpwood__sso__client_id = os.getenv(
             "PUMPWOOD__SSO__CLIENT_ID")
-        PUMPWOOD__SSO__SECRET = os.getenv(
+        pumpwood__sso__secret = os.getenv(
             "PUMPWOOD__SSO__SECRET")
-        PUMPWOOD__SSO__SCOPE = os.getenv(
+        pumpwood__sso__scope = os.getenv(
             "PUMPWOOD__SSO__SCOPE",
             '["openid", "profile", "email"]')
 
-        is_BASE_REDIRECT_URL_set = \
-            (PUMPWOOD__SSO__REDIRECT_URL is None)
-        is_AUTHORIZATION_URL_set = \
-            (PUMPWOOD__SSO__AUTHORIZATION_URL is None)
-        is_TOKEN_URL_set = \
-            (PUMPWOOD__SSO__TOKEN_URL is None)
-        is_CLIENT_ID_set = \
-            (PUMPWOOD__SSO__CLIENT_ID is None)
-        is_SECRET_set = \
-            (PUMPWOOD__SSO__SECRET is None)
+        is_base_redirect_url_set = \
+            (pumpwood__sso__redirect_url is None)
+        is_authorization_url_set = \
+            (pumpwood__sso__authorization_url is None)
+        is_token_url_set = \
+            (pumpwood__sso__token_url is None)
+        is_client_id_set = \
+            (pumpwood__sso__client_id is None)
+        is_secret_set = \
+            (pumpwood__sso__secret is None)
         check_variables = (
-            is_BASE_REDIRECT_URL_set or is_AUTHORIZATION_URL_set or
-            is_TOKEN_URL_set or is_CLIENT_ID_set or is_SECRET_set)
+            is_base_redirect_url_set or is_authorization_url_set or
+            is_token_url_set or is_client_id_set or is_secret_set)
         if check_variables:
             msg = (
                 "Enviroment variables PUMPWOOD__SSO__PROVIDER, "
@@ -54,23 +54,23 @@ class MicrosoftEntraSSO:
                 "- is PUMPWOOD__SSO__SECRET set: {is_SECRET_set}")
             raise exceptions.PumpWoodForbidden(
                 msg, payload={
-                    "is_BASE_REDIRECT_URL_set": is_BASE_REDIRECT_URL_set,
-                    "is_AUTHORIZATION_URL_set": is_AUTHORIZATION_URL_set,
-                    "is_TOKEN_URL_set": is_TOKEN_URL_set,
-                    "is_CLIENT_ID_set": is_CLIENT_ID_set,
-                    "is_SECRET_set": is_SECRET_set})
+                    "is_BASE_REDIRECT_URL_set": is_base_redirect_url_set,
+                    "is_AUTHORIZATION_URL_set": is_authorization_url_set,
+                    "is_TOKEN_URL_set": is_token_url_set,
+                    "is_CLIENT_ID_set": is_client_id_set,
+                    "is_SECRET_set": is_secret_set})
 
         # Create callback url
-        self._redirect_uri = PUMPWOOD__SSO__REDIRECT_URL
+        self._redirect_uri = pumpwood__sso__redirect_url
         self.PUMPWOOD__SSO__AUTHORIZATION_URL = \
-            PUMPWOOD__SSO__AUTHORIZATION_URL
+            pumpwood__sso__authorization_url
         self.PUMPWOOD__SSO__TOKEN_URL = \
-            PUMPWOOD__SSO__TOKEN_URL
+            pumpwood__sso__token_url
         self.PUMPWOOD__SSO__CLIENT_ID = \
-            PUMPWOOD__SSO__CLIENT_ID
+            pumpwood__sso__client_id
         self.PUMPWOOD__SSO__SECRET = \
-            PUMPWOOD__SSO__SECRET
-        self.SCOPE = json.loads(PUMPWOOD__SSO__SCOPE)
+            pumpwood__sso__secret
+        self.SCOPE = json.loads(pumpwood__sso__scope)
 
     def create_authorization_url(self, state: str):
         """Create authentication URL for Microsoft Entra SSO.
@@ -84,8 +84,7 @@ class MicrosoftEntraSSO:
         """
         oauth = OAuth2Session(
             self.PUMPWOOD__SSO__CLIENT_ID,
-            redirect_uri=self._redirect_uri,
-            scope=self.SCOPE)
+            redirect_uri=self._redirect_uri)
         authorization_url, state = oauth.authorization_url(
             self.PUMPWOOD__SSO__AUTHORIZATION_URL, state=state)
         return {
