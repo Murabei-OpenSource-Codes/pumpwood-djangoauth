@@ -20,8 +20,6 @@ os.environ['OAUTHLIB_INSECURE_TRANSPORT'] = '1'
 class MicrosoftEntraSSO:
     """Class to help performing Microsoft Entra SSO."""
 
-    PUMPWOOD__SSO__SCOPE = ["openid", "profile", "email"]
-
     def __init__(self, ):
         """."""
         pumpwood__sso__redirect_url = os.getenv(
@@ -36,7 +34,7 @@ class MicrosoftEntraSSO:
             "PUMPWOOD__SSO__SECRET")
         pumpwood__sso__scope = os.getenv(
             "PUMPWOOD__SSO__SCOPE",
-            '')
+            '["openid", "profile", "email"]')
 
         is_base_redirect_url_set = \
             (pumpwood__sso__redirect_url is None)
@@ -48,9 +46,11 @@ class MicrosoftEntraSSO:
             (pumpwood__sso__client_id is None)
         is_secret_set = \
             (pumpwood__sso__secret is None)
+
         check_variables = (
             is_base_redirect_url_set or is_authorization_url_set or
             is_token_url_set or is_client_id_set or is_secret_set)
+
         if check_variables:
             msg = (
                 "Enviroment variables PUMPWOOD__SSO__PROVIDER, "
@@ -74,7 +74,8 @@ class MicrosoftEntraSSO:
                     "is_SECRET_set": is_secret_set})
 
         # Create callback url
-        self._redirect_uri = pumpwood__sso__redirect_url
+        self._redirect_uri = \
+            pumpwood__sso__redirect_url
         self.PUMPWOOD__SSO__AUTHORIZATION_URL = \
             pumpwood__sso__authorization_url
         self.PUMPWOOD__SSO__TOKEN_URL = \
@@ -83,7 +84,16 @@ class MicrosoftEntraSSO:
             pumpwood__sso__client_id
         self.PUMPWOOD__SSO__SECRET = \
             pumpwood__sso__secret
-        self.SCOPE = json.loads(pumpwood__sso__scope)
+
+        # Check for valid JSON input in PUMPWOOD__SSO__SCOPE
+        try:
+            self.PUMPWOOD__SSO__SCOPE = json.loads(pumpwood__sso__scope)
+
+        except json.JSONDecodeError as e:
+            raise exceptions.PumpWoodForbidden(
+                "PUMPWOOD__SSO__SCOPE environment variable "
+                "is not a valid JSON: {}".format(pumpwood__sso__scope),
+                payload={"error": str(e)})
 
     def create_authorization_url(self, state: str):
         """Create authentication URL for Microsoft Entra SSO.
