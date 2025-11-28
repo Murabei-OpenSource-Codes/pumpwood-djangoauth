@@ -44,6 +44,7 @@ class MapPathRoleAux:
         'delete-field', 'save', 'actions', 'options', 'list-options',
         'retrieve-options', 'aggregate', 'pivot', 'bulk-save']
     """Possible end-points on Pumpwood default routes."""
+
     METHOD_OPTIONS = ['get', 'post', 'delete']
     """Possible methods that are implemented on PumpWood."""
 
@@ -57,6 +58,7 @@ class MapPathRoleAux:
 
     ACTION_ROLE_CACHE_TAG = "action-role"
     """Tag that will be used to tag action permision cache."""
+
     ACTION_ROLE_CACHE_TEMPLATE = "action-role--[{model_class}]"
     """Template that will be used to generate key at action permissio cache."""
 

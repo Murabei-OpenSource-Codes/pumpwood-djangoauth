@@ -550,7 +550,6 @@ class KongRoute(models.Model):
             Return True if self user has access to path/method.
         """
         user = request.user
-
         hash_dict = {
             'context': 'has-permission', 'user_id': user.id,
             'method': method, 'path': path, 'role': role}
@@ -567,7 +566,6 @@ class KongRoute(models.Model):
 
         # Overwrite expected role parameter if passed as argument
         role_arg = role or role_endpoint['role']
-
         has_permission = RouteAPIPermissionAux.has_permission(
             is_authenticated=request.user.is_authenticated,
             route_id=route_info['route'].id,
@@ -577,8 +575,7 @@ class KongRoute(models.Model):
             'has_permission': has_permission,
             'model_class': route_info['model_class'],
             'endpoint': route_info['endpoint'],
-            'role': role_endpoint['role'],
-            'action': route_info['action'],
+            'role': role_arg, 'action': route_info['action'],
             'route_id': route_info['route'].id}
         default_cache.set(
             hash_dict=hash_dict, value=return_dict,
