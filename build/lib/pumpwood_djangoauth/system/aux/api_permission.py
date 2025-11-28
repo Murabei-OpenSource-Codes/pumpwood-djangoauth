@@ -447,7 +447,6 @@ class RouteAPIPermissionAux:
             Return a boolean value flaging if user has access to end-point/
             action.
         """
-        print('role:', role)
         # Allow any will always return true
         if role == 'allow_any':
             return True
