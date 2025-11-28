@@ -32,9 +32,10 @@ class MicrosoftEntraSSO:
             "PUMPWOOD__SSO__CLIENT_ID")
         pumpwood__sso__secret = os.getenv(
             "PUMPWOOD__SSO__SECRET")
+        # In some environment env variable it is set as an empty
+        # string 'or' will treat both None and empty string values
         pumpwood__sso__scope = os.getenv(
-            "PUMPWOOD__SSO__SCOPE",
-            '["openid", "profile", "email"]')
+            "PUMPWOOD__SSO__SCOPE") or '["openid", "profile", "email"]'
 
         is_base_redirect_url_set = \
             (pumpwood__sso__redirect_url is None)
