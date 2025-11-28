@@ -117,10 +117,11 @@ class UserProfile(models.Model):
 
     @classmethod
     @action(info="List user's assciated API permissions",
-            request='request')
-    def create_user(cls, request, username: str, password: str, email: str,
-                    first_name: str, last_name: str, is_active: bool = True,
-                    is_staff: bool = False, is_superuser: bool = False,
+            request='request', permission_role='is_superuser')
+    def create_user(cls, request, username: str, email: str,
+                    first_name: str, last_name: str, password: str = None,
+                    is_active: bool = True, is_staff: bool = False,
+                    is_superuser: bool = False,
                     profile_is_service_user: bool = False,
                     profile_dimensions: dict = {},
                     profile_extra_fields: dict = {}) -> dict:
@@ -132,7 +133,8 @@ class UserProfile(models.Model):
             username (str):
                 User name of the new user.
             password (str):
-                Password of the new user.
+                Password of the new user. If password is not set then
+                user will not be able to login using password.
             email (str):
                 Email associated with new user.
             first_name (str):
@@ -165,7 +167,8 @@ class UserProfile(models.Model):
         temp_user = User(
             username=username, email=email,
             first_name=first_name, is_active=is_active,
-            is_staff=is_staff, is_superuser=is_superuser)
+            last_name=last_name, is_staff=is_staff,
+            is_superuser=is_superuser)
         try:
             validate_password(password, user=temp_user)
         except ValidationError as e:
@@ -176,10 +179,16 @@ class UserProfile(models.Model):
         # Create the user object
         user = User.objects.create(
             username=username, email=email,
-            first_name=first_name, is_active=is_active,
-            is_staff=is_staff, is_superuser=is_superuser)
-        # Set user password
-        user.set_password(password)
+            first_name=first_name, last_name=last_name,
+            is_active=is_active, is_staff=is_staff,
+            is_superuser=is_superuser)
+
+        # Set user password if is not None
+        if password is not None:
+            # It is necessary to save the user instance after setting the
+            # password
+            user.set_password(password)
+            user.save()
 
         # set profile information
         user_profile = user.user_profile

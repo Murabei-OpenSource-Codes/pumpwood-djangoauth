@@ -8,6 +8,7 @@ src/pumpwood_djangoauth/auth.py
 src/pumpwood_djangoauth/config.py
 src/pumpwood_djangoauth/exception_handler.py
 src/pumpwood_djangoauth/permissions.py
+src/pumpwood_djangoauth/urls.py
 src/pumpwood_djangoauth/views.py
 src/pumpwood_djangoauth.egg-info/PKG-INFO
 src/pumpwood_djangoauth.egg-info/SOURCES.txt
@@ -173,6 +174,11 @@ src/pumpwood_djangoauth/row_permission/migrations/0003_rename_pumpwoodpermission
 src/pumpwood_djangoauth/row_permission/migrations/0004_remove_pumpwoodrowpermissionpolicygroupm2m_policy_and_more.py
 src/pumpwood_djangoauth/row_permission/migrations/0005_rename_pumpwoodrowpermissionpolicyuserm2m_pumpwoodrowpermissionuserm2m.py
 src/pumpwood_djangoauth/row_permission/migrations/__init__.py
+src/pumpwood_djangoauth/service_registration/__init__.py
+src/pumpwood_djangoauth/service_registration/definition.py
+src/pumpwood_djangoauth/service_views/__init__.py
+src/pumpwood_djangoauth/service_views/urls.py
+src/pumpwood_djangoauth/service_views/views.py
 src/pumpwood_djangoauth/system/__init__.py
 src/pumpwood_djangoauth/system/admin.py
 src/pumpwood_djangoauth/system/apps.py

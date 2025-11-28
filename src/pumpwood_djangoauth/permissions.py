@@ -40,7 +40,7 @@ class PumpwoodPermission(IsAuthenticated):
                 "to perform this action. Endpoint information:\n" +
                 "- model_class: {model_class}\n" +
                 "- endpoint: {endpoint}\n" +
-                "- action: {action}" +
+                "- action: {action}\n" +
                 "- expected role: {role}")
             raise PumpWoodForbidden(
                 msg, payload={
@@ -55,6 +55,12 @@ class PumpwoodAllowAny(PumpwoodPermission):
     """Overwrite expected role at end-point to `allow_any`."""
 
     role = 'allow_any'
+
+
+class PumpwoodIsSuperuser(PumpwoodPermission):
+    """Overwrite expected role at end-point to `is_superuser`."""
+
+    role = 'is_superuser'
 
 
 class PumpwoodIsAuthenticated(PumpwoodPermission):
