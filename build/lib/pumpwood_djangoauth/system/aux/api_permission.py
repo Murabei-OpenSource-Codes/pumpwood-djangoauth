@@ -50,9 +50,9 @@ class MapPathRoleAux:
 
     ROLE_OPTIONS = [
         'allow_any', 'is_authenticated', 'is_superuser', 'is_staff',
-        'can_delete', 'can_delete_file', 'can_delete_many', 'can_list',
-        'can_list_without_pag', 'can_retrieve', 'can_retrieve_file',
-        'can_run_actions', 'can_save']
+        'is_service_user', 'can_delete', 'can_delete_file',
+        'can_delete_many', 'can_list', 'can_list_without_pag', 'can_retrieve',
+        'can_retrieve_file', 'can_run_actions', 'can_save']
     """Possible roles to check for permission. This will be used to validate
        roles at `has_permission` call."""
 
@@ -499,6 +499,8 @@ class RouteAPIPermissionAux:
             has_permission_results = is_authenticated
         elif role == 'is_staff':
             has_permission_results = user.is_staff
+        elif role == 'is_service_user':
+            has_permission_results = user.user_profile.is_service_user
         else:
             has_permission_results = cls._get_non_general_roles(
                 route_id=route_id, user_id=user.id, role=role,
