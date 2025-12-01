@@ -1,0 +1,97 @@
+{% extends "admin/base_site.html" %}
+{% load i18n static %}
+
+{% block extrastyle %}{{ block.super }}
+    <style>
+        .center {
+            display: block;
+            margin-left: auto;
+            margin-right: auto;
+            margin-bottom: 30px;
+            width: 80%;
+        }
+
+        .login {
+            background: #f0f0f0 !important;
+        }
+
+        .login #container {
+          display: flex;
+          align-items: center;
+          height: 60vh;
+          filter: drop-shadow(5px 1px 5px rgba(0, 0, 0, 0.3));
+        }
+
+        .login input[type="submit"] {
+          background: #004a8f !important;
+          color: #ffffff !important;
+          width: 80%;
+          height: 50px;
+          font-size: medium !important;
+        }
+
+        .login input[type="text"],   .login input[type="password"] {
+            border: none;
+            border-radius: 0;
+            height: 5vh;
+            border-bottom: solid #004a8f 1px;
+        }
+
+        .login .form-row {
+          margin-bottom: 30px;
+        }
+    </style>
+    <link rel="stylesheet" type="text/css" href="{% static "admin/css/login.css" %}">
+    {{ form.media }}
+{% endblock %}
+
+<!-- {% block bodyclass %}{{ block.super }} login {% endblock %}
+{% block usertools %}{% endblock %}
+{% block nav-global %}{% endblock %}
+{% block nav-sidebar %}{% endblock %}
+{% block content_title %}{% endblock %}
+{% block breadcrumbs %}{% endblock %} -->
+
+{% block content %}
+    <div id="content-main">
+        {% if messages %}
+            <ul class="messages">
+                {% for message in messages %}
+                    <li{% if message.tags %} class="{{ message.tags }}"{% endif %}>{{ message }}</li>
+                {% endfor %}
+            </ul>
+        {% endif %}
+
+        {% if form.errors and not form.non_field_errors %}
+            <p class="errornote">
+                {% if form.errors.items|length == 1 %}
+                  {% translate "Please correct the error below." %}
+                {% else %}
+                  {% translate "Please correct the errors below." %}
+                {% endif %}
+            </p>
+        {% endif %}
+
+        {% if form.non_field_errors %}
+            {% for error in form.non_field_errors %}
+                <p class="errornote">
+                    {{ error }}
+                </p>
+            {% endfor %}
+        {% endif %}
+
+        <form action="{{ app_path }}" method="post" id="validate-token-form"  autocomplete="off">{% csrf_token %}
+            <div class="form-row">
+                <img src="{% static 'images/login-logo.png' %}" class="center"/>
+            </div>
+
+            <div class="form-row">
+                {{ form.mfa_code.errors }}
+                {{ form.mfa_code.label_tag }} {{ form.mfa_code }}
+            </div>
+            <div class="submit-row">
+                <input type="submit" value="{% translate 'Log in' %}">
+            </div>
+        </form>
+    </div>
+{% endblock %}
