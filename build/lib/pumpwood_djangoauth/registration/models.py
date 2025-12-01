@@ -164,17 +164,18 @@ class UserProfile(models.Model):
 
         # Validate password complexity before user creation, it is necessary
         # to use a user instance to validate password
-        temp_user = User(
-            username=username, email=email,
-            first_name=first_name, is_active=is_active,
-            last_name=last_name, is_staff=is_staff,
-            is_superuser=is_superuser)
-        try:
-            validate_password(password, user=temp_user)
-        except ValidationError as e:
-            msg = "Password did not respect complexity rules:\n{password}"
-            raise PumpWoodActionArgsException(
-                message=msg, payload={"password": list(e.messages)})
+        if password is not None:
+            temp_user = User(
+                username=username, email=email,
+                first_name=first_name, is_active=is_active,
+                last_name=last_name, is_staff=is_staff,
+                is_superuser=is_superuser)
+            try:
+                validate_password(password, user=temp_user)
+            except ValidationError as e:
+                msg = "Password did not respect complexity rules:\n{password}"
+                raise PumpWoodActionArgsException(
+                    message=msg, payload={"password": list(e.messages)})
 
         # Create the user object
         user = User.objects.create(

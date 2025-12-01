@@ -7,6 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [2.1.25] - 2025-09-10
 ### Added
+- No adds.
+
+### Changed
+- Fix password validation error for empty passwords.
+
+### Removed
+- No removes
+
+## [2.1.25] - 2025-09-10
+### Added
 - Add is_superuser and is_service_user policies.
 - Function to create service registration base to be used on Auth App
   route registration on Kong.
