@@ -53,7 +53,7 @@ def log_api_request(user_id: int, permission_check: str, request_method: str,
         'first_arg': str(first_arg or '').lower(),
         'second_arg': str(second_arg or '').lower(),
         'ingress_request': str(ingress_request or '').lower()}
-    log_dict_str = pumpJsonDump(log_dict)
+    log_dict_str = pumpJsonDump(log_dict).encode('utf-8')
 
     log_template = "{time} | api_request | {log_dict}".format(
         time=log_time, log_dict=log_dict_str)
