@@ -1,7 +1,7 @@
 """Functions to log activity at rest APIs."""
 import datetime
-import simplejson as json
 from loguru import logger
+from pumpwood_comunications.serializers import pumpJsonDump
 
 
 def log_api_request(user_id: int, permission_check: str, request_method: str,
@@ -53,7 +53,7 @@ def log_api_request(user_id: int, permission_check: str, request_method: str,
         'first_arg': str(first_arg or '').lower(),
         'second_arg': str(second_arg or '').lower(),
         'ingress_request': str(ingress_request or '').lower()}
-    log_dict_str = json.dumps(log_dict)
+    log_dict_str = pumpJsonDump(log_dict)
 
     log_template = "{time} | api_request | {log_dict}".format(
         time=log_time, log_dict=log_dict_str)
