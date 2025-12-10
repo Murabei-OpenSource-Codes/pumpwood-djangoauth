@@ -1,7 +1,7 @@
 """Functions to log activity at rest APIs."""
 import datetime
 from loguru import logger
-from pumpwood_comunications.serializers import pumpJsonDump
+from pumpwood_communication.serializers import pumpJsonDump
 
 
 def log_api_request(user_id: int, permission_check: str, request_method: str,
