@@ -6,8 +6,8 @@ from pumpwood_communication.serializers import pumpJsonDump
 
 def log_api_request(user_id: int, permission_check: str, request_method: str,
                     path: str, model_class: str, end_point: str,
-                    first_arg: str, second_arg: str, payload: str,
-                    ingress_request: str = '') -> dict:
+                    first_arg: str, second_arg: str, ingress_request: str = '',
+                    payload: str = '') -> dict:
     """Log API request using a RabbitMQ queue, if rabbitmq_api is not None.
 
     RabbitMQ queue will be consumed by a worker, that may latter save
