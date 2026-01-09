@@ -13,9 +13,8 @@ from pumpwood_djangoauth.system.serializers import (
 from pumpwood_djangoauth.config import kong_api, microservice_no_login
 from pumpwood_communication.exceptions import (
     exceptions_dict, PumpWoodException, PumpWoodWrongParameters)
-from pumpwood_communication.cache import default_cache
 from pumpwood_djangoauth.permissions import (
-    PumpwoodIsAuthenticated, PumpwoodCanRetrieveFile, PumpwoodIsSuperuser)
+    PumpwoodIsAuthenticated, PumpwoodCanRetrieveFile)
 
 
 @api_view(['GET'])

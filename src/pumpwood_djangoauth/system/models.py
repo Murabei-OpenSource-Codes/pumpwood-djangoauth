@@ -1,5 +1,7 @@
 """Manage Kong routes for Pumpwood."""
 import os
+import time
+from loguru import logger
 from typing import List, Dict
 from django.db import models
 from django.db.models import Q
@@ -9,6 +11,7 @@ from pumpwood_communication import exceptions
 from pumpwood_communication.serializers import PumpWoodJSONEncoder
 from pumpwood_communication.cache import default_cache
 from pumpwood_djangoauth.i8n.translate import t
+from psycopg2.errors import UniqueViolation
 
 # Aux classes
 from pumpwood_djangoauth.system.aux import (
@@ -195,40 +198,56 @@ class KongService(models.Model):
         """
         from pumpwood_djangoauth.system.serializers import (
             KongServiceSerializer)
-        registred_service = KongService.objects.filter(
-            Q(service_name=service_name) | Q(service_url=service_url)
-        ).first()
 
-        service_return = kong_api.register_service(
-            service_name=service_name, service_url=service_url,
-            healthcheck_route=healthcheck_route)
-        extra_info["kong_data"] = service_return
-        service_kong_id = service_return["id"]
+        # Make 5 retry to avoid colapse on inicialization
+        exception = None
+        for i in range(5):
+            try:
+                registred_service = KongService.objects\
+                    .filter(
+                        Q(service_name=service_name) |
+                        Q(service_url=service_url))\
+                    .first()
 
-        if registred_service is None:
-            registred_service = KongService(
-                service_url=service_url,
-                service_name=service_name,
-                service_kong_id=service_kong_id,
-                description=description,
-                notes=notes,
-                healthcheck_route=healthcheck_route,
-                dimensions=dimensions,
-                icon=icon,
-                extra_info=extra_info)
-            registred_service.save()
-        else:
-            registred_service.service_url = service_url
-            registred_service.service_name = service_name
-            registred_service.service_kong_id = service_kong_id
-            registred_service.description = description
-            registred_service.notes = notes
-            registred_service.healthcheck_route = healthcheck_route
-            registred_service.dimensions = dimensions
-            registred_service.icon = icon
-            registred_service.extra_info = extra_info
-            registred_service.save()
-        return KongServiceSerializer(registred_service, many=False).data
+                service_return = kong_api.register_service(
+                    service_name=service_name, service_url=service_url,
+                    healthcheck_route=healthcheck_route)
+                extra_info["kong_data"] = service_return
+                service_kong_id = service_return["id"]
+
+                if registred_service is None:
+                    registred_service = KongService(
+                        service_url=service_url,
+                        service_name=service_name,
+                        service_kong_id=service_kong_id,
+                        description=description,
+                        notes=notes,
+                        healthcheck_route=healthcheck_route,
+                        dimensions=dimensions,
+                        icon=icon,
+                        extra_info=extra_info)
+                    registred_service.save()
+                else:
+                    registred_service.service_url = service_url
+                    registred_service.service_name = service_name
+                    registred_service.service_kong_id = service_kong_id
+                    registred_service.description = description
+                    registred_service.notes = notes
+                    registred_service.healthcheck_route = healthcheck_route
+                    registred_service.dimensions = dimensions
+                    registred_service.icon = icon
+                    registred_service.extra_info = extra_info
+                    registred_service.save()
+                return KongServiceSerializer(
+                    registred_service, many=False).data
+
+            except UniqueViolation as e:
+                logger.exception("Error when registering KongService")
+                time.sleep(0.1)
+                exception = e
+
+        # If all retry done, than raise error
+        raise exception
 
 
 class KongRoute(models.Model):
@@ -360,64 +379,75 @@ class KongRoute(models.Model):
             raise exceptions.PumpWoodActionArgsException(
                 message=msg, payload={
                     "route_type": msg, "possible_types": possible_types})
+        for i in range(5):
+            try:
+                registred_route = KongRoute.objects\
+                    .filter(
+                        Q(route_name=route_name) |
+                        Q(route_url=route_url))\
+                    .first()
 
-        registred_route = KongRoute.objects.filter(
-            Q(route_name=route_name) | Q(route_url=route_url)
-        ).first()
-
-        service_object = KongService.objects.get(id=service_id)
-        route_return = kong_api.register_route(
-            service_name=service_object.service_name,
-            route_name=route_name,
-            route_url=route_url,
-            strip_path=strip_path)
-
-        extra_info["kong_data"] = route_return
-
-        if registred_route is None:
-            if availability is not None:
-                registred_route = KongRoute(
-                    availability=availability,
-                    service_id=service_object.id,
-                    route_url=route_url,
+                service_object = KongService.objects.get(id=service_id)
+                route_return = kong_api.register_route(
+                    service_name=service_object.service_name,
                     route_name=route_name,
-                    route_kong_id=route_return["id"],
-                    route_type=route_type,
-                    description=description,
-                    notes=notes,
-                    icon=icon,
-                    dimensions=dimensions,
-                    extra_info=extra_info)
-                registred_route.save()
-            else:
-                registred_route = KongRoute(
-                    service_id=service_object.id,
                     route_url=route_url,
-                    route_name=route_name,
-                    route_kong_id=route_return["id"],
-                    route_type=route_type,
-                    description=description,
-                    notes=notes,
-                    icon=icon,
-                    dimensions=dimensions,
-                    extra_info=extra_info)
-                registred_route.save()
-        else:
-            # Keep availability when none is passed as argument
-            if availability is not None:
-                registred_route.availability = availability
-            registred_route.service_id = service_object.id
-            registred_route.route_url = route_url
-            registred_route.route_name = route_name
-            registred_route.route_kong_id = route_return["id"]
-            registred_route.route_type = route_type
-            registred_route.description = description
-            registred_route.notes = notes
-            registred_route.icon = icon
-            registred_route.dimensions = dimensions
-            registred_route.extra_info = extra_info
-            registred_route.save()
-        return KongRouteSerializer(registred_route, many=False).data
+                    strip_path=strip_path)
+
+                extra_info["kong_data"] = route_return
+
+                if registred_route is None:
+                    if availability is not None:
+                        registred_route = KongRoute(
+                            availability=availability,
+                            service_id=service_object.id,
+                            route_url=route_url,
+                            route_name=route_name,
+                            route_kong_id=route_return["id"],
+                            route_type=route_type,
+                            description=description,
+                            notes=notes,
+                            icon=icon,
+                            dimensions=dimensions,
+                            extra_info=extra_info)
+                        registred_route.save()
+                    else:
+                        registred_route = KongRoute(
+                            service_id=service_object.id,
+                            route_url=route_url,
+                            route_name=route_name,
+                            route_kong_id=route_return["id"],
+                            route_type=route_type,
+                            description=description,
+                            notes=notes,
+                            icon=icon,
+                            dimensions=dimensions,
+                            extra_info=extra_info)
+                        registred_route.save()
+                else:
+                    # Keep availability when none is passed as argument
+                    if availability is not None:
+                        registred_route.availability = availability
+                    registred_route.service_id = service_object.id
+                    registred_route.route_url = route_url
+                    registred_route.route_name = route_name
+                    registred_route.route_kong_id = route_return["id"]
+                    registred_route.route_type = route_type
+                    registred_route.description = description
+                    registred_route.notes = notes
+                    registred_route.icon = icon
+                    registred_route.dimensions = dimensions
+                    registred_route.extra_info = extra_info
+                    registred_route.save()
+                return KongRouteSerializer(registred_route, many=False).data
+
+            except UniqueViolation as e:
+                logger.exception("Error when registering KongRoute")
+                time.sleep(0.1)
+                exception = e
+
+        # If all retry done, than raise error
+        raise exception
 
     @classmethod
     @action(
