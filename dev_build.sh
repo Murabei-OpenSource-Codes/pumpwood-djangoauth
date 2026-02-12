@@ -1,3 +1,6 @@
+VERSION_FILE="VERSION"
+source VERSION
+
 # Update version path
 rm -R build/
 python3 setup.py build sdist bdist_wheel
