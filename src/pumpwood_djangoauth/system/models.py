@@ -249,6 +249,46 @@ class KongService(models.Model):
         # If all retry done, than raise error
         raise exception
 
+    @classmethod
+    @action(info='Generate a documentation for the selected services',
+            permission_role='is_superuser')
+    def generate_doc(cls, service_id_set: list[int]) -> list:
+        """Create a documentation of the services selected.
+
+        Generate a documentation on a dictionary for each service selected,
+        it will fetch information from all routes associated with service.
+
+        Args:
+            service_id_set (list[int]):
+                The ids of the services that will have a documentation
+                generated.
+
+        Returns (list[dict]):
+            A list of dictionaries with:
+                - service_doc (dict): A dictionary if information related
+                    to service.
+                - route_doc_set (list[dict]):
+                    A list of the documentations associated with each route.
+        """
+        pass
+
+    @action(info='Generate a documentation fot this service',
+            permission_role='is_superuser')
+    def generate_self_doc(self) -> dict:
+        """Create a documentation of the service.
+
+        Generate a documentation on a dictionary, it will fetch information
+        from all routes associated with service.
+
+        Returns (dict):
+            Return a dictionary with:
+                - service_doc (dict): A dictionary if information related
+                    to service.
+                - route_doc_set (list[dict]):
+                    A list of the documentations associated with each route.
+        """
+        pass
+
 
 class KongRoute(models.Model):
     """Routes registred on Kong API Gateway."""
@@ -661,3 +701,43 @@ class KongRoute(models.Model):
             'action': route_info['action'],
             'route_id': route_info['route'].id
         }
+
+    @classmethod
+    @action(info='Generate a documentation for the selected routes')
+    def generate_doc(cls, service_id_set: list[int]) -> list:
+        """Create a documentation of the routes selected.
+
+        Generate a documentation on a dictionary for each route selected,
+        it will fetch information from all routes associated with service.
+
+        Args:
+            service_id_set (list[int]):
+                The ids of the routes that will have a documentation
+                generated.
+
+        Returns (list[dict]):
+            A list of dictionaries with:
+                - route_doc (dict): A dictionary if information related
+                    to service.
+                - fields (list[dict]):
+                    A list of the documentations associated with model_class
+                    fields if rest end-point.
+        """
+        return None
+
+    @action(info='Generate a documentation fot this route')
+    def generate_self_doc(self) -> dict:
+        """Create a documentation of the route.
+
+        Generate a documentation on a dictionary, it will fetch information
+        from all routes associated with route.
+
+        Returns (dict):
+            Return a dictionary with:
+                - route_doc (dict): A dictionary if information related
+                    to route.
+                - fields (list[dict]):
+                    A list of the documentations associated with model_class
+                    fields if rest end-point.
+        """
+        return None
