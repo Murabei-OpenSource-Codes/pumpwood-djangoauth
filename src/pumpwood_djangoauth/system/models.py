@@ -1,6 +1,9 @@
 """Manage Kong routes for Pumpwood."""
-import os
+import io
 import time
+import pandas as pd
+from typing import Literal
+from copy import deepcopy
 from loguru import logger
 from typing import List, Dict
 from django.db import models
@@ -14,13 +17,10 @@ from pumpwood_djangoauth.i8n.translate import t
 from psycopg2.errors import UniqueViolation
 
 # Aux classes
+from pumpwood_djangoauth.config import (
+    microservice, PUMPWOOD__AUTH__TOKEN_CACHE_EXPIRE)
 from pumpwood_djangoauth.system.aux import (
     RouteAPIPermissionAux, MapPathRoleAux, GetRouteAux)
-
-
-PUMPWOOD__AUTH__TOKEN_CACHE_EXPIRE = int(os.getenv(
-    'PUMPWOOD__AUTH__PERMISSION_CACHE_EXPIRE', 300))
-"""Time to set expire at permission cache."""
 
 
 class KongService(models.Model):
@@ -250,16 +250,109 @@ class KongService(models.Model):
         raise exception
 
     @classmethod
+    @action(info=(
+            'Generate a excel with documentation for the selected services'),
+            permission_role='is_superuser')
+    def generate_doc_file(cls, service_id_list: list[int] = None,
+                          file_type: Literal['xlsx'] = 'xlsx'
+                          ) -> bytes:
+        """Create a spreadsheet with documentation of the services selected.
+
+        Generate a documentation on a dictionary for each service selected,
+        it will fetch information from all routes associated with service.
+
+        Args:
+            service_id_list (list[int]):
+                The ids of the services that will have a documentation
+                generated.
+            file_type (Literal['spreadsheet']):
+                The type of file that will be returned.
+
+        Returns (list[dict]):
+            A list of dictionaries with:
+                - service_doc (dict): A dictionary if information related
+                    to service.
+                - route_doc_set (list[dict]):
+                    A list of the documentations associated with each route.
+        """
+        file_type_options = ['xlsx']
+        if file_type not in file_type_options:
+            msg = ('Parameter file_type must be in [{file_type_options}]')
+            exceptions.PumpWoodActionArgsException(
+                msg, payload={
+                    'file_type_options': file_type_options})
+
+        all_docs = cls.generate_doc(service_id_list=service_id_list)
+        service_sheet_data = []
+        routes_sheet_data = []
+        fields_sheet_data = []
+        for service in all_docs:
+            service_sheet_data.append({
+                'service_id': service['service_id'],
+                'service_name': service['service_name'],
+                'description': service['description'],
+                'notes': service['notes']})
+            for route in service['route_set']:
+                routes_sheet_data.append({
+                    'service_id': service['service_id'],
+                    'service_name': service['service_name'],
+                    'route_id': route['route_id'],
+                    'route_name': route['route_name'],
+                    'route_url': route['route_url'],
+                    'route_description': route['route_description'],
+                    'route_notes': route['route_notes']})
+                for field_data in route['route_fields']:
+                    fields_sheet_data.append({
+                        'primary_key': field_data['primary_key'],
+                        'column': field_data['column'],
+                        'column__verbose': field_data['column__verbose'],
+                        'help_text': field_data['help_text'],
+                        'help_text__verbose': field_data['help_text__verbose'],
+                        'type': field_data.get('type'),
+                        'nullable': field_data.get('nullable'),
+                        'default': field_data.get('default'),
+                        'indexed': field_data.get('indexed'),
+                        'unique': field_data.get('unique'),
+                        'read_only': field_data.get('read_only'),
+                        'foreign_key_model_class':
+                            field_data.get('foreign_key_model_class'),
+                        'foreign_key_display_field':
+                            field_data.get('foreign_key_display_field'),
+                        'foreign_key_many':
+                            field_data.get('foreign_key_many'),
+                        'foreign_key_object_field':
+                            field_data.get('foreign_key_object_field'),
+                    })
+
+        # Create the excel as byte Io and return it as bytes
+        buffer = io.BytesIO()
+        pd_service_sheet = pd.DataFrame(service_sheet_data)
+        pd_routes_sheet = pd.DataFrame(routes_sheet_data)
+        pd_fields_sheet = pd.DataFrame(fields_sheet_data)
+        with pd.ExcelWriter(buffer) as writer:
+            pd_service_sheet.to_excel(
+                writer, index=False, sheet_name='services')
+            pd_routes_sheet.to_excel(
+                writer, index=False, sheet_name='routes')
+            pd_fields_sheet.to_excel(
+                writer, index=False, sheet_name='fields')
+
+        # Set the pointer to the begging of the data
+        buffer.seek(0)
+        file_bytes = buffer.getvalue()
+        return file_bytes
+
+    @classmethod
     @action(info='Generate a documentation for the selected services',
             permission_role='is_superuser')
-    def generate_doc(cls, service_id_set: list[int]) -> list:
+    def generate_doc(cls, service_id_list: list[int] = None) -> list:
         """Create a documentation of the services selected.
 
         Generate a documentation on a dictionary for each service selected,
         it will fetch information from all routes associated with service.
 
         Args:
-            service_id_set (list[int]):
+            service_id_list (list[int]):
                 The ids of the services that will have a documentation
                 generated.
 
@@ -270,7 +363,16 @@ class KongService(models.Model):
                 - route_doc_set (list[dict]):
                     A list of the documentations associated with each route.
         """
-        pass
+        all_objects = None
+        if service_id_list is not None:
+            all_objects = cls.objects.filter(id__in=service_id_list)
+        else:
+            all_objects = cls.objects.all()
+
+        service_docs = []
+        for obj in all_objects:
+            service_docs.append(obj.generate_self_doc())
+        return service_docs
 
     @action(info='Generate a documentation fot this service',
             permission_role='is_superuser')
@@ -287,7 +389,17 @@ class KongService(models.Model):
                 - route_doc_set (list[dict]):
                     A list of the documentations associated with each route.
         """
-        pass
+        all_routes = self.route_set.all()
+        route_set = []
+        for r in all_routes:
+            route_set.append(r.generate_self_doc())
+        return {
+            'service_id': self.id,
+            'service_name': self.service_name,
+            'description': self.description,
+            'notes': self.notes,
+            'route_set': route_set
+        }
 
 
 class KongRoute(models.Model):
@@ -704,14 +816,14 @@ class KongRoute(models.Model):
 
     @classmethod
     @action(info='Generate a documentation for the selected routes')
-    def generate_doc(cls, service_id_set: list[int]) -> list:
+    def generate_doc(cls, route_id_list: list[int]) -> list:
         """Create a documentation of the routes selected.
 
         Generate a documentation on a dictionary for each route selected,
         it will fetch information from all routes associated with service.
 
         Args:
-            service_id_set (list[int]):
+            route_id_list (list[int]):
                 The ids of the routes that will have a documentation
                 generated.
 
@@ -723,7 +835,11 @@ class KongRoute(models.Model):
                     A list of the documentations associated with model_class
                     fields if rest end-point.
         """
-        return None
+        route_set = cls.objects.filter(id__in=route_id_list)
+        all_data = []
+        for r in route_set:
+            all_data.append(r.generate_self_doc())
+        return all_data
 
     @action(info='Generate a documentation fot this route')
     def generate_self_doc(self) -> dict:
@@ -739,5 +855,43 @@ class KongRoute(models.Model):
                 - fields (list[dict]):
                     A list of the documentations associated with model_class
                     fields if rest end-point.
+                    if self.route_type == 'endpoint':
         """
-        return None
+        fields_data = []
+        if self.route_type == 'endpoint':
+            try:
+                fill_validation_data = microservice.fill_validation(
+                    model_class=self.route_name)
+                field_descriptions = fill_validation_data['field_descriptions']
+                for key, item in field_descriptions.items():
+                    temp_item = deepcopy(item)
+                    temp_item['column'] = key
+
+                    # Foreign Key data
+                    temp_item['model_class'] = None
+                    temp_item['display_field'] = None
+                    temp_item['many'] = None
+                    temp_item['object_field'] = None
+                    if temp_item['type'] in ['foreign_key', 'related']:
+                        extra_info = temp_item['extra_info']
+                        temp_item['foreign_key_model_class'] = \
+                            extra_info.get('model_class')
+                        temp_item['foreign_key_display_field'] = \
+                            extra_info.get('display_field')
+                        temp_item['foreign_key_many'] = \
+                            extra_info.get('many')
+                        temp_item['foreign_key_object_field'] = \
+                            extra_info.get('object_field')
+                    fields_data.append(temp_item)
+
+            except Exception: # NOQA
+                pass
+
+        return {
+            'route_id': self.id,
+            'route_name': self.route_name,
+            'route_url': self.route_url,
+            'route_description': self.description,
+            'route_notes': self.notes,
+            'route_fields': fields_data
+        }

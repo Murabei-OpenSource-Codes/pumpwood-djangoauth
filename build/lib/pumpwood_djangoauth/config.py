@@ -113,7 +113,8 @@ if MICROSERVICE_URL is not None:
 else:
     print("PumpWoodMicroService not set")
 
-# Storage Object
+##################
+# Storage Object #
 STORAGE_TYPE: str = os.environ.get('STORAGE_TYPE')
 STORAGE_BUCKET_NAME: str = os.environ.get('STORAGE_BUCKET_NAME')
 STORAGE_BASE_PATH: str = os.environ.get('STORAGE_BASE_PATH', 'pumpwood_auth')
@@ -125,7 +126,9 @@ if STORAGE_TYPE is not None:
 else:
     print("PumpWoodStorage not set")
 
-# RabbitMQ
+
+############
+# RabbitMQ #
 RABBITMQ_USERNAME = os.getenv('RABBITMQ_USERNAME')
 RABBITMQ_PASSWORD = os.getenv('RABBITMQ_PASSWORD')
 RABBITMQ_HOST = os.getenv('RABBITMQ_HOST')
@@ -138,9 +141,14 @@ if RABBITMQ_HOST is not None:
 else:
     print("PumpWoodRabbitMQ not set")
 
+
+#######
+# I8n #
 # Initiante I8n using django model as backend
 pumpwood_i8n.init(microservice=microservice)
 
+#########
+# Cache #
 # Create a diskcache object to cache row and API permission calls
 # default size of 100Mb. It is restricted to not consume K8s cluster too
 # much disk at PODs
@@ -149,5 +157,12 @@ DISKCACHE_EXPIRATION = os.getenv(
 diskcache = Cache(size_limit=DISKCACHE_EXPIRATION)
 """Diskcache object that can be used to cache request persistent
    information. Exemples of this is Pumpwood row and API permission."""
+
 # Default 1 minute for cache expiration
 DISKCACHE_EXPIRATION = os.getenv('DISKCACHE__EXPIRATION', 60)
+"""Default time for diskcach expiration."""
+
+
+PUMPWOOD__AUTH__TOKEN_CACHE_EXPIRE = int(os.getenv(
+    'PUMPWOOD__AUTH__PERMISSION_CACHE_EXPIRE', 300))
+"""Time to set expire at permission cache."""
