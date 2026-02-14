@@ -15,6 +15,7 @@ from pumpwood_communication.serializers import PumpWoodJSONEncoder
 from pumpwood_communication.cache import default_cache
 from pumpwood_djangoauth.i8n.translate import t
 from psycopg2.errors import UniqueViolation
+from pumpwood_miscellaneous.type import ActionReturnFile
 
 # Aux classes
 from pumpwood_djangoauth.config import (
@@ -255,7 +256,7 @@ class KongService(models.Model):
             permission_role='is_superuser')
     def generate_doc_file(cls, service_id_list: list[int] = None,
                           file_type: Literal['xlsx'] = 'xlsx'
-                          ) -> bytes:
+                          ) -> ActionReturnFile:
         """Create a spreadsheet with documentation of the services selected.
 
         Generate a documentation on a dictionary for each service selected,
@@ -340,7 +341,16 @@ class KongService(models.Model):
         # Set the pointer to the begging of the data
         buffer.seek(0)
         file_bytes = buffer.getvalue()
-        return file_bytes
+
+        filename = 'service_doc.' + file_type
+        content_type = None
+        if file_type == 'xlsx':
+            content_type = (
+                "application/vnd.openxmlformats-officedocument." +
+                "spreadsheetml.sheet")
+        return ActionReturnFile(
+            filename=filename, content=file_bytes,
+            content_type=content_type)
 
     @classmethod
     @action(info='Generate a documentation for the selected services',
