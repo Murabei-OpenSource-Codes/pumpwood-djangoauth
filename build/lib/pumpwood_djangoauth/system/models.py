@@ -304,11 +304,12 @@ class KongService(models.Model):
                     'route_notes': route['route_notes']})
                 for field_data in route['route_fields']:
                     fields_sheet_data.append({
-                        'primary_key': field_data['primary_key'],
+                        'service_name': service['service_name'],
+                        'route_name': route['route_name'],
+                        'route_url': route['route_url'],
                         'column': field_data['column'],
-                        'column__verbose': field_data['column__verbose'],
+                        'primary_key': field_data['primary_key'],
                         'help_text': field_data['help_text'],
-                        'help_text__verbose': field_data['help_text__verbose'],
                         'type': field_data.get('type'),
                         'nullable': field_data.get('nullable'),
                         'default': field_data.get('default'),
