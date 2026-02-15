@@ -5,7 +5,27 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [2.1.51] - 2026-02-15
+## [2.1.35] - 2026-02-15
+### Added
+- Add actions to route documentation.
+
+### Changed
+- No changes.
+
+### Removed
+- No removes.
+
+## [2.1.35] - 2026-02-15
+### Added
+- Add actions to route documentation.
+
+### Changed
+- No changes.
+
+### Removed
+- No removes.
+
+## [2.1.31] - 2026-02-15
 ### Added
 - Add admin action to generate the documentation of the models.
 
