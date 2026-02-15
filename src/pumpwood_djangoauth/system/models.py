@@ -340,7 +340,7 @@ class KongService(models.Model):
                         'info': temp_action['info'],
                         'is_static_function':
                             temp_action['is_static_function'],
-                        'permission_role': temp_action['permission_role'],
+                        'permission_role': temp_action.get('permission_role'),
                         'return_type': temp_action['return'].get('type'),
                         'return_many': temp_action['return'].get('many'),
                         'doc_string': temp_action['doc_string']})
