@@ -1,5 +1,10 @@
 """Manage Kong routes for Pumpwood."""
-import os
+import io
+import time
+import pandas as pd
+from typing import Literal
+from copy import deepcopy
+from loguru import logger
 from typing import List, Dict
 from django.db import models
 from django.db.models import Q
@@ -9,15 +14,14 @@ from pumpwood_communication import exceptions
 from pumpwood_communication.serializers import PumpWoodJSONEncoder
 from pumpwood_communication.cache import default_cache
 from pumpwood_djangoauth.i8n.translate import t
+from psycopg2.errors import UniqueViolation
+from pumpwood_miscellaneous.type import ActionReturnFile
 
 # Aux classes
+from pumpwood_djangoauth.config import (
+    microservice, PUMPWOOD__AUTH__TOKEN_CACHE_EXPIRE)
 from pumpwood_djangoauth.system.aux import (
     RouteAPIPermissionAux, MapPathRoleAux, GetRouteAux)
-
-
-PUMPWOOD__AUTH__TOKEN_CACHE_EXPIRE = int(os.getenv(
-    'PUMPWOOD__AUTH__PERMISSION_CACHE_EXPIRE', 300))
-"""Time to set expire at permission cache."""
 
 
 class KongService(models.Model):
@@ -195,40 +199,255 @@ class KongService(models.Model):
         """
         from pumpwood_djangoauth.system.serializers import (
             KongServiceSerializer)
-        registred_service = KongService.objects.filter(
-            Q(service_name=service_name) | Q(service_url=service_url)
-        ).first()
 
-        service_return = kong_api.register_service(
-            service_name=service_name, service_url=service_url,
-            healthcheck_route=healthcheck_route)
-        extra_info["kong_data"] = service_return
-        service_kong_id = service_return["id"]
+        # Make 5 retry to avoid colapse on inicialization
+        exception = None
+        for i in range(5):
+            try:
+                registred_service = KongService.objects\
+                    .filter(
+                        Q(service_name=service_name) |
+                        Q(service_url=service_url))\
+                    .first()
 
-        if registred_service is None:
-            registred_service = KongService(
-                service_url=service_url,
-                service_name=service_name,
-                service_kong_id=service_kong_id,
-                description=description,
-                notes=notes,
-                healthcheck_route=healthcheck_route,
-                dimensions=dimensions,
-                icon=icon,
-                extra_info=extra_info)
-            registred_service.save()
+                service_return = kong_api.register_service(
+                    service_name=service_name, service_url=service_url,
+                    healthcheck_route=healthcheck_route)
+                extra_info["kong_data"] = service_return
+                service_kong_id = service_return["id"]
+
+                if registred_service is None:
+                    registred_service = KongService(
+                        service_url=service_url,
+                        service_name=service_name,
+                        service_kong_id=service_kong_id,
+                        description=description,
+                        notes=notes,
+                        healthcheck_route=healthcheck_route,
+                        dimensions=dimensions,
+                        icon=icon,
+                        extra_info=extra_info)
+                    registred_service.save()
+                else:
+                    registred_service.service_url = service_url
+                    registred_service.service_name = service_name
+                    registred_service.service_kong_id = service_kong_id
+                    registred_service.description = description
+                    registred_service.notes = notes
+                    registred_service.healthcheck_route = healthcheck_route
+                    registred_service.dimensions = dimensions
+                    registred_service.icon = icon
+                    registred_service.extra_info = extra_info
+                    registred_service.save()
+                return KongServiceSerializer(
+                    registred_service, many=False).data
+
+            except UniqueViolation as e:
+                logger.exception("Error when registering KongService")
+                time.sleep(0.1)
+                exception = e
+
+        # If all retry done, than raise error
+        raise exception
+
+    @classmethod
+    @action(info=(
+            'Generate a excel with documentation for the selected services'),
+            permission_role='is_superuser')
+    def generate_doc_file(cls, service_id_list: list[int] = None,
+                          file_type: Literal['xlsx'] = 'xlsx'
+                          ) -> ActionReturnFile:
+        """Create a spreadsheet with documentation of the services selected.
+
+        Generate a documentation on a dictionary for each service selected,
+        it will fetch information from all routes associated with service.
+
+        Args:
+            service_id_list (list[int]):
+                The ids of the services that will have a documentation
+                generated.
+            file_type (Literal['spreadsheet']):
+                The type of file that will be returned.
+
+        Returns (list[dict]):
+            A list of dictionaries with:
+                - service_doc (dict): A dictionary if information related
+                    to service.
+                - route_doc_set (list[dict]):
+                    A list of the documentations associated with each route.
+        """
+        file_type_options = ['xlsx']
+        if file_type not in file_type_options:
+            msg = ('Parameter file_type must be in [{file_type_options}]')
+            exceptions.PumpWoodActionArgsException(
+                msg, payload={
+                    'file_type_options': file_type_options})
+
+        all_docs = cls.generate_doc(service_id_list=service_id_list)
+        service_sheet_data = []
+        routes_sheet_data = []
+        fields_sheet_data = []
+        action_sheet_data = []
+        action_params_sheet_data = []
+        for service in all_docs:
+            service_sheet_data.append({
+                'service_id': service['service_id'],
+                'service_name': service['service_name'],
+                'description': service['description'],
+                'notes': service['notes']})
+            for route in service['route_set']:
+                routes_sheet_data.append({
+                    'service_id': service['service_id'],
+                    'service_name': service['service_name'],
+                    'route_id': route['route_id'],
+                    'route_name': route['route_name'],
+                    'route_url': route['route_url'],
+                    'route_description': route['route_description'],
+                    'route_notes': route['route_notes']})
+
+                # Extract route fields
+                for field_data in route['route_fields']:
+                    fields_sheet_data.append({
+                        'service_name': service['service_name'],
+                        'route_name': route['route_name'],
+                        'route_url': route['route_url'],
+                        'column': field_data['column'],
+                        'primary_key': field_data['primary_key'],
+                        'help_text': field_data['help_text'],
+                        'type': field_data.get('type'),
+                        'nullable': field_data.get('nullable'),
+                        'default': field_data.get('default'),
+                        'indexed': field_data.get('indexed'),
+                        'unique': field_data.get('unique'),
+                        'read_only': field_data.get('read_only'),
+                        'foreign_key_model_class':
+                            field_data.get('foreign_key_model_class'),
+                        'foreign_key_display_field':
+                            field_data.get('foreign_key_display_field'),
+                        'foreign_key_many':
+                            field_data.get('foreign_key_many'),
+                        'foreign_key_object_field':
+                            field_data.get('foreign_key_object_field'),
+                    })
+
+                # Extract route actions
+                for temp_action in route['action_data']:
+                    action_sheet_data.append({
+                        'service_name': service['service_name'],
+                        'route_name': route['route_name'],
+                        'route_url': route['route_url'],
+                        'action_name': temp_action['action_name'],
+                        'info': temp_action['info'],
+                        'is_static_function':
+                            temp_action['is_static_function'],
+                        'permission_role': temp_action['permission_role'],
+                        'return_type': temp_action['return'].get('type'),
+                        'return_many': temp_action['return'].get('many'),
+                        'doc_string': temp_action['doc_string']})
+                    for parm_name, parm in temp_action['parameters'].items():
+                        action_params_sheet_data.append({
+                            'service_name': service['service_name'],
+                            'route_name': route['route_name'],
+                            'route_url': route['route_url'],
+                            'action_name': temp_action['action_name'],
+                            'parameter': parm_name,
+                            'required': parm['required'],
+                            'type': parm['type'],
+                            'many': parm['many'],
+                            'default_value': parm.get('default_value'),
+                        })
+
+        # Create the excel as byte Io and return it as bytes
+        buffer = io.BytesIO()
+        pd_service_sheet = pd.DataFrame(service_sheet_data)
+        pd_routes_sheet = pd.DataFrame(routes_sheet_data)
+        pd_fields_sheet = pd.DataFrame(fields_sheet_data)
+        pd_action_sheet_data = pd.DataFrame(action_sheet_data)
+        pd_action_params_sheet_data = pd.DataFrame(action_params_sheet_data)
+        with pd.ExcelWriter(buffer) as writer:
+            pd_service_sheet.to_excel(
+                writer, index=False, sheet_name='services')
+            pd_routes_sheet.to_excel(
+                writer, index=False, sheet_name='routes')
+            pd_fields_sheet.to_excel(
+                writer, index=False, sheet_name='fields')
+            pd_action_sheet_data.to_excel(
+                writer, index=False, sheet_name='actions')
+            pd_action_params_sheet_data.to_excel(
+                writer, index=False, sheet_name='action_parameters')
+
+        # Set the pointer to the begging of the data
+        buffer.seek(0)
+        file_bytes = buffer.getvalue()
+
+        filename = 'service_doc.' + file_type
+        content_type = None
+        if file_type == 'xlsx':
+            content_type = (
+                "application/vnd.openxmlformats-officedocument." +
+                "spreadsheetml.sheet")
+        return ActionReturnFile(
+            filename=filename, content=file_bytes,
+            content_type=content_type)
+
+    @classmethod
+    @action(info='Generate a documentation for the selected services',
+            permission_role='is_superuser')
+    def generate_doc(cls, service_id_list: list[int] = None) -> list:
+        """Create a documentation of the services selected.
+
+        Generate a documentation on a dictionary for each service selected,
+        it will fetch information from all routes associated with service.
+
+        Args:
+            service_id_list (list[int]):
+                The ids of the services that will have a documentation
+                generated.
+
+        Returns (list[dict]):
+            A list of dictionaries with:
+                - service_doc (dict): A dictionary if information related
+                    to service.
+                - route_doc_set (list[dict]):
+                    A list of the documentations associated with each route.
+        """
+        all_objects = None
+        if service_id_list is not None:
+            all_objects = cls.objects.filter(id__in=service_id_list)
         else:
-            registred_service.service_url = service_url
-            registred_service.service_name = service_name
-            registred_service.service_kong_id = service_kong_id
-            registred_service.description = description
-            registred_service.notes = notes
-            registred_service.healthcheck_route = healthcheck_route
-            registred_service.dimensions = dimensions
-            registred_service.icon = icon
-            registred_service.extra_info = extra_info
-            registred_service.save()
-        return KongServiceSerializer(registred_service, many=False).data
+            all_objects = cls.objects.all()
+
+        service_docs = []
+        for obj in all_objects:
+            service_docs.append(obj.generate_self_doc())
+        return service_docs
+
+    @action(info='Generate a documentation fot this service',
+            permission_role='is_superuser')
+    def generate_self_doc(self) -> dict:
+        """Create a documentation of the service.
+
+        Generate a documentation on a dictionary, it will fetch information
+        from all routes associated with service.
+
+        Returns (dict):
+            Return a dictionary with:
+                - service_doc (dict): A dictionary if information related
+                    to service.
+                - route_doc_set (list[dict]):
+                    A list of the documentations associated with each route.
+        """
+        all_routes = self.route_set.all()
+        route_set = []
+        for r in all_routes:
+            route_set.append(r.generate_self_doc())
+        return {
+            'service_id': self.id,
+            'service_name': self.service_name,
+            'description': self.description,
+            'notes': self.notes,
+            'route_set': route_set
+        }
 
 
 class KongRoute(models.Model):
@@ -360,64 +579,75 @@ class KongRoute(models.Model):
             raise exceptions.PumpWoodActionArgsException(
                 message=msg, payload={
                     "route_type": msg, "possible_types": possible_types})
+        for i in range(5):
+            try:
+                registred_route = KongRoute.objects\
+                    .filter(
+                        Q(route_name=route_name) |
+                        Q(route_url=route_url))\
+                    .first()
 
-        registred_route = KongRoute.objects.filter(
-            Q(route_name=route_name) | Q(route_url=route_url)
-        ).first()
-
-        service_object = KongService.objects.get(id=service_id)
-        route_return = kong_api.register_route(
-            service_name=service_object.service_name,
-            route_name=route_name,
-            route_url=route_url,
-            strip_path=strip_path)
-
-        extra_info["kong_data"] = route_return
-
-        if registred_route is None:
-            if availability is not None:
-                registred_route = KongRoute(
-                    availability=availability,
-                    service_id=service_object.id,
-                    route_url=route_url,
+                service_object = KongService.objects.get(id=service_id)
+                route_return = kong_api.register_route(
+                    service_name=service_object.service_name,
                     route_name=route_name,
-                    route_kong_id=route_return["id"],
-                    route_type=route_type,
-                    description=description,
-                    notes=notes,
-                    icon=icon,
-                    dimensions=dimensions,
-                    extra_info=extra_info)
-                registred_route.save()
-            else:
-                registred_route = KongRoute(
-                    service_id=service_object.id,
                     route_url=route_url,
-                    route_name=route_name,
-                    route_kong_id=route_return["id"],
-                    route_type=route_type,
-                    description=description,
-                    notes=notes,
-                    icon=icon,
-                    dimensions=dimensions,
-                    extra_info=extra_info)
-                registred_route.save()
-        else:
-            # Keep availability when none is passed as argument
-            if availability is not None:
-                registred_route.availability = availability
-            registred_route.service_id = service_object.id
-            registred_route.route_url = route_url
-            registred_route.route_name = route_name
-            registred_route.route_kong_id = route_return["id"]
-            registred_route.route_type = route_type
-            registred_route.description = description
-            registred_route.notes = notes
-            registred_route.icon = icon
-            registred_route.dimensions = dimensions
-            registred_route.extra_info = extra_info
-            registred_route.save()
-        return KongRouteSerializer(registred_route, many=False).data
+                    strip_path=strip_path)
+
+                extra_info["kong_data"] = route_return
+
+                if registred_route is None:
+                    if availability is not None:
+                        registred_route = KongRoute(
+                            availability=availability,
+                            service_id=service_object.id,
+                            route_url=route_url,
+                            route_name=route_name,
+                            route_kong_id=route_return["id"],
+                            route_type=route_type,
+                            description=description,
+                            notes=notes,
+                            icon=icon,
+                            dimensions=dimensions,
+                            extra_info=extra_info)
+                        registred_route.save()
+                    else:
+                        registred_route = KongRoute(
+                            service_id=service_object.id,
+                            route_url=route_url,
+                            route_name=route_name,
+                            route_kong_id=route_return["id"],
+                            route_type=route_type,
+                            description=description,
+                            notes=notes,
+                            icon=icon,
+                            dimensions=dimensions,
+                            extra_info=extra_info)
+                        registred_route.save()
+                else:
+                    # Keep availability when none is passed as argument
+                    if availability is not None:
+                        registred_route.availability = availability
+                    registred_route.service_id = service_object.id
+                    registred_route.route_url = route_url
+                    registred_route.route_name = route_name
+                    registred_route.route_kong_id = route_return["id"]
+                    registred_route.route_type = route_type
+                    registred_route.description = description
+                    registred_route.notes = notes
+                    registred_route.icon = icon
+                    registred_route.dimensions = dimensions
+                    registred_route.extra_info = extra_info
+                    registred_route.save()
+                return KongRouteSerializer(registred_route, many=False).data
+
+            except UniqueViolation as e:
+                logger.exception("Error when registering KongRoute")
+                time.sleep(0.1)
+                exception = e
+
+        # If all retry done, than raise error
+        raise exception
 
     @classmethod
     @action(
@@ -630,4 +860,95 @@ class KongRoute(models.Model):
             'role': role_endpoint['role'],
             'action': route_info['action'],
             'route_id': route_info['route'].id
+        }
+
+    @classmethod
+    @action(info='Generate a documentation for the selected routes')
+    def generate_doc(cls, route_id_list: list[int]) -> list:
+        """Create a documentation of the routes selected.
+
+        Generate a documentation on a dictionary for each route selected,
+        it will fetch information from all routes associated with service.
+
+        Args:
+            route_id_list (list[int]):
+                The ids of the routes that will have a documentation
+                generated.
+
+        Returns (list[dict]):
+            A list of dictionaries with:
+                - route_doc (dict): A dictionary if information related
+                    to service.
+                - fields (list[dict]):
+                    A list of the documentations associated with model_class
+                    fields if rest end-point.
+        """
+        route_set = cls.objects.filter(id__in=route_id_list)
+        all_data = []
+        for r in route_set:
+            all_data.append(r.generate_self_doc())
+        return all_data
+
+    @action(info='Generate a documentation fot this route')
+    def generate_self_doc(self) -> dict:
+        """Create a documentation of the route.
+
+        Generate a documentation on a dictionary, it will fetch information
+        from all routes associated with route.
+
+        Returns (dict):
+            Return a dictionary with:
+                - route_doc (dict): A dictionary if information related
+                    to route.
+                - fields (list[dict]):
+                    A list of the documentations associated with model_class
+                    fields if rest end-point.
+                    if self.route_type == 'endpoint':
+        """
+        fields_data = []
+        action_data = []
+        if self.route_type == 'endpoint':
+            # Retrieve fields data
+            try:
+                fill_validation_data = microservice.fill_validation(
+                    model_class=self.route_name)
+                field_descriptions = fill_validation_data['field_descriptions']
+                for key, item in field_descriptions.items():
+                    temp_item = deepcopy(item)
+                    temp_item['column'] = key
+
+                    # Foreign Key data
+                    temp_item['model_class'] = None
+                    temp_item['display_field'] = None
+                    temp_item['many'] = None
+                    temp_item['object_field'] = None
+                    if temp_item['type'] in ['foreign_key', 'related']:
+                        extra_info = temp_item['extra_info']
+                        temp_item['foreign_key_model_class'] = \
+                            extra_info.get('model_class')
+                        temp_item['foreign_key_display_field'] = \
+                            extra_info.get('display_field')
+                        temp_item['foreign_key_many'] = \
+                            extra_info.get('many')
+                        temp_item['foreign_key_object_field'] = \
+                            extra_info.get('object_field')
+                    fields_data.append(temp_item)
+            except Exception: # NOQA
+                pass
+
+            # Retrieve action data
+            try:
+                action_data = microservice.list_actions(
+                    model_class=self.route_name)
+            except Exception: # NOQA
+                pass
+
+        return {
+            'route_id': self.id,
+            'route_name': self.route_name,
+            'route_url': self.route_url,
+            'route_description': self.description,
+            'route_notes': self.notes,
+            'route_fields': fields_data,
+            'action_data': action_data
         }

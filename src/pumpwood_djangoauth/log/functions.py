@@ -1,13 +1,13 @@
 """Functions to log activity at rest APIs."""
 import datetime
-import simplejson as json
 from loguru import logger
+from pumpwood_communication.serializers import pumpJsonDump
 
 
 def log_api_request(user_id: int, permission_check: str, request_method: str,
                     path: str, model_class: str, end_point: str,
-                    first_arg: str, second_arg: str, payload: str,
-                    ingress_request: str = '') -> dict:
+                    first_arg: str, second_arg: str, ingress_request: str = '',
+                    payload: str = '') -> dict:
     """Log API request using a RabbitMQ queue, if rabbitmq_api is not None.
 
     RabbitMQ queue will be consumed by a worker, that may latter save
@@ -52,9 +52,8 @@ def log_api_request(user_id: int, permission_check: str, request_method: str,
         'end_point': (end_point or '').lower(),
         'first_arg': str(first_arg or '').lower(),
         'second_arg': str(second_arg or '').lower(),
-        'ingress_request': str(ingress_request or '').lower(),
-        'payload': payload}
-    log_dict_str = json.dumps(log_dict)
+        'ingress_request': str(ingress_request or '').lower()}
+    log_dict_str = pumpJsonDump(log_dict).decode('utf-8')
 
     log_template = "{time} | api_request | {log_dict}".format(
         time=log_time, log_dict=log_dict_str)

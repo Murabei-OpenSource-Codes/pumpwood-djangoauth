@@ -88,7 +88,7 @@ class UserProfile(models.Model):
 
     @classmethod
     @action(info="List user's assciated API permissions",
-            request='request')
+            request='request', permission_role='is_authenticated')
     def self_row_permissions(cls, request) -> List[dict]:
         """List users api permissions.
 
