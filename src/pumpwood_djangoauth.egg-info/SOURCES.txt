@@ -24,7 +24,6 @@ src/pumpwood_djangoauth/api_permission/models.py
 src/pumpwood_djangoauth/api_permission/serializers.py
 src/pumpwood_djangoauth/api_permission/urls.py
 src/pumpwood_djangoauth/api_permission/views.py
-src/pumpwood_djangoauth/api_permission/aux/__init__.py
 src/pumpwood_djangoauth/api_permission/migrations/0001_initial.py
 src/pumpwood_djangoauth/api_permission/migrations/0002_priority.py
 src/pumpwood_djangoauth/api_permission/migrations/0003_change_fields.py

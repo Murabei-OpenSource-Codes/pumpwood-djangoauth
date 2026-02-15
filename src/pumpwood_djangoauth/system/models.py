@@ -287,6 +287,8 @@ class KongService(models.Model):
         service_sheet_data = []
         routes_sheet_data = []
         fields_sheet_data = []
+        action_sheet_data = []
+        action_params_sheet_data = []
         for service in all_docs:
             service_sheet_data.append({
                 'service_id': service['service_id'],
@@ -302,6 +304,8 @@ class KongService(models.Model):
                     'route_url': route['route_url'],
                     'route_description': route['route_description'],
                     'route_notes': route['route_notes']})
+
+                # Extract route fields
                 for field_data in route['route_fields']:
                     fields_sheet_data.append({
                         'service_name': service['service_name'],
@@ -326,11 +330,40 @@ class KongService(models.Model):
                             field_data.get('foreign_key_object_field'),
                     })
 
+                # Extract route actions
+                for temp_action in route['action_data']:
+                    action_sheet_data.append({
+                        'service_name': service['service_name'],
+                        'route_name': route['route_name'],
+                        'route_url': route['route_url'],
+                        'action_name': temp_action['action_name'],
+                        'info': temp_action['info'],
+                        'is_static_function':
+                            temp_action['is_static_function'],
+                        'permission_role': temp_action['permission_role'],
+                        'return_type': temp_action['return'].get('type'),
+                        'return_many': temp_action['return'].get('many'),
+                        'doc_string': temp_action['doc_string']})
+                    for parm_name, parm in temp_action['parameters'].items():
+                        action_params_sheet_data.append({
+                            'service_name': service['service_name'],
+                            'route_name': route['route_name'],
+                            'route_url': route['route_url'],
+                            'action_name': temp_action['action_name'],
+                            'parameter': parm_name,
+                            'required': parm['required'],
+                            'type': parm['type'],
+                            'many': parm['many'],
+                            'default_value': parm.get('default_value'),
+                        })
+
         # Create the excel as byte Io and return it as bytes
         buffer = io.BytesIO()
         pd_service_sheet = pd.DataFrame(service_sheet_data)
         pd_routes_sheet = pd.DataFrame(routes_sheet_data)
         pd_fields_sheet = pd.DataFrame(fields_sheet_data)
+        pd_action_sheet_data = pd.DataFrame(action_sheet_data)
+        pd_action_params_sheet_data = pd.DataFrame(action_params_sheet_data)
         with pd.ExcelWriter(buffer) as writer:
             pd_service_sheet.to_excel(
                 writer, index=False, sheet_name='services')
@@ -338,6 +371,10 @@ class KongService(models.Model):
                 writer, index=False, sheet_name='routes')
             pd_fields_sheet.to_excel(
                 writer, index=False, sheet_name='fields')
+            pd_action_sheet_data.to_excel(
+                writer, index=False, sheet_name='actions')
+            pd_action_params_sheet_data.to_excel(
+                writer, index=False, sheet_name='action_parameters')
 
         # Set the pointer to the begging of the data
         buffer.seek(0)
@@ -869,7 +906,9 @@ class KongRoute(models.Model):
                     if self.route_type == 'endpoint':
         """
         fields_data = []
+        action_data = []
         if self.route_type == 'endpoint':
+            # Retrieve fields data
             try:
                 fill_validation_data = microservice.fill_validation(
                     model_class=self.route_name)
@@ -894,7 +933,13 @@ class KongRoute(models.Model):
                         temp_item['foreign_key_object_field'] = \
                             extra_info.get('object_field')
                     fields_data.append(temp_item)
+            except Exception: # NOQA
+                pass
 
+            # Retrieve action data
+            try:
+                action_data = microservice.list_actions(
+                    model_class=self.route_name)
             except Exception: # NOQA
                 pass
 
@@ -904,5 +949,6 @@ class KongRoute(models.Model):
             'route_url': self.route_url,
             'route_description': self.description,
             'route_notes': self.notes,
-            'route_fields': fields_data
+            'route_fields': fields_data,
+            'action_data': action_data
         }
