@@ -7,14 +7,17 @@ from rest_framework.response import Response
 from rest_framework.decorators import api_view, permission_classes
 from pumpwood_djangoviews.views import PumpWoodRestService
 from pumpwood_miscellaneous.storage import PumpWoodStorage
-from pumpwood_djangoauth.system.models import KongService, KongRoute
-from pumpwood_djangoauth.system.serializers import (
-    KongServiceSerializer, KongRouteSerializer)
 from pumpwood_djangoauth.config import kong_api, microservice_no_login
 from pumpwood_communication.exceptions import (
     exceptions_dict, PumpWoodException, PumpWoodWrongParameters)
 from pumpwood_djangoauth.permissions import (
     PumpwoodIsAuthenticated, PumpwoodCanRetrieveFile)
+
+# Local imports
+from pumpwood_djangoauth.system.models import (
+    KongService, KongRoute)
+from pumpwood_djangoauth.system.serializers import (
+    KongServiceSerializer, KongRouteSerializer)
 
 
 @api_view(['GET'])
