@@ -8,14 +8,14 @@ from loguru import logger
 from typing import List, Dict
 from django.db import models
 from django.db.models import Q
+from psycopg2.errors import UniqueViolation
 from pumpwood_djangoviews.action import action
 from pumpwood_djangoauth.config import kong_api
 from pumpwood_communication import exceptions
 from pumpwood_communication.serializers import PumpWoodJSONEncoder
 from pumpwood_communication.cache import default_cache
+from pumpwood_communication.type import ActionReturnFile
 from pumpwood_djangoauth.i8n.translate import t
-from psycopg2.errors import UniqueViolation
-from pumpwood_miscellaneous.type import ActionReturnFile
 
 # Aux classes
 from pumpwood_djangoauth.config import (
