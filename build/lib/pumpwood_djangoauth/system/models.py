@@ -324,10 +324,14 @@ class KongService(models.Model):
                             field_data.get('foreign_key_model_class'),
                         'foreign_key_display_field':
                             field_data.get('foreign_key_display_field'),
-                        'foreign_key_many':
-                            field_data.get('foreign_key_many'),
                         'foreign_key_object_field':
                             field_data.get('foreign_key_object_field'),
+                        'related_model_model_class':
+                            field_data.get('related_model_model_class'),
+                        'related_model_pk_field':
+                            field_data.get('related_model_pk_field'),
+                        'related_model_foreign_key':
+                            field_data.get('related_model_foreign_key'),
                     })
 
                 # Extract route actions
@@ -922,16 +926,26 @@ class KongRoute(models.Model):
                     temp_item['display_field'] = None
                     temp_item['many'] = None
                     temp_item['object_field'] = None
-                    if temp_item['type'] in ['foreign_key', 'related']:
+
+                    # Treat information from foreign_key
+                    if temp_item['type'] == 'foreign_key':
                         extra_info = temp_item['extra_info']
                         temp_item['foreign_key_model_class'] = \
                             extra_info.get('model_class')
                         temp_item['foreign_key_display_field'] = \
                             extra_info.get('display_field')
-                        temp_item['foreign_key_many'] = \
-                            extra_info.get('many')
                         temp_item['foreign_key_object_field'] = \
                             extra_info.get('object_field')
+
+                    # Treat information from related_model
+                    elif temp_item['type'] == 'related_model':
+                        extra_info = temp_item['extra_info']
+                        temp_item['related_model_model_class'] = \
+                            extra_info.get('model_class')
+                        temp_item['related_model_pk_field'] = \
+                            extra_info.get('pk_field')
+                        temp_item['related_model_foreign_key'] = \
+                            extra_info.get('foreign_key')
                     fields_data.append(temp_item)
             except Exception: # NOQA
                 pass
