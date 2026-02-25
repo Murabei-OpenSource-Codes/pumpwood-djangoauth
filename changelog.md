@@ -5,6 +5,17 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.1.39] - 2026-02-22
+### Added
+- Allow set proxy for OAuth2Session calls using `PUMPWOOD__SSO__PROXY_HTTP`
+  and `PUMPWOOD__SSO__PROXY_HTTPS`.
+
+### Changed
+- No changes.
+
+### Removed
+- No removes.
+
 ## [2.1.38] - 2026-02-22
 ### Added
 - No adds.
