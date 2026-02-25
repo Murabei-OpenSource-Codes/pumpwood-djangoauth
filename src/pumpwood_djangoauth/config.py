@@ -166,3 +166,43 @@ DISKCACHE_EXPIRATION = os.getenv('DISKCACHE__EXPIRATION', 60)
 PUMPWOOD__AUTH__TOKEN_CACHE_EXPIRE = int(os.getenv(
     'PUMPWOOD__AUTH__PERMISSION_CACHE_EXPIRE', 300))
 """Time to set expire at permission cache."""
+
+#####################
+# SSO configuration #
+PUMPWOOD__SSO__REDIRECT_URL = os.getenv(
+    "PUMPWOOD__SSO__REDIRECT_URL")
+"""Set a redirect URL after SSO login."""
+PUMPWOOD__SSO__AUTHORIZATION_URL = os.getenv(
+    "PUMPWOOD__SSO__AUTHORIZATION_URL")
+"""Authorization URL SSO login."""
+PUMPWOOD__SSO__TOKEN_URL = os.getenv(
+    "PUMPWOOD__SSO__TOKEN_URL")
+"""Token URL SSO login."""
+PUMPWOOD__SSO__CLIENT_ID = os.getenv(
+    "PUMPWOOD__SSO__CLIENT_ID")
+"""Token URL SSO CIENT_ID (Entra)."""
+PUMPWOOD__SSO__SECRET = os.getenv(
+    "PUMPWOOD__SSO__SECRET")
+"""Token URL SSO CIENT_ID (Entra)."""
+PUMPWOOD__SSO__SCOPE = os.getenv(
+    "PUMPWOOD__SSO__SCOPE", '["openid", "profile", "email"]')
+"""Set the SCOPE of the SSO request, it is a JSON list of strings."""
+PUMPWOOD__SSO__PROXY_HTTP = os.getenv(
+    "PUMPWOOD__SSO__PROXY_HTTP")
+"""Set HTTP proxy to be used to make the SSO requests."""
+PUMPWOOD__SSO__PROXY_HTTPS = os.getenv(
+    "PUMPWOOD__SSO__PROXY_HTTPS")
+"""Set HTTPS proxy to be used to make the SSO requests."""
+
+
+SSO_PROXY_CONFIG = None
+if PUMPWOOD__SSO__PROXY_HTTP is not None:
+    if PUMPWOOD__SSO__PROXY_HTTPS is None:
+        msg = (
+            "If set both proxy must be set _PUMPWOOD__SSO__PROXY_HTTP and "
+            "_PUMPWOOD__SSO__PROXY_HTTPS")
+        raise Exception(msg)
+    SSO_PROXY_CONFIG = {
+        'http': PUMPWOOD__SSO__PROXY_HTTP,
+        'https': PUMPWOOD__SSO__PROXY_HTTPS,
+    }
