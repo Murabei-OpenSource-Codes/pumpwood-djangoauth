@@ -17,7 +17,7 @@ class SerializerPumpwoodRowPermission(DynamicFieldsModelSerializer):
     updated_by = LocalForeignKeyField(
         serializer=(
             "pumpwood_djangoauth.registration.serializers.SerializerUser"),
-        display_field="username")
+        display_field="full_name")
 
     # Related fields
     group_set = LocalRelatedField(
@@ -60,7 +60,7 @@ class SerializerPumpwoodRowPermissionGroupM2M(DynamicFieldsModelSerializer):
     updated_by = LocalForeignKeyField(
         serializer=(
             "pumpwood_djangoauth.registration.serializers.SerializerUser"),
-        display_field="username")
+        display_field="full_name")
 
     group_id = serializers.IntegerField(
         allow_null=False, required=True)
@@ -105,14 +105,14 @@ class SerializerPumpwoodRowPermissionUserM2M(DynamicFieldsModelSerializer):
     updated_by = LocalForeignKeyField(
         serializer=(
             "pumpwood_djangoauth.registration.serializers.SerializerUser"),
-        display_field="username")
+        display_field="full_name")
 
     user_id = serializers.IntegerField(
         allow_null=False, required=True)
     user = LocalForeignKeyField(
         serializer=(
             "pumpwood_djangoauth.registration.serializers.SerializerUser"),
-        display_field="username")
+        display_field="full_name")
     row_permission_id = serializers.IntegerField(
         allow_null=False, required=True)
     row_permission = LocalForeignKeyField(

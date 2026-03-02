@@ -35,7 +35,8 @@ class SerializerPumpwoodMFAMethod(DynamicFieldsModelSerializer):
     user = LocalForeignKeyField(
         serializer=(
             "pumpwood_djangoauth.registration."
-            "serializers.SerializerUser"))
+            "serializers.SerializerUser"),
+        display_field="full_name")
 
     class Meta:
         """Meta."""
@@ -58,7 +59,8 @@ class SerializerPumpwoodMFAToken(DynamicFieldsModelSerializer):
     user = LocalForeignKeyField(
         serializer=(
             "pumpwood_djangoauth.registration."
-            "serializers.SerializerUser"))
+            "serializers.SerializerUser"),
+        display_field="full_name")
 
     class Meta:
         """Meta."""
@@ -97,7 +99,8 @@ class SerializerPumpwoodMFARecoveryCode(DynamicFieldsModelSerializer):
     user = LocalForeignKeyField(
         serializer=(
             "pumpwood_djangoauth.registration."
-            "serializers.SerializerUser"))
+            "serializers.SerializerUser"),
+        display_field="full_name")
 
     class Meta:
         """Meta."""
@@ -155,7 +158,8 @@ class SerializerUser(DynamicFieldsModelSerializer):
             'recovery_codes_set', 'row_permission_set', 'full_name')
         list_fields = [
             "pk", "model_class", 'is_active', 'is_superuser', 'is_staff',
-            'username', 'email', 'last_login', 'full_name']
+            'username', 'email', 'last_login', 'full_name',
+            'first_name', 'last_name']
         read_only = ('last_login', 'date_joined', 'full_name')
 
     def get_all_permissions(self, obj):
