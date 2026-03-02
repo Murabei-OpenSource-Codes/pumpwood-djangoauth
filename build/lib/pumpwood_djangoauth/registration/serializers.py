@@ -115,6 +115,7 @@ class SerializerUser(DynamicFieldsModelSerializer):
     user_profile = SerializerUserProfile(many=False, read_only=True)
     all_permissions = serializers.SerializerMethodField()
     group_permissions = serializers.SerializerMethodField()
+    full_name = serializers.SerializerMethodField()
 
     # ForeignKey
     mfa_method_set = LocalRelatedField(
@@ -151,11 +152,11 @@ class SerializerUser(DynamicFieldsModelSerializer):
             'is_superuser', 'all_permissions', 'group_permissions',
             'user_profile', 'mfa_method_set', 'api_permission_set',
             'user_group_m2m_set', 'mfa_method_set', 'mfa_token_set',
-            'recovery_codes_set', 'row_permission_set')
+            'recovery_codes_set', 'row_permission_set', 'full_name')
         list_fields = [
             "pk", "model_class", 'is_active', 'is_superuser', 'is_staff',
-            'username', 'email', 'last_login']
-        read_only = ('last_login', 'date_joined')
+            'username', 'email', 'last_login', 'full_name']
+        read_only = ('last_login', 'date_joined', 'full_name')
 
     def get_all_permissions(self, obj):
         """Get all possible permissions."""
@@ -174,3 +175,9 @@ class SerializerUser(DynamicFieldsModelSerializer):
         group_permissions = list(obj.get_group_permissions())
         group_permissions.sort()
         return group_permissions
+
+    def get_full_name(self, obj):
+        """Return user's full name."""
+        return "{first_name} {last_name}"\
+            .format(first_name=obj.first_name, last_name=obj.last_name)\
+            .strip()
