@@ -1,5 +1,4 @@
 """Views for authentication and user end-point."""
-from loguru import logger
 from django.conf import settings
 from django.utils import timezone
 from django.contrib.auth.models import User
@@ -108,7 +107,7 @@ class LoginView(KnoxLoginView):
             msg = ("Username/Password incorrect")
             log_api_request(
                 user_id=None,
-                permission_check='ok',
+                permission_check='failed',
                 request_method='post', path=full_path,
                 model_class='registration', end_point='login',
                 first_arg=request_data["username"], second_arg='',
@@ -253,7 +252,7 @@ class CheckAuthentication(APIView):
 
         if not has_perm:
             msg = (
-                "User does not have permission to exectute this action:\n"
+                "User does not have permission to exectute this call:\n"
                 "expected permission: {permission}").format(
                     permission=permission)
             raise exceptions.PumpWoodUnauthorized(

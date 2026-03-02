@@ -4,6 +4,10 @@ import jwt
 import json
 from pumpwood_communication import exceptions
 from requests_oauthlib import OAuth2Session
+from pumpwood_djangoauth.config import (
+    PUMPWOOD__SSO__REDIRECT_URL, PUMPWOOD__SSO__AUTHORIZATION_URL,
+    PUMPWOOD__SSO__TOKEN_URL, PUMPWOOD__SSO__CLIENT_ID, PUMPWOOD__SSO__SECRET,
+    PUMPWOOD__SSO__SCOPE, SSO_PROXY_CONFIG)
 
 # If OAUTHLIB_RELAX_TOKEN_SCOPE is not explicity set, than set to 1
 # this will relax the SCOPE validation from OAuth package.
@@ -22,20 +26,14 @@ class MicrosoftEntraSSO:
 
     def __init__(self, ):
         """."""
-        pumpwood__sso__redirect_url = os.getenv(
-            "PUMPWOOD__SSO__REDIRECT_URL")
-        pumpwood__sso__authorization_url = os.getenv(
-            "PUMPWOOD__SSO__AUTHORIZATION_URL")
-        pumpwood__sso__token_url = os.getenv(
-            "PUMPWOOD__SSO__TOKEN_URL")
-        pumpwood__sso__client_id = os.getenv(
-            "PUMPWOOD__SSO__CLIENT_ID")
-        pumpwood__sso__secret = os.getenv(
-            "PUMPWOOD__SSO__SECRET")
+        pumpwood__sso__redirect_url = PUMPWOOD__SSO__REDIRECT_URL
+        pumpwood__sso__authorization_url = PUMPWOOD__SSO__AUTHORIZATION_URL
+        pumpwood__sso__token_url = PUMPWOOD__SSO__TOKEN_URL
+        pumpwood__sso__client_id = PUMPWOOD__SSO__CLIENT_ID
+        pumpwood__sso__secret = PUMPWOOD__SSO__SECRET
         # In some environment env variable it is set as an empty
         # string 'or' will treat both None and empty string values
-        pumpwood__sso__scope = os.getenv(
-            "PUMPWOOD__SSO__SCOPE") or '["openid", "profile", "email"]'
+        pumpwood__sso__scope = PUMPWOOD__SSO__SCOPE
 
         is_base_redirect_url_set = \
             (pumpwood__sso__redirect_url is None)
@@ -89,12 +87,19 @@ class MicrosoftEntraSSO:
         # Check for valid JSON input in PUMPWOOD__SSO__SCOPE
         try:
             self.PUMPWOOD__SSO__SCOPE = json.loads(pumpwood__sso__scope)
-
         except json.JSONDecodeError as e:
             raise exceptions.PumpWoodForbidden(
                 "PUMPWOOD__SSO__SCOPE environment variable "
                 "is not a valid JSON: {}".format(pumpwood__sso__scope),
                 payload={"error": str(e)})
+
+        # Create the OAuth2Session object and set the proxy if defined
+        self.oauth_session = OAuth2Session(
+            self.PUMPWOOD__SSO__CLIENT_ID,
+            redirect_uri=self._redirect_uri,
+            scope=self.PUMPWOOD__SSO__SCOPE)
+        if SSO_PROXY_CONFIG is not None:
+            self.oauth_session.proxies.update(SSO_PROXY_CONFIG)
 
     def create_authorization_url(self, state: str):
         """Create authentication URL for Microsoft Entra SSO.
@@ -106,11 +111,7 @@ class MicrosoftEntraSSO:
         Returns:
             Dictionary with generated authorization_url and state parameter.
         """
-        oauth = OAuth2Session(
-            self.PUMPWOOD__SSO__CLIENT_ID,
-            redirect_uri=self._redirect_uri,
-            scope=self.PUMPWOOD__SSO__SCOPE)
-        authorization_url, state = oauth.authorization_url(
+        authorization_url, state = self.oauth_session.authorization_url(
             self.PUMPWOOD__SSO__AUTHORIZATION_URL, state=state)
         return {
             "authorization_url": authorization_url,
@@ -124,11 +125,7 @@ class MicrosoftEntraSSO:
                 Autorization response url passed after redirect of SSO
                 authentication.
         """
-        oauth = OAuth2Session(
-            self.PUMPWOOD__SSO__CLIENT_ID,
-            redirect_uri=self._redirect_uri,
-            scope=self.PUMPWOOD__SSO__SCOPE)
-        token = oauth.fetch_token(
+        token = self.oauth_session.fetch_token(
             self.PUMPWOOD__SSO__TOKEN_URL,
             authorization_response=authorization_response_url,
             client_secret=self.PUMPWOOD__SSO__SECRET)
