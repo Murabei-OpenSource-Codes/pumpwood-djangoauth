@@ -17,7 +17,8 @@ class SerializerPumpwoodUserGroup(DynamicFieldsModelSerializer):
     updated_by = LocalForeignKeyField(
         serializer=(
             "pumpwood_djangoauth.registration.serializers."
-            "SerializerUser"))
+            "SerializerUser"),
+        display_field="full_name")
 
     class Meta:
         """Meta class."""
@@ -63,7 +64,8 @@ class SerializerPumpwoodUserGroupM2M(DynamicFieldsModelSerializer):
     updated_by = LocalForeignKeyField(
         serializer=(
             "pumpwood_djangoauth.registration.serializers."
-            "SerializerUser"))
+            "SerializerUser"),
+        display_field="full_name")
 
     class Meta:
         """Meta class."""

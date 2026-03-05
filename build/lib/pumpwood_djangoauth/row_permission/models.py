@@ -18,6 +18,11 @@ class PumpwoodRowPermission(models.Model):
 
     It is used to indicate if a user can retrieve or edit an inforamtion.
     """
+    code = models.TextField(
+        null=True, unique=True, blank=True,
+        verbose_name="Description",
+        help_text="A code to indentify the row permission.")
+    """@private"""
     description = models.TextField(
         null=False, unique=True, blank=False,
         verbose_name="Description",

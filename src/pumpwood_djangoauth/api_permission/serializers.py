@@ -21,7 +21,7 @@ class SerializerPumpwoodPermissionPolicy(DynamicFieldsModelSerializer):
     updated_by = LocalForeignKeyField(
         serializer=(
             "pumpwood_djangoauth.registration.serializers.SerializerUser"),
-        display_field="username")
+        display_field="full_name")
 
     # Related fields
     action_set = LocalRelatedField(
@@ -70,7 +70,7 @@ class SerializerPumpwoodPermissionPolicyAction(DynamicFieldsModelSerializer):
     updated_by = LocalForeignKeyField(
         serializer=(
             "pumpwood_djangoauth.registration.serializers.SerializerUser"),
-        display_field="username")
+        display_field="full_name")
 
     class Meta:
         """Meta."""
@@ -117,7 +117,7 @@ class SerializerPumpwoodPermissionPolicyGroupM2M(DynamicFieldsModelSerializer):
     updated_by = LocalForeignKeyField(
         serializer=(
             "pumpwood_djangoauth.registration.serializers.SerializerUser"),
-        display_field="username")
+        display_field="full_name")
 
     class Meta:
         """Meta."""
@@ -154,7 +154,7 @@ class SerializerPumpwoodPermissionPolicyUserM2M(DynamicFieldsModelSerializer):
     user = LocalForeignKeyField(
         serializer=(
             "pumpwood_djangoauth.registration.serializers.SerializerUser"),
-        display_field="username")
+        display_field="full_name")
 
     custom_policy_id = serializers.IntegerField(
         allow_null=False, required=True)
@@ -167,7 +167,7 @@ class SerializerPumpwoodPermissionPolicyUserM2M(DynamicFieldsModelSerializer):
     updated_by = LocalForeignKeyField(
         serializer=(
             "pumpwood_djangoauth.registration.serializers.SerializerUser"),
-        display_field="username")
+        display_field="full_name")
 
     class Meta:
         """Meta."""

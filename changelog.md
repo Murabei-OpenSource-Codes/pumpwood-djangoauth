@@ -5,6 +5,37 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.1.42] - 2026-03-02
+### Added
+- Add full name to user serializer default fields and as display field for
+  other ForeignKey.
+
+### Changed
+- No changes.
+
+### Removed
+- No removes.
+
+## [2.1.41] - 2026-03-02
+### Added
+- Add full name to user serializer.
+
+### Changed
+- No changes.
+
+### Removed
+- No removes.
+
+## [2.1.40] - 2026-03-02
+### Added
+- Add code to identify the row permission as unique.
+
+### Changed
+- No changes.
+
+### Removed
+- No removes.
+
 ## [2.1.39] - 2026-02-22
 ### Added
 - Allow set proxy for OAuth2Session calls using `PUMPWOOD__SSO__PROXY_HTTP`

@@ -17,7 +17,7 @@ class SerializerPumpwoodRowPermission(DynamicFieldsModelSerializer):
     updated_by = LocalForeignKeyField(
         serializer=(
             "pumpwood_djangoauth.registration.serializers.SerializerUser"),
-        display_field="username")
+        display_field="full_name")
 
     # Related fields
     group_set = LocalRelatedField(
@@ -33,11 +33,11 @@ class SerializerPumpwoodRowPermission(DynamicFieldsModelSerializer):
         """Meta."""
         model = PumpwoodRowPermission
         fields = (
-            'pk', 'model_class', 'description', 'notes', 'dimensions',
+            'pk', 'model_class', 'code', 'description', 'notes', 'dimensions',
             'extra_info', 'updated_by', 'updated_at', 'updated_by_id',
             'group_set', 'user_set')
         list_fields = (
-            'pk', 'model_class', 'description', 'notes', 'updated_by',
+            'pk', 'model_class', 'code', 'description', 'notes', 'updated_by',
             'updated_at', 'updated_by_id')
 
     def create(self, validated_data):
@@ -60,7 +60,7 @@ class SerializerPumpwoodRowPermissionGroupM2M(DynamicFieldsModelSerializer):
     updated_by = LocalForeignKeyField(
         serializer=(
             "pumpwood_djangoauth.registration.serializers.SerializerUser"),
-        display_field="username")
+        display_field="full_name")
 
     group_id = serializers.IntegerField(
         allow_null=False, required=True)
@@ -105,14 +105,14 @@ class SerializerPumpwoodRowPermissionUserM2M(DynamicFieldsModelSerializer):
     updated_by = LocalForeignKeyField(
         serializer=(
             "pumpwood_djangoauth.registration.serializers.SerializerUser"),
-        display_field="username")
+        display_field="full_name")
 
     user_id = serializers.IntegerField(
         allow_null=False, required=True)
     user = LocalForeignKeyField(
         serializer=(
             "pumpwood_djangoauth.registration.serializers.SerializerUser"),
-        display_field="username")
+        display_field="full_name")
     row_permission_id = serializers.IntegerField(
         allow_null=False, required=True)
     row_permission = LocalForeignKeyField(

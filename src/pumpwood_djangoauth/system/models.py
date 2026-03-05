@@ -170,6 +170,11 @@ class KongService(models.Model):
     def create_service(cls, service_url: str, service_name: str,
                        description: str, notes: str, icon: str = None,
                        healthcheck_route: str = None,
+                       connect_timeout: int = None,
+                       write_timeout: int = None,
+                       read_timeout: int = None,
+                       retries: int = None,
+                       client_max_body_size: int = None,
                        dimensions: dict = {}, extra_info: dict = {}) -> dict:
         """Create a Kong service to redirect calls.
 
@@ -187,6 +192,16 @@ class KongService(models.Model):
                 A long description for the service.
             healthcheck_route (str): = None
                 A health check end-point for the service.
+            connect_timeout (int):
+                Time in miloi
+            write_timeout (int):
+                Time in miloi
+            read_timeout (int):
+                Time in miloi
+            retries (int):
+                Number of retries for the service.
+            client_max_body_size (int):
+                Max body size for the service. By default is 0 (unlimited).
             dimensions (dict): = {}
                 A dimensions for the service to help quering.
             extra_info (dict): = {}
@@ -212,7 +227,10 @@ class KongService(models.Model):
 
                 service_return = kong_api.register_service(
                     service_name=service_name, service_url=service_url,
-                    healthcheck_route=healthcheck_route)
+                    healthcheck_route=healthcheck_route,
+                    connect_timeout=connect_timeout,
+                    write_timeout=write_timeout, read_timeout=read_timeout,
+                    retries=retries, client_max_body_size=client_max_body_size)
                 extra_info["kong_data"] = service_return
                 service_kong_id = service_return["id"]
 
