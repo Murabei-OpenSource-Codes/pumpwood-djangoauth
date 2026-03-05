@@ -233,7 +233,15 @@ class RestKongService(PumpWoodRestService):
             healthcheck_route=request_data.get(
                 "healthcheck_route", None),
             dimensions=request_data.get("dimensions", {}),
-            extra_info=request_data.get("extra_info", {})))
+            extra_info=request_data.get("extra_info", {}),
+            connect_timeout=request_data.get(
+                "connect_timeout", {}),
+            write_timeout=request_data.get(
+                "write_timeout", {}),
+            read_timeout=request_data.get(
+                "read_timeout", {}),
+            retries=request_data.get(
+                "retries", {})))
 
 
 class ServeMediaFiles:
