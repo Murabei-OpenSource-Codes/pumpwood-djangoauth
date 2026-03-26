@@ -338,6 +338,7 @@ class KongService(models.Model):
                         'indexed': field_data.get('indexed'),
                         'unique': field_data.get('unique'),
                         'read_only': field_data.get('read_only'),
+                        'options_in': field_data.get('in'),
                         'foreign_key_model_class':
                             field_data.get('foreign_key_model_class'),
                         'foreign_key_display_field':
@@ -964,6 +965,7 @@ class KongRoute(models.Model):
                             extra_info.get('pk_field')
                         temp_item['related_model_foreign_key'] = \
                             extra_info.get('foreign_key')
+
                     fields_data.append(temp_item)
             except Exception: # NOQA
                 pass
