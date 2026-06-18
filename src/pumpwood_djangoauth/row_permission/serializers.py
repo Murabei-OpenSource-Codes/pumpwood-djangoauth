@@ -1,4 +1,4 @@
-"""Serializer for registration end-points."""
+"""Serializers for row permission end-points."""
 from rest_framework import serializers
 from pumpwood_djangoviews.serializers import (
     ClassNameField, DynamicFieldsModelSerializer, LocalForeignKeyField,

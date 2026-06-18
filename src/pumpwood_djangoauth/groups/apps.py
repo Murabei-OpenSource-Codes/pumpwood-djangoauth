@@ -1,3 +1,4 @@
+"""Django app configuration for user groups."""
 from django.apps import AppConfig
 
 

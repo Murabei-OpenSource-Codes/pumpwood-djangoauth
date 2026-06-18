@@ -8,7 +8,7 @@ from pumpwood_djangoauth.groups.models import (
 
 
 class SerializerPumpwoodUserGroup(DynamicFieldsModelSerializer):
-    """Serializer associated with PumpwoodUserGroup object."""
+    """Serializer for PumpwoodUserGroup including unique code field."""
     pk = serializers.IntegerField(source='id', allow_null=True, required=False)
     model_class = ClassNameField()
 
@@ -25,10 +25,12 @@ class SerializerPumpwoodUserGroup(DynamicFieldsModelSerializer):
         model = PumpwoodUserGroup
         fields = (
             'pk', 'model_class', 'description', 'notes', 'dimensions',
-            'extra_info', "updated_by_id", "updated_at", 'updated_by')
+            'extra_info', "updated_by_id", "updated_at", 'updated_by',
+            'code')
         list_fields = (
             'pk', 'model_class', 'description', 'notes', 'dimensions',
-            'extra_info', "updated_by_id", "updated_at", 'updated_by')
+            'extra_info', "updated_by_id", "updated_at", 'updated_by',
+            'code')
         read_only = ["updated_by_id", "updated_at"]
 
     def create(self, validated_data):
@@ -52,7 +54,8 @@ class SerializerPumpwoodUserGroupM2M(DynamicFieldsModelSerializer):
     group = LocalForeignKeyField(
         serializer=(
             "pumpwood_djangoauth.groups.serializers."
-            "SerializerPumpwoodUserGroup"))
+            "SerializerPumpwoodUserGroup"),
+        display_field="description")
 
     user_id = serializers.IntegerField(allow_null=False, required=True)
     user = LocalForeignKeyField(

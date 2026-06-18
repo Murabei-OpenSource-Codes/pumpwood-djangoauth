@@ -16,12 +16,21 @@ from pumpwood_djangoauth.groups.models import PumpwoodUserGroup
 class PumpwoodRowPermission(models.Model):
     """Tag associated with row permission.
 
-    It is used to indicate if a user can retrieve or edit an inforamtion.
+    It is used to indicate if a user can retrieve or edit an information.
+
+    Model fields:
+        - **code [TextField]:** Unique code identifying the row permission.
+        - **description [TextField]:** Short description of the permission.
+        - **notes [TextField]:** Long notes associated with the permission.
+        - **dimensions [JSONField]:** Key/value tags for organization.
+        - **extra_info [JSONField]:** Extra information for future use.
+        - **updated_by [ForeignKey('User')]:** User responsible for updates.
+        - **updated_at [DateTimeField]:** Date/time of the last update.
     """
     code = models.TextField(
         null=True, unique=True, blank=True,
-        verbose_name="Description",
-        help_text="A code to indentify the row permission.")
+        verbose_name="Code",
+        help_text="A code to identify the row permission.")
     """@private"""
     description = models.TextField(
         null=False, unique=True, blank=False,

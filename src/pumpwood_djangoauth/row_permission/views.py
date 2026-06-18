@@ -32,7 +32,7 @@ class RestPumpwoodRowPermission(PumpWoodRestService):
     gui_retrieve_fieldset = [{
             "name": "main",
             "fields": [
-                'description', 'notes', 'dimensions', 'extra_info',
+                'code', 'description', 'notes', 'dimensions', 'extra_info',
                 'updated_by', 'updated_at', 'updated_by_id']
         }
     ]

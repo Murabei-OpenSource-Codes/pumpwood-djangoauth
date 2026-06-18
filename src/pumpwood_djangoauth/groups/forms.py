@@ -1,3 +1,4 @@
+"""Django forms for user group admin."""
 from django import forms
 from flat_json_widget.widgets import FlatJsonWidget
 

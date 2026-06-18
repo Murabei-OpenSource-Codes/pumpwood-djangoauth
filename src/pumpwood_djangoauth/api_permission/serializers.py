@@ -1,3 +1,4 @@
+"""Serializers for API permission end-points."""
 from rest_framework import serializers
 from pumpwood_djangoviews.serializers import (
     ClassNameField, DynamicFieldsModelSerializer,
