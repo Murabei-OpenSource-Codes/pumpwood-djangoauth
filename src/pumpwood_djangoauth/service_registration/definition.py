@@ -29,9 +29,6 @@ def get_service_definitions():
     from pumpwood_djangoauth.groups.views import (
         RestPumpwoodUserGroup, RestPumpwoodUserGroupM2M)
 
-    # Local Models
-    from fixtures.views import RestFixturesRowLevelPermission
-
     auth_service_definition = {
         "service_url": _service_url,
         "service_name": "pumpwood-auth-app",
@@ -137,7 +134,6 @@ def get_service_definitions():
             RestPumpwoodRowPermission,
             RestPumpwoodRowPermissionGroupM2M,
             RestPumpwoodRowPermissionUserM2M,
-            RestFixturesRowLevelPermission,
             RestPumpwoodUserGroup,
             RestPumpwoodUserGroupM2M]
     }
