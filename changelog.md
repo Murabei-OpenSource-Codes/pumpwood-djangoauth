@@ -5,7 +5,30 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [2.1.43]
+## [2.1.49] - 2026-06-18
+### Added
+- Add `service_registration` module with default auth service and route
+  definitions.
+- Add service admin actions to load, reload Kong services and generate API
+  documentation spreadsheets.
+- Add unique `code` field to `PumpwoodPermissionPolicy` and
+  `PumpwoodPermissionPolicyAction`.
+- Add groups and row permission module docstrings for pdocs.
+- Add `pyproject_template.toml` and migrate package build to Poetry.
+
+### Changed
+- Update README with permission apps, URL includes and permission codes
+  section.
+- Fix `register_auth_kong_objects` to default missing route `extra_info`
+  to an empty dict.
+- Add legacy compatibility for Flask services.
+- Adjust empty variable handling on Microsoft Entra SSO.
+- Extend system models with route documentation generation support.
+
+### Removed
+- Remove `setup.py` and `setup_template.py` in favour of Poetry build.
+
+## [2.1.43] - 2026-03-02
 ### Added
 - Add unique `code` field to `PumpwoodUserGroup` model, serializer and admin.
 - Document permission codes on README and model docstrings.
