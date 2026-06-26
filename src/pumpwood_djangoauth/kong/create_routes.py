@@ -78,6 +78,7 @@ def register_auth_kong_objects(service_url: str, service_description: str,
 
     ###########################
     # Get viewset information #
+    temp_routes = deepcopy(routes)
     for view in viewsets:
         model_class_name = view.service_model.__name__
         suffix = os.getenv('ENDPOINT_SUFFIX', '')
