@@ -149,4 +149,4 @@ def register_auth_kong_objects(service_url: str, service_description: str,
             notes=route["notes"],
             dimensions=route["dimensions"],
             icon=route["icon"],
-            extra_info=route["extra_info"])
+            extra_info=route.get("extra_info", {}))
