@@ -13,11 +13,21 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='pumpwoodpermissionpolicy',
             name='code',
-            field=models.TextField(blank=True, help_text='A code to identify the permission group.', unique=True, verbose_name='Code'),
+            field=models.TextField(
+                blank=True,
+                help_text='A code to identify the permission group.',
+                unique=True,
+                null=True,
+                verbose_name='Code'),
         ),
         migrations.AddField(
             model_name='pumpwoodpermissionpolicyaction',
             name='code',
-            field=models.TextField(blank=True, help_text='A code to identify the permission group.', unique=True, verbose_name='Code'),
+            field=models.TextField(
+                blank=True,
+                help_text='A code to identify the permission group.',
+                unique=True,
+                null=True,
+                verbose_name='Code'),
         ),
     ]

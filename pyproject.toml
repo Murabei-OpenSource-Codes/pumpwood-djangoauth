@@ -1,6 +1,6 @@
 [project]
 name = "pumpwood-djangoauth"
-version = "2.1.51-b.0"
+version = "2.1.52-b.0"
 description = "Assist creating views for Django using Pumpwood pattern."
 readme = "README.md"
 requires-python = ">=3.6,<4.0"

@@ -87,7 +87,7 @@ class PumpwoodPermissionPolicy(models.Model):
        attribute."""
 
     code = models.TextField(
-        null=False, unique=True, blank=True,
+        null=True, unique=True, blank=True,
         verbose_name="Code",
         help_text="A code to identify the permission group.")
     """@private"""
@@ -209,7 +209,7 @@ class PumpwoodPermissionPolicyAction(models.Model):
     """Choices associated with custom action policy."""
 
     code = models.TextField(
-        null=False, unique=True, blank=True,
+        null=True, unique=True, blank=True,
         verbose_name="Code",
         help_text="A code to identify the permission group.")
     """@private"""
