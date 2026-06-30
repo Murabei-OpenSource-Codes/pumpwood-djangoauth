@@ -5,6 +5,12 @@ It is used to centralize criation and inicialization of Pumpwood systens
 singletons. These object are setted using enviroment variables and
 can be imported at the through the application.
 
+Network and disk singletons are wrapped in ``LazyProxy`` so they are
+created on first use. This avoids opening shared sockets during gunicorn
+``--preload`` and keeps initialization thread-safe under ``gthread``
+workers. Call ``reset_config_singletons()`` from a gunicorn ``post_fork``
+hook when using preload.
+
 Example of usage:
 ```python
 from pumpwood_djangoviews.views import PumpWoodRestService
@@ -32,8 +38,10 @@ from pumpwood_miscellaneous.storage import PumpWoodStorage
 from pumpwood_miscellaneous.rabbitmq import PumpWoodRabbitMQ
 from pumpwood_kong.kong_api import KongAPI
 from pumpwood_i8n.translate import PumpwoodI8n
-from pumpwood_i8n.singletons import pumpwood_i8n
+from pumpwood_i8n.singletons import pumpwood_i8n as _pumpwood_i8n_singleton
 from diskcache import Cache
+from pumpwood_djangoauth.lazy_proxy import LazyProxy
+
 
 #####################
 # Singleton objects #
@@ -88,44 +96,20 @@ MEDIA_URL: str = os.environ.get('MEDIA_URL', 'media/')
 
 ###################################
 # Kong interaction inicialization #
-# Create an Kong api using API_GATEWAY_URL enviroment variable
 API_GATEWAY_URL = os.environ.get("API_GATEWAY_URL")
-kong_api: KongAPI = KongAPI(api_gateway_url=API_GATEWAY_URL)
 
 ######################################
 # Microservice object inicialization #
-# Getting secrets from enviroment variables
 MICROSERVICE_NAME: str = os.environ.get("MICROSERVICE_NAME")
 MICROSERVICE_URL: str = os.environ.get("MICROSERVICE_URL")
 MICROSERVICE_USERNAME: str = os.environ.get("MICROSERVICE_USERNAME")
 MICROSERVICE_PASSWORD: str = os.environ.get("MICROSERVICE_PASSWORD")
-microservice: PumpWoodStorage = None
-microservice_no_login: PumpWoodStorage = None
-if MICROSERVICE_URL is not None:
-    microservice_no_login = PumpWoodMicroService(
-        name=MICROSERVICE_NAME, server_url=MICROSERVICE_URL,
-        verify_ssl=False)
-    if MICROSERVICE_USERNAME is not None:
-        microservice = PumpWoodMicroService(
-            name=MICROSERVICE_NAME, server_url=MICROSERVICE_URL,
-            username=MICROSERVICE_USERNAME, password=MICROSERVICE_PASSWORD,
-            verify_ssl=False)
-else:
-    print("PumpWoodMicroService not set")
 
 ##################
 # Storage Object #
 STORAGE_TYPE: str = os.environ.get('STORAGE_TYPE')
 STORAGE_BUCKET_NAME: str = os.environ.get('STORAGE_BUCKET_NAME')
 STORAGE_BASE_PATH: str = os.environ.get('STORAGE_BASE_PATH', 'pumpwood_auth')
-storage_object = None
-if STORAGE_TYPE is not None:
-    storage_object = PumpWoodStorage(
-        storage_type=STORAGE_TYPE, bucket_name=STORAGE_BUCKET_NAME,
-        base_path=STORAGE_BASE_PATH)
-else:
-    print("PumpWoodStorage not set")
-
 
 ############
 # RabbitMQ #
@@ -133,34 +117,96 @@ RABBITMQ_USERNAME = os.getenv('RABBITMQ_USERNAME')
 RABBITMQ_PASSWORD = os.getenv('RABBITMQ_PASSWORD')
 RABBITMQ_HOST = os.getenv('RABBITMQ_HOST')
 RABBITMQ_PORT = int(os.getenv('RABBITMQ_PORT', "5672"))
-rabbitmq_api = None
-if RABBITMQ_HOST is not None:
-    rabbitmq_api = PumpWoodRabbitMQ(
-        username=RABBITMQ_USERNAME, password=RABBITMQ_PASSWORD,
-        host=RABBITMQ_HOST, port=RABBITMQ_PORT)
-else:
-    print("PumpWoodRabbitMQ not set")
-
-
-#######
-# I8n #
-# Initiante I8n using django model as backend
-pumpwood_i8n.init(microservice=microservice)
 
 #########
 # Cache #
-# Create a diskcache object to cache row and API permission calls
-# default size of 100Mb. It is restricted to not consume K8s cluster too
-# much disk at PODs
-DISKCACHE_EXPIRATION = os.getenv(
-    'DISKCACHE__SIZELIMIT_MB', 100) * 1024 * 1024
-diskcache = Cache(size_limit=DISKCACHE_EXPIRATION)
+DISKCACHE_SIZE_LIMIT = int(
+    os.getenv('DISKCACHE__SIZELIMIT_MB', 100)) * 1024 * 1024
+DISKCACHE_EXPIRATION = int(os.getenv('DISKCACHE__EXPIRATION', 60))
+"""Default time for diskcach expiration."""
+
+
+def _build_kong_api():
+    """Build Kong API client from enviroment variables."""
+    return KongAPI(api_gateway_url=API_GATEWAY_URL)
+
+
+def _build_microservice_no_login():
+    """Build microservice client without login credentials."""
+    if MICROSERVICE_URL is None:
+        return None
+    return PumpWoodMicroService(
+        name=MICROSERVICE_NAME, server_url=MICROSERVICE_URL,
+        verify_ssl=False)
+
+
+def _build_microservice():
+    """Build microservice client with login credentials."""
+    if MICROSERVICE_URL is None or MICROSERVICE_USERNAME is None:
+        return None
+    return PumpWoodMicroService(
+        name=MICROSERVICE_NAME, server_url=MICROSERVICE_URL,
+        username=MICROSERVICE_USERNAME, password=MICROSERVICE_PASSWORD,
+        verify_ssl=False)
+
+
+def _build_storage_object():
+    """Build flat storage client from enviroment variables."""
+    if STORAGE_TYPE is None:
+        return None
+    return PumpWoodStorage(
+        storage_type=STORAGE_TYPE, bucket_name=STORAGE_BUCKET_NAME,
+        base_path=STORAGE_BASE_PATH)
+
+
+def _build_rabbitmq_api():
+    """Build RabbitMQ client from enviroment variables."""
+    if RABBITMQ_HOST is None:
+        return None
+    return PumpWoodRabbitMQ(
+        username=RABBITMQ_USERNAME, password=RABBITMQ_PASSWORD,
+        host=RABBITMQ_HOST, port=RABBITMQ_PORT)
+
+
+def _build_pumpwood_i8n():
+    """Initiante I8n using django model as backend."""
+    ms = None
+    if (MICROSERVICE_URL is not None
+            and MICROSERVICE_USERNAME is not None):
+        ms = microservice.get_instance()
+    _pumpwood_i8n_singleton.init(microservice=ms)
+    return _pumpwood_i8n_singleton
+
+
+def _build_diskcache():
+    """Build diskcache object for row and API permission calls."""
+    return Cache(size_limit=DISKCACHE_SIZE_LIMIT)
+
+
+kong_api = LazyProxy(_build_kong_api)
+microservice_no_login = LazyProxy(_build_microservice_no_login)
+microservice = LazyProxy(_build_microservice)
+storage_object = LazyProxy(_build_storage_object)
+rabbitmq_api = LazyProxy(_build_rabbitmq_api)
+pumpwood_i8n = LazyProxy(_build_pumpwood_i8n)
+diskcache = LazyProxy(_build_diskcache)
 """Diskcache object that can be used to cache request persistent
    information. Exemples of this is Pumpwood row and API permission."""
 
-# Default 1 minute for cache expiration
-DISKCACHE_EXPIRATION = os.getenv('DISKCACHE__EXPIRATION', 60)
-"""Default time for diskcach expiration."""
+_LAZY_SINGLETONS = (
+    kong_api, microservice_no_login, microservice, storage_object,
+    rabbitmq_api, pumpwood_i8n, diskcache,
+)
+
+
+def reset_config_singletons():
+    """Reset lazy singletons after gunicorn worker fork.
+
+    Call this function from a gunicorn ``post_fork`` hook when using
+    ``--preload`` so workers do not reuse master-process connections.
+    """
+    for proxy in _LAZY_SINGLETONS:
+        proxy.reset()
 
 
 PUMPWOOD__AUTH__TOKEN_CACHE_EXPIRE = int(os.getenv(
