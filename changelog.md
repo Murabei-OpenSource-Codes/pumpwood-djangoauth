@@ -5,6 +5,19 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+### Added
+- No adds.
+
+### Changed
+- No changes.
+
+### Removed
+- `pumpwood_djangoauth.metabase` app, template tags, and generated docs.
+  Remove `pumpwood_djangoauth.metabase` from `INSTALLED_APPS` in consuming
+  projects. Existing DB tables `metabase__dashboard` and
+  `metabase__dashboard_parameter` are no longer managed by this package.
+
 ## [2.1.52] - 2026-06-29
 ### Added
 - No adds.

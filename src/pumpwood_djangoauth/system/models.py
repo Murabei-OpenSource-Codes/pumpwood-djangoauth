@@ -10,6 +10,7 @@ from django.db import models
 from django.db.models import Q
 from psycopg2.errors import UniqueViolation
 from pumpwood_djangoviews.action import action
+from pumpwood_djangoviews.app import PumpwoodDjangoAppInspect
 from pumpwood_djangoauth.config import kong_api
 from pumpwood_communication import exceptions
 from pumpwood_communication.serializers import PumpWoodJSONEncoder
@@ -933,47 +934,52 @@ class KongRoute(models.Model):
         if self.route_type == 'endpoint':
             # Retrieve fields data
             try:
-                fill_validation_data = microservice.fill_validation(
-                    model_class=self.route_name)
-                field_descriptions = fill_validation_data['field_descriptions']
-                for key, item in field_descriptions.items():
-                    temp_item = deepcopy(item)
-                    temp_item['column'] = key
+                fill_validation_data = (
+                    PumpwoodDjangoAppInspect.fill_validation_local(
+                        model_class=self.route_name))
+                if fill_validation_data is not None:
+                    field_descriptions = (
+                        fill_validation_data['field_descriptions'])
+                    for key, item in field_descriptions.items():
+                        temp_item = deepcopy(item)
+                        temp_item['column'] = key
 
-                    # Foreign Key data
-                    temp_item['model_class'] = None
-                    temp_item['display_field'] = None
-                    temp_item['many'] = None
-                    temp_item['object_field'] = None
+                        # Foreign Key data
+                        temp_item['model_class'] = None
+                        temp_item['display_field'] = None
+                        temp_item['many'] = None
+                        temp_item['object_field'] = None
 
-                    # Treat information from foreign_key
-                    if temp_item['type'] == 'foreign_key':
-                        extra_info = temp_item['extra_info']
-                        temp_item['foreign_key_model_class'] = \
-                            extra_info.get('model_class')
-                        temp_item['foreign_key_display_field'] = \
-                            extra_info.get('display_field')
-                        temp_item['foreign_key_object_field'] = \
-                            extra_info.get('object_field')
+                        # Treat information from foreign_key
+                        if temp_item['type'] == 'foreign_key':
+                            extra_info = temp_item['extra_info']
+                            temp_item['foreign_key_model_class'] = \
+                                extra_info.get('model_class')
+                            temp_item['foreign_key_display_field'] = \
+                                extra_info.get('display_field')
+                            temp_item['foreign_key_object_field'] = \
+                                extra_info.get('object_field')
 
-                    # Treat information from related_model
-                    elif temp_item['type'] == 'related_model':
-                        extra_info = temp_item['extra_info']
-                        temp_item['related_model_model_class'] = \
-                            extra_info.get('model_class')
-                        temp_item['related_model_pk_field'] = \
-                            extra_info.get('pk_field')
-                        temp_item['related_model_foreign_key'] = \
-                            extra_info.get('foreign_key')
+                        # Treat information from related_model
+                        elif temp_item['type'] == 'related_model':
+                            extra_info = temp_item['extra_info']
+                            temp_item['related_model_model_class'] = \
+                                extra_info.get('model_class')
+                            temp_item['related_model_pk_field'] = \
+                                extra_info.get('pk_field')
+                            temp_item['related_model_foreign_key'] = \
+                                extra_info.get('foreign_key')
 
-                    fields_data.append(temp_item)
+                        fields_data.append(temp_item)
             except Exception: # NOQA
                 pass
 
             # Retrieve action data
             try:
-                action_data = microservice.list_actions(
+                action_data = PumpwoodDjangoAppInspect.list_actions_local(
                     model_class=self.route_name)
+                if action_data is None:
+                    action_data = []
             except Exception: # NOQA
                 pass
 

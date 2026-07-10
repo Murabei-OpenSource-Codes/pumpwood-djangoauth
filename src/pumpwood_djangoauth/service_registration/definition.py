@@ -16,8 +16,6 @@ def get_service_definitions():
         RestKongRoute, RestKongService)
     from pumpwood_djangoauth.registration.views import (
         RestUser, RestUserProfile)
-    from pumpwood_djangoauth.metabase.views import (
-        RestMetabaseDashboard, RestMetabaseDashboardParameter)
     from pumpwood_djangoauth.i8n.views import RestPumpwoodI8nTranslation
     from pumpwood_djangoauth.api_permission.views import (
         RestPumpwoodPermissionPolicy, RestPumpwoodPermissionPolicyAction,
@@ -124,8 +122,6 @@ def get_service_definitions():
             RestKongService,
             RestUser,
             RestUserProfile,
-            RestMetabaseDashboard,
-            RestMetabaseDashboardParameter,
             RestPumpwoodI8nTranslation,
             RestPumpwoodPermissionPolicy,
             RestPumpwoodPermissionPolicyAction,

@@ -3,7 +3,7 @@
 
 Pumpwood Django Auth implements base models for Pumpwood systems. It is
 implemented models that perform authetication, MFA validation, Kong service
-mesh integration, logs generation and Metabase dashboard deploy.
+mesh integration and logs generation.
 
 ## Enviroment variables
 `config` modele is reponsible for defining singletons that are used through
@@ -85,7 +85,6 @@ INSTALLED_APPS = [
     'pumpwood_djangoauth.mfaadmin',
     'pumpwood_djangoauth.registration',
     'pumpwood_djangoauth.system',
-    'pumpwood_djangoauth.metabase',
     'pumpwood_djangoauth.api_permission',
 ]
 ```
@@ -176,8 +175,6 @@ if is_cloud_deploy:
         from pumpwood_djangoauth.system.views import (
             RestKongRoute, RestKongService)
         from pumpwood_djangoauth.registration.views import RestUser
-        from pumpwood_djangoauth.metabase.views import (
-            RestMetabaseDashboard, RestMetabaseDashboardParameter)
         from pumpwood_djangoauth.i8n.views import RestPumpwoodI8nTranslation
         from pumpwood_djangoauth.api_permission.views import (
             RestPumpwoodPermissionPolicy, RestPumpwoodPermissionPolicyAction,
@@ -341,7 +338,6 @@ if is_cloud_deploy:
             # will be created with /rest/{model_class}/ as route.
             viewsets=[
                 RestKongRoute, RestKongService, RestUser,
-                RestMetabaseDashboard, RestMetabaseDashboardParameter,
                 RestPumpwoodI8nTranslation, RestPumpwoodPermissionPolicy,
                 RestPumpwoodPermissionPolicyAction,
                 RestPumpwoodPermissionGroup,
@@ -387,7 +383,7 @@ if is_cloud_deploy:
             }])
 
         swagger_service_url = os.environ.get("SWAGGER_SERVICE_URL")
-        if metabase_secret_key is not None:
+        if swagger_service_url is not None:
             register_auth_kong_objects(
                 service_url=swagger_service_url,
                 service_name="swagger",
