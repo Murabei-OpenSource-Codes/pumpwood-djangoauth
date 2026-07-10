@@ -4,6 +4,7 @@ import importlib.resources as pkg_resources
 from typing import List, Dict, Union, Any
 from django.db import connection
 from django.contrib.auth import get_user_model
+from pumpwood_djangoviews.app import PumpwoodDjangoAppInspect
 from pumpwood_djangoauth.config import (
     diskcache, DISKCACHE_EXPIRATION, microservice)
 
@@ -98,7 +99,25 @@ class MapPathRoleAux:
         dict_actions = cls._get_action_roles_cache(
             model_class=model_class)
         if dict_actions is None:
-            action_list = microservice.list_actions(model_class=model_class)
+            # Try to fetch locally the actions and permissions
+            action_list = PumpwoodDjangoAppInspect.list_actions_local(
+                model_class=model_class)
+            if action_list is None:
+                # If not found locally, try to fetch from microservice
+                action_list = microservice.list_actions(
+                    model_class=model_class)
+                
+                # If it is not found 
+                if action_list is None:
+                    msg = (
+                        "It was not possible to retrieve actions and "
+                        "permissions for model_class[{model_class}]. Check "
+                        "if it was registered on Pumpwood.")
+                    raise PumpWoodObjectDoesNotExist(
+                        msg, payload={
+                            'action': action, 'model_class': model_class})
+
+            # Create a dictionary with the actions and their permissions
             dict_actions = dict(
                 [[x['action_name'],
                   x.get('permission_role', 'can_run_actions')]
@@ -109,11 +128,12 @@ class MapPathRoleAux:
             cls._set_action_roles_cache(
                 model_class=model_class, action_roles=dict_actions)
 
+        # Check if the action is available in the dictionary
         if action not in dict_actions.keys():
             msg = (
                 "Action [{action}] was is not avaiable at " +
                 "model_class[{model_class}]. Call list actions to verify " +
-                "the possible actions and its arguments.")
+                "the possible actions and its arguments for the model class.")
             raise PumpWoodObjectDoesNotExist(
                 msg, payload={'action': action, 'model_class': model_class})
 
