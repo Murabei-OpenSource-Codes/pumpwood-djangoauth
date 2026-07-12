@@ -34,13 +34,14 @@ class RestNicePumpwoodEndPoint(PumpWoodRestService):
 """
 import os
 from pumpwood_communication.microservices import PumpWoodMicroService
+from pumpwood_communication.cache import default_cache
 from pumpwood_miscellaneous.storage import PumpWoodStorage
 from pumpwood_miscellaneous.rabbitmq import PumpWoodRabbitMQ
 from pumpwood_kong.kong_api import KongAPI
 from pumpwood_i8n.translate import PumpwoodI8n
 from pumpwood_i8n.singletons import pumpwood_i8n as _pumpwood_i8n_singleton
-from diskcache import Cache
 from pumpwood_djangoauth.lazy_proxy import LazyProxy
+from pumpwood_djangoauth.aux.general import django_apps_ready
 
 
 #####################
@@ -120,10 +121,9 @@ RABBITMQ_PORT = int(os.getenv('RABBITMQ_PORT', "5672"))
 
 #########
 # Cache #
-DISKCACHE_SIZE_LIMIT = int(
-    os.getenv('DISKCACHE__SIZELIMIT_MB', 100)) * 1024 * 1024
-DISKCACHE_EXPIRATION = int(os.getenv('DISKCACHE__EXPIRATION', 60))
-"""Default time for diskcach expiration."""
+I8N_CACHE_EXPIRATION = int(
+    os.getenv('PUMPWOOD_AUTH__I8N_CACHE_EXPIRATION', '300'))
+"""Default time for i8n cache expiration."""
 
 
 def _build_kong_api():
@@ -170,17 +170,11 @@ def _build_rabbitmq_api():
 
 def _build_pumpwood_i8n():
     """Initiante I8n using django model as backend."""
-    ms = None
-    if (MICROSERVICE_URL is not None
-            and MICROSERVICE_USERNAME is not None):
-        ms = microservice.get_instance()
-    _pumpwood_i8n_singleton.init(microservice=ms)
+    _pumpwood_i8n_singleton.init(
+        pumpwood_cache=default_cache,
+        i8n_model='pumpwood_djangoauth.i8n.models.PumpwoodI8nTranslation',
+        app_ready_check=django_apps_ready)
     return _pumpwood_i8n_singleton
-
-
-def _build_diskcache():
-    """Build diskcache object for row and API permission calls."""
-    return Cache(size_limit=DISKCACHE_SIZE_LIMIT)
 
 
 kong_api = LazyProxy(_build_kong_api)
@@ -189,14 +183,10 @@ microservice = LazyProxy(_build_microservice)
 storage_object = LazyProxy(_build_storage_object)
 rabbitmq_api = LazyProxy(_build_rabbitmq_api)
 pumpwood_i8n = LazyProxy(_build_pumpwood_i8n)
-diskcache = LazyProxy(_build_diskcache)
-"""Diskcache object that can be used to cache request persistent
-   information. Exemples of this is Pumpwood row and API permission."""
 
 _LAZY_SINGLETONS = (
     kong_api, microservice_no_login, microservice, storage_object,
-    rabbitmq_api, pumpwood_i8n, diskcache,
-)
+    rabbitmq_api, pumpwood_i8n)
 
 
 def reset_config_singletons():

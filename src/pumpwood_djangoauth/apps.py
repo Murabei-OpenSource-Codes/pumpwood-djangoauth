@@ -4,7 +4,7 @@ import sys
 from django.apps import AppConfig
 
 
-class PumpwoodDjangoauthConfig(AppConfig):
+class PumpwoodDjangoAuthConfig(AppConfig):
     """Pumpwood Django Auth application config."""
 
     default_auto_field = 'django.db.models.BigAutoField'

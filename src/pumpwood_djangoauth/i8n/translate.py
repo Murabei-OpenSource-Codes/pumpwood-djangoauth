@@ -1,6 +1,8 @@
 """Create a class to make lazy translation of strings."""
 import os
 import datetime
+from django.apps import apps
+from django.utils.functional import lazy
 
 # Translation cache to reduce backend calls
 _translation_cache: dict = {}
@@ -33,6 +35,9 @@ def aux_translate_string(sentence, tag, plural, language, user_type) -> str:
     """
     if sentence is None:
         return None
+
+    if not apps.ready:
+        return sentence
 
     now_time = datetime.datetime.utcnow()
     cache_key = CACHE_KEY_TEMPLATE.format(
@@ -68,8 +73,11 @@ def aux_translate_string(sentence, tag, plural, language, user_type) -> str:
 
 
 def t(sentence, tag='', plural=False, language='', user_type=''):
-    """Create a Lazy String to translate sentence when used."""
-    return aux_translate_string(
-        sentence=sentence, tag=tag,
-        plural=plural, language=language,
-        user_type=user_type)
+    """Return a lazy string translated when rendered.
+
+    Model ``verbose_name`` and similar labels must use this helper
+    instead of ``aux_translate_string`` to avoid database access while
+    Django is still importing application modules.
+    """
+    return lazy(aux_translate_string, str)(
+        sentence, tag, plural, language, user_type)

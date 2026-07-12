@@ -5,14 +5,16 @@ from typing import List, Dict, Union, Any
 from django.db import connection
 from django.contrib.auth import get_user_model
 from pumpwood_djangoviews.app import PumpwoodDjangoAppInspect
-from pumpwood_djangoauth.config import (
-    diskcache, DISKCACHE_EXPIRATION, microservice)
+from pumpwood_djangoauth.config import microservice
 
 # Pumpwood Exceptions
 from pumpwood_communication.exceptions import (
     PumpWoodActionArgsException, PumpWoodOtherException,
     PumpWoodNotImplementedError, PumpWoodObjectDoesNotExist,
     PumpWoodForbidden)
+from pumpwood_communication.cache import default_cache
+from pumpwood_communication.type import PumpwoodDataclassMixin
+
 
 # Read sql query from package resources
 route_api_permissions = pkg_resources.read_text(
@@ -34,6 +36,38 @@ def _get_item_or_none(list_data: list, index: int) -> Union[None, Any]:
         otherwise.
     """
     return list_data[index] if index < len(list_data) else None
+
+
+class PumpwoodAuthActionRoleCache(PumpwoodDataclassMixin):
+    """Cache for Pumpwood permission."""
+
+    model_class: str
+    """Model class to check for permission."""
+    context: str = "pumpwood_auth__action_role"
+    """Context for the cache key."""
+
+
+class PumpwoodAuthPermissionCache(PumpwoodDataclassMixin):
+    """Cache for Pumpwood permission."""
+
+    auth_header: str
+    """Authorization header."""
+    route: str
+    """Route to check for permission."""
+    method: str
+    """Method to check for permission."""
+    model_class: str
+    """Model class to check for permission."""
+    endpoint: str
+    """Endpoint to check for permission."""
+    action: str
+    """Action to check for permission."""
+    role: str
+    """Role to check for permission."""
+    type: str
+    """Type of the route."""
+    context: str = "pumpwood_auth__api_permission"
+    """Context for the cache key."""
 
 
 class MapPathRoleAux:
@@ -96,37 +130,42 @@ class MapPathRoleAux:
         """Get action permission_role."""
         # Try to retrieve cache from local before retrieving action
         # data from microservice.
-        dict_actions = cls._get_action_roles_cache(
-            model_class=model_class)
-        if dict_actions is None:
-            # Try to fetch locally the actions and permissions
-            action_list = PumpwoodDjangoAppInspect.list_actions_local(
+        cache_dict = PumpwoodAuthActionRoleCache(
+            model_class=model_class).to_dict()
+        cached_value = default_cache.get(cache_dict)
+        if cached_value is not None:
+            return cached_value
+
+        # Try to fetch locally the actions and permissions
+        action_list = PumpwoodDjangoAppInspect\
+            .list_actions_local(model_class=model_class)
+        if action_list is None:
+            # If not found locally, try to fetch from microservice
+            action_list = microservice.list_actions(
                 model_class=model_class)
+            
+            # If it is not found 
             if action_list is None:
-                # If not found locally, try to fetch from microservice
-                action_list = microservice.list_actions(
-                    model_class=model_class)
-                
-                # If it is not found 
-                if action_list is None:
-                    msg = (
-                        "It was not possible to retrieve actions and "
-                        "permissions for model_class[{model_class}]. Check "
-                        "if it was registered on Pumpwood.")
-                    raise PumpWoodObjectDoesNotExist(
-                        msg, payload={
-                            'action': action, 'model_class': model_class})
+                msg = (
+                    "It was not possible to retrieve actions and "
+                    "permissions for model_class[{model_class}]. Check "
+                    "if it was registered on Pumpwood.")
+                raise PumpWoodObjectDoesNotExist(
+                    msg, payload={
+                        'action': action, 'model_class': model_class})
 
-            # Create a dictionary with the actions and their permissions
-            dict_actions = dict(
-                [[x['action_name'],
-                  x.get('permission_role', 'can_run_actions')]
-                for x in action_list])
+        # Create a dictionary with the actions and their permissions
+        dict_actions = dict(
+            [
+                [x['action_name'],
+                x.get('permission_role', 'can_run_actions')
+            ]
+            for x in action_list])
+        
+        # Set diskcache to reduce call on microservice to check for
+        # action permission
+        default_cache.set(cache_dict, dict_actions)
 
-            # Set diskcache to reduce call on microservice to check for
-            # action permission
-            cls._set_action_roles_cache(
-                model_class=model_class, action_roles=dict_actions)
 
         # Check if the action is available in the dictionary
         if action not in dict_actions.keys():

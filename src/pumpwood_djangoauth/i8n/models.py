@@ -1,8 +1,35 @@
 """Manage Kong routes for Pumpwood."""
 from django.db import models
-from pumpwood_djangoviews.action import action
+from dataclasses import dataclass
 from django.utils import timezone
-from pumpwood_djangoauth.config import diskcache, DISKCACHE_EXPIRATION
+from pumpwood_djangoviews.action import action
+from pumpwood_communication.type import PumpwoodDataclassMixin
+from pumpwood_communication.cache import default_cache
+from pumpwood_djangoauth.config import I8N_CACHE_EXPIRATION
+
+
+@dataclass
+class PumpwoodAuthTranslationCache(PumpwoodDataclassMixin):
+    """Translation of a sentence."""
+
+    sentence: str
+    """Sentence to be translated."""
+    tag: str
+    """Tag to indentify context of a sentence."""
+    plural: bool
+    """Set if the sentence should be translated as plural."""
+    language: str
+    """Set the language that the sentence should be translated."""
+    user_type: str
+    """Using user_type it is possible to return
+    different names for the same object according to end-user
+    knowloge. This might be helpfull on Pumpwood since the
+    Modeling Unit might be a product or a costumer or other
+    unit. Using user_type it is possible to translate
+    DescriptionModelingUnit different to each user."""
+    
+    context: str = "pumpwood_auth__translation"
+    """Context for the cache key."""
 
 
 class PumpwoodI8nTranslation(models.Model):
@@ -62,54 +89,6 @@ class PumpwoodI8nTranslation(models.Model):
             'sentence', 'tag', 'plural', 'language', 'user_type']]
 
     @classmethod
-    def _get_translate_cache_key(cls, sentence: str, tag: str = "",
-                                 plural: bool = False, language: str = "",
-                                 user_type: str = "") -> str:
-        """Get translate cache key.
-
-        Uses `TRANSLATION_CACHE_HASH_TEMPLATE` to create a str and hash
-        this value to gererate the key of diskcache,
-        """
-        cls.TRANSLATION_CACHE_TAG
-        string_value = cls.TRANSLATION_CACHE_HASH_TEMPLATE.format(
-            sentence=sentence, tag=tag, plural=plural,
-            language=language, user_type=user_type)
-
-        # Using Python hash, collision should not be a great problem... not
-        # used for authenticatication.
-        return hash(string_value)
-
-    @classmethod
-    def _get_translate_cache(cls, sentence: str, tag: str,
-                             plural: bool, language: str,
-                             user_type: str) -> str:
-        """Get translate cache key.
-
-        Uses `TRANSLATION_CACHE_HASH_TEMPLATE` to create a str and hash
-        this value to gererate the key of diskcache,
-        """
-        key = cls._get_translate_cache_key(
-            sentence=sentence, tag=tag, plural=plural,
-            language=language, user_type=user_type)
-        return diskcache.get(key)
-
-    @classmethod
-    def _set_translate_cache(cls, sentence: str, tag: str,
-                             plural: bool, language: str,
-                             user_type: str, value: str) -> str:
-        """Set translate cache value.
-
-        Uses `TRANSLATION_CACHE_HASH_TEMPLATE` to create a str and hash
-        this value to gererate the key of diskcache.
-        """
-        key = cls._get_translate_cache_key(
-            sentence=sentence, tag=tag, plural=plural,
-            language=language, user_type=user_type)
-        return diskcache.set(
-            key=key, value=value, expire=DISKCACHE_EXPIRATION,
-            tag=cls.TRANSLATION_CACHE_TAG)
-
-    @classmethod
     @action(info=(
         'Translate sentence according to sentence/tag/plural/'
         'language/user_type.'))
@@ -143,12 +122,14 @@ class PumpwoodI8nTranslation(models.Model):
             same sentence.
         """
         # Check if translation is cached on diskcache
-        cached_value = cls._get_translate_cache(
+        hash_dict = PumpwoodAuthTranslationCache(
             sentence=sentence, tag=tag, plural=plural, language=language,
-            user_type=user_type)
+            user_type=user_type).to_dict()
+        cached_value = default_cache.get(hash_dict)
         if cached_value is not None:
             return cached_value
 
+        # Get translation from database
         translation_obj = cls.objects.filter(
             sentence=sentence, tag=tag, plural=plural, language=language,
             user_type=user_type).first()
@@ -167,7 +148,8 @@ class PumpwoodI8nTranslation(models.Model):
 
         # Cache value to reduce calls on database
         return_value = translation_obj.translation or sentence
-        cls._set_translate_cache(
-            sentence=sentence, tag=tag, plural=plural, language=language,
-            user_type=user_type, value=return_value)
+
+        # Cache value to reduce calls on database
+        default_cache.set(
+            hash_dict, return_value, expire=I8N_CACHE_EXPIRATION)
         return return_value
