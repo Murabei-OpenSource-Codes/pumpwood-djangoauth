@@ -1,6 +1,4 @@
 """Django application configuration for Pumpwood Auth."""
-import os
-import sys
 from django.apps import AppConfig
 
 
@@ -11,5 +9,11 @@ class PumpwoodDjangoAuthConfig(AppConfig):
     name = 'pumpwood_djangoauth'
 
     def ready(self):
-        """Initialize singletons for non-gunicorn runtimes."""
-        print("ready")
+        """Run application startup hooks.
+
+        Lazy singletons from ``config`` are created on first access. When
+        using gunicorn with ``--preload``, call
+        ``reset_config_singletons()`` from a ``post_fork`` hook instead of
+        initializing clients here.
+        """
+        pass

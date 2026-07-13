@@ -3,7 +3,12 @@ import django
 
 
 def django_apps_ready() -> bool:
-    """Check if Django apps are ready."""
+    """Check whether Django application registry is ready.
+
+    Returns:
+        bool:
+            ``True`` when Django apps are loaded, otherwise ``False``.
+    """
     try:
         from django.apps import apps
         return apps.ready

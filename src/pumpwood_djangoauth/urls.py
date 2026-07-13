@@ -1,4 +1,8 @@
-"""Consolidate all base Pumpwood urls."""
+"""Consolidate base Pumpwood Auth URL includes.
+
+Includes registration, system, i18n, API permission, row permission,
+groups and auxiliary service views under a single ``/rest/`` entry point.
+"""
 from django.urls import include
 from django.urls import re_path as url
 

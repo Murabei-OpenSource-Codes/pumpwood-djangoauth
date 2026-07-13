@@ -1,6 +1,10 @@
-"""
-# Models and end-points for api_permission.
+"""API permission models and end-points for Pumpwood Auth.
 
-Generate models and end-points that are used to set permission to access
-of Pumpwood end-points.
+Defines policies, actions and group/user associations that control access
+to Pumpwood REST end-points. Policies and actions expose an optional unique
+``code`` field for stable identification across environments.
+
+Usage:
+    Add ``pumpwood_djangoauth.api_permission`` to ``INSTALLED_APPS`` and
+    include ``pumpwood_djangoauth.api_permission.urls`` under ``/rest/``.
 """

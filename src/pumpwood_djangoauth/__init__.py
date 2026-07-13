@@ -1,63 +1,60 @@
 """
 # Pumpwood models for auth and internals.
 
-Pumpwood Django Auth implements base models for Pumpwood systems. It is
-implemented models that perform authetication, MFA validation, Kong service
-mesh integration and logs generation.
+Pumpwood Django Auth implements base models for Pumpwood systems. It
+provides authentication, MFA validation, Kong service mesh integration,
+API and row permission policies, i18n translation and request logging.
 
-## Enviroment variables
-`config` modele is reponsible for defining singletons that are used through
-pumpwood auth for rabbitmq, other pumpwood microservice and storage connection.
-It also defines an object kong interaction that can be set as None during
-app development.
+## Environment variables
+The ``config`` module is responsible for defining singletons used through
+Pumpwood Auth for RabbitMQ, other Pumpwood microservices and storage
+connections. It also defines a Kong API client that may remain unset during
+local development.
 
-- **API_GATEWAY_URL:** Correpond to Kong admin end-point. It is used to
-    register new services and routes for auth and other microservice using
-    `KongService` and `KongRoute` model class. Ex.:
-    `http://load-balancer:8001/` when kong is deployed locally as
-    `load-balancer` on docker-compose.
-- **MICROSERVICE_NAME:** It is a default name for microservice that is
-  used by app to comunicate with other microservices. This string is usually
-  used for debug purposes and does not modify behavior of the application.
-  Ex.: `microservice-auth`.
-- **MICROSERVICE_URL:** Url of Kong end-point that redirect requests to other
-    microservices. Ex.: `http://load-balancer:8000/` when Kong is deployed
-    locally as `load-balancer`.
-- **MICROSERVICE_USERNAME:** User name of the service user used by auth app
-    to comunicate with other microservice. Ex.: `microservice--auth`.
-    Users flaged as service users are not allowed to login from outside of the
-    application cluster.
-- **MICROSERVICE_PASSWORD:** Password associated with the service user used
-    by application to communcati with other Pumpwood Microservice. It is a
-    good pratice to set a strong password for service users, although they
-    are not avaiable for login outside of the cluster.
-- **STORAGE_TYPE:** Storage type that will be used store flat files on buckets,
-    S3 or blob storage. Today it is possible to use `google_bucket`,
-    `aws_s3` or `azure_storage`, for more information check documentation
-    of `pumpwood_miscellaneous` package.
-- **STORAGE_BUCKET_NAME:** Name of the bucket, blob storage or S3. For more
-    information check  documentation of `pumpwood_miscellaneous` package.
-- **STORAGE_BASE_PATH='pumpwood_auth':** Base path that will be used to store
-    information on flat storage. If not set `pumpwood_auth`, there is
-    usually no need to set a different value.
-- **MEDIA_URL:** It is the default media path URL. It is used to set a route
-    for media end-point on Pumpwood. It is `media/` if not set, usually no
-    need to change that.
-- **PUMPWOOD_AUTH_IS_RABBITMQ_LOG=FALSE:** Set if RabbitMQ should be used to
-    queue loging of pumpwood. If not set to 'TRUE' pumpwood auth will send
-    Pumpwood logs to stdout.
+Network and disk singletons are wrapped in ``LazyProxy`` and created on
+first use. When running gunicorn with ``--preload``, call
+``reset_config_singletons()`` from a ``post_fork`` hook.
+
+- **API_GATEWAY_URL:** Kong admin end-point used to register services and
+    routes through ``KongService`` and ``KongRoute``. Ex.:
+    ``http://load-balancer:8001/`` when Kong is deployed locally as
+    ``load-balancer`` on docker-compose.
+- **MICROSERVICE_NAME:** Default microservice name used for debug purposes.
+  Ex.: ``microservice-auth``.
+- **MICROSERVICE_URL:** Kong end-point that redirects requests to other
+    microservices. Ex.: ``http://load-balancer:8000/``.
+- **MICROSERVICE_USERNAME:** Service user name used to communicate with
+    other microservices. Ex.: ``microservice--auth``. Service users cannot
+    log in from outside the application cluster.
+- **MICROSERVICE_PASSWORD:** Password for the service user. Use a strong
+    password even though service users are not available for external login.
+- **STORAGE_TYPE:** Storage back-end for flat files
+    [``google_bucket``, ``aws_s3``, ``azure_storage``]. See
+    ``pumpwood_miscellaneous`` documentation for details.
+- **STORAGE_BUCKET_NAME:** Bucket, blob storage or S3 name.
+- **STORAGE_BASE_PATH:** Base path for flat storage. Defaults to
+    ``pumpwood_auth``.
+- **MEDIA_URL:** Default media path URL. Defaults to ``media/``.
+- **RABBITMQ_USERNAME**, **RABBITMQ_PASSWORD**, **RABBITMQ_HOST**,
+    **RABBITMQ_PORT:** RabbitMQ connection settings for request logging.
+- **PUMPWOOD_AUTH_IS_RABBITMQ_LOG:** Set to ``TRUE`` to queue Pumpwood logs
+    on RabbitMQ. When ``FALSE`` or unset, logs are sent to stdout.
+- **PUMPWOOD_AUTH__I8N_CACHE_EXPIRATION:** i18n cache TTL in seconds.
+    Default ``300``.
+- **PUMPWOOD_AUTH__TOKEN_CACHE_EXPIRATION:** permission token cache TTL.
+    Default ``300``.
+- **PUMPWOOD_AUTH__ROW_PERMISSION_CACHE_EXPIRATION:** row permission cache
+    TTL. Default ``300``.
 
 ## Usage
-To use pumpwood auth it is necessary to correcly configure Django settings,
-add routes to Kong and add end-point URLs to application.
+Configure Django settings, register routes on Kong and expose application
+URLs.
 
 ### Django settings
-To use Pumpwood Django Auth it is necessary to add models to installed
-apps at settings and configure rest framework and knox settings
-dictionary.
+Add models to ``INSTALLED_APPS`` and configure REST framework and Knox.
 
-Pumpwood Auth uses knox to generate tokens for user authetication,
-rest framework for end-points creation. It prefereble
+Pumpwood Auth uses Knox for token authentication and Django REST framework
+for end-point creation.
 
 #### INSTALLED_APPS
 ```python
@@ -85,6 +82,8 @@ INSTALLED_APPS = [
     'pumpwood_djangoauth.mfaadmin',
     'pumpwood_djangoauth.registration',
     'pumpwood_djangoauth.system',
+    'pumpwood_djangoauth.groups',
+    'pumpwood_djangoauth.row_permission',
     'pumpwood_djangoauth.api_permission',
 ]
 ```
@@ -111,11 +110,12 @@ MIDDLEWARE = [
 ```
 
 #### Config REST_FRAMEWORK
-Ajust Knox configuration if necessary... but it is important to keep
-`knox.auth.TokenAuthentication` as `DEFAULT_AUTHENTICATION_CLASSES`,
-`rest_framework.permissions.IsAuthenticated` on `DEFAULT_PERMISSION_CLASSES`
-and `pumpwood_djangoviews.exception_handler.custom_exception_handler` as
-`EXCEPTION_HANDLER`.
+Keep ``knox.auth.TokenAuthentication`` as
+``DEFAULT_AUTHENTICATION_CLASSES``,
+``rest_framework.permissions.IsAuthenticated`` on
+``DEFAULT_PERMISSION_CLASSES`` and
+``pumpwood_djangoviews.exception_handler.custom_exception_handler`` as
+``EXCEPTION_HANDLER``.
 
 ```python
 REST_FRAMEWORK = {
@@ -132,7 +132,7 @@ REST_FRAMEWORK = {
 ```
 
 #### Config REST_KNOX
-Ajust Knox configuration if necessary...
+Adjust Knox configuration if necessary.
 ```python
 REST_KNOX = {
     'SECURE_HASH_ALGORITHM': 'cryptography.hazmat.primitives.hashes.SHA512',
@@ -146,18 +146,13 @@ REST_KNOX = {
 ```
 
 ### Register end-points on Kong
-To register models and other end-points on Kong it is possible to use
-`register_auth_kong_objects` helper function. For that it is necessary to
-set `get_wsgi_application()` to iniciate application models before importing
-views.
+Use ``register_auth_kong_objects`` or ``get_service_definitions`` from
+``pumpwood_djangoauth.service_registration`` to register services and routes.
+Call ``get_wsgi_application()`` before importing views so models are ready.
 
-Usually `SERVICE_URL` and `AUTH_STATIC_SERVICE` are set as enviroment
-variables. This might help when deploing application on K8s or docker-compose
-when both services might have different configuration.
-
-It might be interesting to set a enviroment variable (Ex. `CLOUD`)to set if
-application should register end-points or not. This is usefull for local
-tests of application for unitesting and development.
+Usually ``SERVICE_URL`` and ``AUTH_STATIC_SERVICE`` are set as environment
+variables. Set an environment variable such as ``CLOUD`` to control whether
+end-points are registered during local tests and development.
 
 ```
 from django.core.wsgi import get_wsgi_application

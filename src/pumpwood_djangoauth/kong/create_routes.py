@@ -1,7 +1,5 @@
-"""Auxiliar module to create routes and services."""
+"""Auxiliary module to create routes and services at Kong."""
 import os
-import time
-import random
 import textwrap
 from copy import deepcopy
 from slugify import slugify
@@ -13,60 +11,29 @@ def register_auth_kong_objects(service_url: str, service_description: str,
                                healthcheck_route: str, routes: list = [],
                                viewsets: list = [], service_icon: str = None,
                                service_extra_info: dict = {}):
-    """Register auth objects in kong and add them to database.
+    """Register auth objects in Kong and persist them in the database.
 
     Args:
         service_url (str):
-            Microservice endpoint url.
+            Microservice endpoint URL.
         service_description (str):
-            Service sort description.
+            Short service description.
         service_name (str):
             Name of the service.
         service_notes (str):
-            Service long description.
+            Long service description.
         service_dimensions (dict):
-            Dictionary with tag/value to organize services on database.
+            Tag/value pairs used to organize services in the database.
         healthcheck_route (str):
-            Health-check url for the microservice.
-        routes (List[dict]):
-            List of information to create routes associated with the
-            microservice. Ex:
-                {
-                    "route_url": "/rest/kongroute/",
-                    "route_name": "pumpwood-auth-app--kongroute",
-                    "route_type": "endpoint",
-                    "description": "Microservice Routes",
-                    "strip_path": False,
-                    "notes": (
-                        "Routes registred on Pumpwood, each one is associated "
-                        "with a microservice service."),
-                    "dimensions": {
-                        "microservice": "pumpwood-auth-app",
-                        "service_type": "core",
-                        "function": "system",
-                        "endpoint": "kongroute",
-                        "route_type": "endpoint"},
-                    "icon": ""
-                }, {  # Admin
-                    "route_url": "/admin/pumpwood-auth-app/gui/",
-                    "route_name": "pumpwood-auth-app--admin",
-                    "route_type": "admin",
-                    "description": "Pumpwood Auth Admin",
-                    "notes": (
-                        "Admin for pumpwood-auth-app microservice."),
-                    "dimensions": {
-                        "microservice": "pumpwood-auth-app",
-                        "service_type": "core",
-                        "function": "gui",
-                        "route_type": "admin"},
-                    "icon": ""
-                }
-        viewsets (List[ViewSet]):
-            List of PumpwoodViews to create routes at Kong.
+            Health-check URL for the microservice.
+        routes (list):
+            Route definitions associated with the microservice.
+        viewsets (list):
+            Pumpwood view classes used to create model routes at Kong.
         service_icon (str):
-            Icon that will be associated with service.
+            Icon associated with the service.
         service_extra_info (dict):
-            Extra info that will be saved with service.
+            Extra metadata saved with the service.
     """
     from django import db
     from django.core.wsgi import get_wsgi_application

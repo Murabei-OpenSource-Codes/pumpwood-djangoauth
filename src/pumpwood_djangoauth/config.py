@@ -1,9 +1,9 @@
 """
-Define configurations for Pumpwood systems and iniciate singletons objects.
+Define configurations for Pumpwood systems and initiate singleton objects.
 
-It is used to centralize criation and inicialization of Pumpwood systens
-singletons. These object are setted using enviroment variables and
-can be imported at the through the application.
+Centralizes creation and initialization of Pumpwood singletons. Objects are
+set using environment variables and can be imported throughout the
+application.
 
 Network and disk singletons are wrapped in ``LazyProxy`` so they are
 created on first use. This avoids opening shared sockets during gunicorn
@@ -47,53 +47,43 @@ from pumpwood_djangoauth.aux.general import django_apps_ready
 #####################
 # Singleton objects #
 kong_api: KongAPI
-"""Singleton used by Pumpwood Auth to register services and routes at Kong Api
-   service mesh. It will be used enviroment variable `API_GATEWAY_URL` to
-   initialize this object."""
-microservice: PumpWoodMicroService
+"""Singleton used to register services and routes at the Kong API gateway.
+
+Initialized from the ``API_GATEWAY_URL`` environment variable.
 """
-Singleton used by Pumpwood Auth to request call other microservices. It will
-be used `MICROSERVICE_NAME`, `MICROSERVICE_URL`, `MICROSERVICE_USERNAME`
-and `MICROSERVICE_PASSWORD` enviroment variable to initialize this object.
+microservice: PumpWoodMicroService
+"""Singleton used to call other Pumpwood microservices with service login.
 
-It is possible to use microservice to call pumpwood auth information, **just
-be carefull with recursive calls that will break the backend**.
+Initialized from ``MICROSERVICE_NAME``, ``MICROSERVICE_URL``,
+``MICROSERVICE_USERNAME`` and ``MICROSERVICE_PASSWORD``.
 
-**It is not recomended to use recursive calls at system startup**, this migth
-make system unavaiable (None replica will be avaiable to repond recursive
-call.).
+Avoid recursive calls to the auth service at startup; they can leave no
+replica available to answer follow-up requests.
 """
 microservice_no_login: PumpWoodMicroService
-"""
-Singleton used by Pumpwood Auth to request call other microservices. This
-object will not be logged using `MICROSERVICE_USERNAME` and
-`MICROSERVICE_PASSWORD` enviroment variables. It can be used to impersonate
-user when requesting other microservices.
+"""Singleton used to call other microservices without service credentials.
+
+Can be used to impersonate a user when requesting other microservices.
 """
 storage_object: PumpWoodStorage
-"""
-Singleton used to comunicate with flat storage. It is used
-`STORAGE_TYPE`, `STORAGE_BUCKET_NAME`, `STORAGE_BASE_PATH` for this
-object inicialization.
+"""Singleton used to communicate with flat file storage.
+
+Initialized from ``STORAGE_TYPE``, ``STORAGE_BUCKET_NAME`` and
+``STORAGE_BASE_PATH``.
 """
 rabbitmq_api: PumpWoodRabbitMQ
-"""
-Singleton used to comunicate with RabbitMQ. It is used
-`RABBITMQ_USERNAME`, `RABBITMQ_PASSWORD`, `RABBITMQ_HOST` and `RABBITMQ_PORT`
-for this object inicialization.
+"""Singleton used to communicate with RabbitMQ.
+
+Initialized from ``RABBITMQ_USERNAME``, ``RABBITMQ_PASSWORD``,
+``RABBITMQ_HOST`` and ``RABBITMQ_PORT``.
 """
 PUMPWOOD_AUTH_IS_RABBITMQ_LOG: str = os.getenv(
     'PUMPWOOD_AUTH_IS_RABBITMQ_LOG', "FALSE") == 'TRUE'
 """Will set if logs should be dumped to RabbitMQ or printed to stdout."""
 pumpwood_i8n: PumpwoodI8n
-"""
-Singleton imported from `pumpwood_i8n.singletons`, it is used to translate
-sentences using Pumpwood I8s end-points.
-"""
+"""Singleton used to translate sentences using Pumpwood i18n end-points."""
 MEDIA_URL: str = os.environ.get('MEDIA_URL', 'media/')
-"""Media base URL it can be used to create routes on Kong and make media
-   end-points avaiable at app URLs. Default value can be changed using
-   enviroment variable `MEDIA_URL`"""
+"""Media base URL for Kong routes and application media end-points."""
 
 ###################################
 # Kong interaction inicialization #
@@ -121,18 +111,34 @@ RABBITMQ_PORT = int(os.getenv('RABBITMQ_PORT', "5672"))
 
 #########
 # Cache #
-I8N_CACHE_EXPIRATION = int(
+I8N_CACHE_EXPIRATION: int = int(
     os.getenv('PUMPWOOD_AUTH__I8N_CACHE_EXPIRATION', '300'))
 """Default time for i8n cache expiration."""
+TOKEN_CACHE_EXPIRATION: int = int(
+    os.getenv('PUMPWOOD_AUTH__TOKEN_CACHE_EXPIRATION', '300'))
+"""Time to set expire at permission cache."""
+ROW_PERMISSION_CACHE_EXPIRATION: int = int(
+    os.getenv('PUMPWOOD_AUTH__ROW_PERMISSION_CACHE_EXPIRATION', '300'))
+"""Time to set expire at row permission cache."""
 
 
 def _build_kong_api():
-    """Build Kong API client from enviroment variables."""
+    """Build Kong API client from environment variables.
+
+    Returns:
+        KongAPI:
+            Kong admin API client.
+    """
     return KongAPI(api_gateway_url=API_GATEWAY_URL)
 
 
 def _build_microservice_no_login():
-    """Build microservice client without login credentials."""
+    """Build microservice client without login credentials.
+
+    Returns:
+        PumpWoodMicroService or None:
+            Client when ``MICROSERVICE_URL`` is set, otherwise ``None``.
+    """
     if MICROSERVICE_URL is None:
         return None
     return PumpWoodMicroService(
@@ -141,7 +147,12 @@ def _build_microservice_no_login():
 
 
 def _build_microservice():
-    """Build microservice client with login credentials."""
+    """Build microservice client with login credentials.
+
+    Returns:
+        PumpWoodMicroService or None:
+            Client when URL and username are set, otherwise ``None``.
+    """
     if MICROSERVICE_URL is None or MICROSERVICE_USERNAME is None:
         return None
     return PumpWoodMicroService(
@@ -151,7 +162,12 @@ def _build_microservice():
 
 
 def _build_storage_object():
-    """Build flat storage client from enviroment variables."""
+    """Build flat storage client from environment variables.
+
+    Returns:
+        PumpWoodStorage or None:
+            Client when ``STORAGE_TYPE`` is set, otherwise ``None``.
+    """
     if STORAGE_TYPE is None:
         return None
     return PumpWoodStorage(
@@ -160,7 +176,12 @@ def _build_storage_object():
 
 
 def _build_rabbitmq_api():
-    """Build RabbitMQ client from enviroment variables."""
+    """Build RabbitMQ client from environment variables.
+
+    Returns:
+        PumpWoodRabbitMQ or None:
+            Client when ``RABBITMQ_HOST`` is set, otherwise ``None``.
+    """
     if RABBITMQ_HOST is None:
         return None
     return PumpWoodRabbitMQ(
@@ -169,7 +190,12 @@ def _build_rabbitmq_api():
 
 
 def _build_pumpwood_i8n():
-    """Initiante I8n using django model as backend."""
+    """Initialize i18n using the Django translation model as backend.
+
+    Returns:
+        PumpwoodI8n:
+            Configured i18n singleton.
+    """
     _pumpwood_i8n_singleton.init(
         pumpwood_cache=default_cache,
         i8n_model='pumpwood_djangoauth.i8n.models.PumpwoodI8nTranslation',
@@ -199,10 +225,6 @@ def reset_config_singletons():
         proxy.reset()
 
 
-PUMPWOOD__AUTH__TOKEN_CACHE_EXPIRE = int(os.getenv(
-    'PUMPWOOD__AUTH__PERMISSION_CACHE_EXPIRE', 300))
-"""Time to set expire at permission cache."""
-
 #####################
 # SSO configuration #
 PUMPWOOD__SSO__REDIRECT_URL = os.getenv(
@@ -216,10 +238,10 @@ PUMPWOOD__SSO__TOKEN_URL = os.getenv(
 """Token URL SSO login."""
 PUMPWOOD__SSO__CLIENT_ID = os.getenv(
     "PUMPWOOD__SSO__CLIENT_ID")
-"""Token URL SSO CIENT_ID (Entra)."""
+"""OAuth client ID for SSO login (Entra)."""
 PUMPWOOD__SSO__SECRET = os.getenv(
     "PUMPWOOD__SSO__SECRET")
-"""Token URL SSO CIENT_ID (Entra)."""
+"""OAuth client secret for SSO login (Entra)."""
 PUMPWOOD__SSO__SCOPE = os.getenv(
     "PUMPWOOD__SSO__SCOPE", '["openid", "profile", "email"]')
 """Set the SCOPE of the SSO request, it is a JSON list of strings."""

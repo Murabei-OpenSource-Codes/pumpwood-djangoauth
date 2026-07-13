@@ -8,6 +8,7 @@ from loguru import logger
 from typing import List, Dict
 from django.db import models
 from django.db.models import Q
+from dataclasses import dataclass
 from psycopg2.errors import UniqueViolation
 from pumpwood_djangoviews.action import action
 from pumpwood_djangoviews.app import PumpwoodDjangoAppInspect
@@ -15,12 +16,11 @@ from pumpwood_djangoauth.config import kong_api
 from pumpwood_communication import exceptions
 from pumpwood_communication.serializers import PumpWoodJSONEncoder
 from pumpwood_communication.cache import default_cache
-from pumpwood_communication.type import ActionReturnFile
-from pumpwood_djangoauth.i8n.translate import t
+from pumpwood_communication.type import (
+    ActionReturnFile, PumpwoodDataclassMixin)
 
 # Aux classes
-from pumpwood_djangoauth.config import (
-    microservice, PUMPWOOD__AUTH__TOKEN_CACHE_EXPIRE)
+from pumpwood_djangoauth.config import TOKEN_CACHE_EXPIRATION
 from pumpwood_djangoauth.system.aux import (
     RouteAPIPermissionAux, MapPathRoleAux, GetRouteAux)
 
@@ -81,13 +81,8 @@ class KongService(models.Model):
         unique_together = [
             ['service_url', 'service_name'],
         ]
-
-        verbose_name = t(
-            'Service',
-            tag="KongService__admin")
-        verbose_name_plural = t(
-            'Services',
-            tag="KongService__admin", plural=True)
+        verbose_name = 'Service'
+        verbose_name_plural = 'Services'
 
     @classmethod
     @action(info='Load service/routes on Kong.')
@@ -474,6 +469,21 @@ class KongService(models.Model):
         }
 
 
+@dataclass
+class PumpWoodAuthKongRoutePermissionCache(PumpwoodDataclassMixin):
+    """Cache for Kong route permission."""
+    user_id: int
+    """User ID."""
+    method: str
+    """Method."""
+    path: str
+    """Path."""
+    role: str
+    """Role."""
+    context: str = 'pumpwood_djangoauth__kong_route_permission'
+
+
+
 class KongRoute(models.Model):
     """Routes registred on Kong API Gateway."""
 
@@ -804,10 +814,9 @@ class KongRoute(models.Model):
             Return True if self user has access to path/method.
         """
         user = request.user
-        hash_dict = {
-            'context': 'has-permission', 'user_id': user.id,
-            'method': method, 'path': path, 'role': role}
-        cache_data = default_cache.get(hash_dict=hash_dict)
+        cache_dict = PumpWoodAuthKongRoutePermissionCache(
+            user_id=user.id, method=method, path=path, role=role)
+        cache_data = default_cache.get(hash_dict=cache_dict)
         if cache_data is not None:
             return cache_data
 
@@ -832,8 +841,8 @@ class KongRoute(models.Model):
             'role': role_arg, 'action': route_info['action'],
             'route_id': route_info['route'].id}
         default_cache.set(
-            hash_dict=hash_dict, value=return_dict,
-            expire=PUMPWOOD__AUTH__TOKEN_CACHE_EXPIRE)
+            hash_dict=cache_dict, value=return_dict,
+            expire=TOKEN_CACHE_EXPIRATION)
         return return_dict
 
     @classmethod
