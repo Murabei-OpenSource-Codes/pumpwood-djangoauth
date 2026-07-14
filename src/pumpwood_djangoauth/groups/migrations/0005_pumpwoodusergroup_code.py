@@ -57,6 +57,14 @@ class Migration(migrations.Migration):
     ]
 
     operations = [
+        migrations.AddField(
+            model_name='pumpwoodusergroup',
+            name='code',
+            field=models.TextField(
+                blank=True,
+                help_text='A code to identify the permission group.',
+                verbose_name='Code'),
+        ),
         migrations.RunPython(
             backfill_group_codes,
             migrations.RunPython.noop),
