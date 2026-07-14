@@ -70,7 +70,7 @@ def register_auth_kong_objects(service_url: str, service_description: str,
         notes = notes + unique_docs
 
         # Search_options
-        search_options = view.cls_fields_options(translate=False)
+        search_options = view.cls_fields_options()
 
         # Icon
         icon = view.icon

@@ -5,18 +5,83 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased]
+## [2.1.57-b.0] - 2026-07-13
+### Added
+- ``aux.general.django_apps_ready`` helper for deferred local i18n.
+- ``PumpwoodAuthActionRoleCache`` and ``PumpwoodAuthHasPermissionCache``
+  dataclasses for permission cache keys.
+- ``PumpwoodAuthTranslationCache`` dataclass for i18n cache keys.
+- ``PUMPWOOD_AUTH__I8N_CACHE_EXPIRATION``,
+  ``PUMPWOOD_AUTH__TOKEN_CACHE_EXPIRATION``, and
+  ``PUMPWOOD_AUTH__ROW_PERMISSION_CACHE_EXPIRATION`` configuration.
+
+### Changed
+- Permission and translation caches use ``default_cache`` from
+  ``pumpwood-communication`` with typed dataclass keys.
+- ``config`` initializes ``pumpwood_i8n`` with the local i18n model and
+  ``django_apps_ready`` callback instead of the microservice backend.
+- ``MapPathRoleAux`` prefers ``PumpwoodDjangoAppInspect`` local lookups
+  before microservice calls.
+- Rename application config class to ``PumpwoodDjangoAuthConfig``.
+- Update README and package docstrings; remove Metabase references.
+
+### Removed
+- ``gunicorn_hooks`` module.
+- ``pumpwood_djangoauth.i8n.translate`` compatibility shim.
+
+## [2.1.56-b.0] - 2026-07-09
 ### Added
 - No adds.
 
 ### Changed
-- No changes.
+- ``KongService`` model drops Metabase dashboard relations.
 
 ### Removed
-- `pumpwood_djangoauth.metabase` app, template tags, and generated docs.
-  Remove `pumpwood_djangoauth.metabase` from `INSTALLED_APPS` in consuming
-  projects. Existing DB tables `metabase__dashboard` and
-  `metabase__dashboard_parameter` are no longer managed by this package.
+- ``pumpwood_djangoauth.metabase`` app, template tags, migrations, and
+  generated docs. Remove ``pumpwood_djangoauth.metabase`` from
+  ``INSTALLED_APPS`` in consuming projects. Existing DB tables
+  ``metabase__dashboard`` and ``metabase__dashboard_parameter`` are no
+  longer managed by this package.
+
+## [2.1.55-b.0] - 2026-07-09
+### Added
+- No adds.
+
+### Changed
+- ``MapPathRoleAux`` resolves actions locally via
+  ``PumpwoodDjangoAppInspect.list_actions_local`` before calling the
+  microservice.
+- Raise ``PumpWoodObjectDoesNotExist`` when a model class is not
+  registered locally or remotely.
+
+### Removed
+- No removes.
+
+## [2.1.54-b.0] - 2026-07-09
+### Added
+- ``PumpwoodDjangoAuthConfig`` application config in ``apps.py``.
+- ``gunicorn_hooks.post_fork`` calling ``reset_config_singletons``.
+
+### Changed
+- Migration ``0022`` backfills ``code`` on ``PumpwoodPermissionPolicy``
+  and ``PumpwoodPermissionPolicyAction`` from slugified description or
+  action names.
+
+### Removed
+- No removes.
+
+## [2.1.53-b.0] - 2026-06-30
+### Added
+- ``LazyProxy`` for deferred singleton initialization.
+- ``reset_config_singletons()`` for gunicorn worker fork lifecycle.
+- ``DISKCACHE_SIZE_LIMIT`` and ``DISKCACHE_EXPIRATION`` configuration.
+
+### Changed
+- Wrap Kong, microservice, storage, RabbitMQ, disk cache, and i18n
+  singletons in ``LazyProxy`` so network clients open on first use.
+
+### Removed
+- No removes.
 
 ## [2.1.52] - 2026-06-29
 ### Added
