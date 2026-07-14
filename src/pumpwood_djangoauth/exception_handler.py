@@ -1,10 +1,11 @@
 """
 Define custom exception handlers for Pumpwood systems.
 
-Custom erros can be used to correctly treat Pumpwood Exceptions and return
-the treated erro as a JSON with not 2XX status code.
+Custom errors can be used to treat Pumpwood exceptions and return a JSON
+payload with a non-2XX status code.
 
-`custom_exception_handler` can be used at REST_FRAMEWORK MiddleWare at Django.
+``custom_exception_handler`` can be registered in the Django
+``REST_FRAMEWORK`` settings dictionary.
 
 ```python
 REST_FRAMEWORK = {

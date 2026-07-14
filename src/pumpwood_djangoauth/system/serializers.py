@@ -1,13 +1,14 @@
-import pumpwood_djangoauth.i8n.translate as _
+"""Serializers for Kong service mesh models."""
 from rest_framework import serializers
 from pumpwood_djangoviews.serializers import (
     ClassNameField, DynamicFieldsModelSerializer,
     LocalForeignKeyField, LocalRelatedField)
 from pumpwood_djangoauth.system.models import KongService, KongRoute
+from pumpwood_i8n.singletons import pumpwood_i8n
 
 
 class KongRouteSerializer(DynamicFieldsModelSerializer):
-    """Serializer for KongRoute model."""
+    """Serialize ``KongRoute`` records with translated metadata fields."""
     pk = serializers.IntegerField(source='id', allow_null=True, required=False)
     model_class = ClassNameField()
 
@@ -35,20 +36,38 @@ class KongRouteSerializer(DynamicFieldsModelSerializer):
             "route_url", "route_type", "description"]
 
     def get_description__verbose(self, obj):
-        """Translate description."""
-        return str(_.t(
+        """Return translated route description.
+
+        Args:
+            obj (KongRoute):
+                Route instance being serialized.
+
+        Returns:
+            str:
+                Translated description text.
+        """
+        return pumpwood_i8n.t(
             sentence=obj.description,
-            tag="KongRoute__field__description"))
+            tag="KongRoute__field__description")
 
     def get_notes__verbose(self, obj):
-        """Translate notes."""
-        return str(_.t(
+        """Return translated route notes.
+
+        Args:
+            obj (KongRoute):
+                Route instance being serialized.
+
+        Returns:
+            str:
+                Translated notes text.
+        """
+        return pumpwood_i8n.t(
             sentence=obj.notes,
-            tag="KongRoute__field__notes"))
+            tag="KongRoute__field__notes")
 
 
 class KongServiceSerializer(DynamicFieldsModelSerializer):
-    """Serializer for KongService model."""
+    """Serialize ``KongService`` records with nested routes."""
     pk = serializers.IntegerField(source='id', allow_null=True, required=False)
     model_class = ClassNameField()
     description__verbose = serializers.SerializerMethodField()
@@ -70,13 +89,31 @@ class KongServiceSerializer(DynamicFieldsModelSerializer):
             "pk", "model_class", "order", "service_name", "description"]
 
     def get_description__verbose(self, obj):
-        """Translate description."""
-        return str(_.t(
+        """Return translated service description.
+
+        Args:
+            obj (KongService):
+                Service instance being serialized.
+
+        Returns:
+            str:
+                Translated description text.
+        """
+        return pumpwood_i8n.t(
             sentence=obj.description,
-            tag="KongService__field__description"))
+            tag="KongService__field__description")
 
     def get_notes__verbose(self, obj):
-        """Translate notes."""
-        return str(_.t(
+        """Return translated service notes.
+
+        Args:
+            obj (KongService):
+                Service instance being serialized.
+
+        Returns:
+            str:
+                Translated notes text.
+        """
+        return pumpwood_i8n.t(
             sentence=obj.notes,
-            tag="KongService__field__notes"))
+            tag="KongService__field__notes")

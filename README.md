@@ -1,10 +1,11 @@
 # PumpWood Django Auth
+
 Create basic Pumpwood end-points for authentication and service mesh using
 Kong. It integrates with
 <a href="https://github.com/Murabei-OpenSource-Codes/pumpwood-communication">
     pumpwood-communication
-
-</a> and <a href="https://github.com/Murabei-OpenSource-Codes/pumpwood-djangoviews">
+</a> and
+<a href="https://github.com/Murabei-OpenSource-Codes/pumpwood-djangoviews">
     pumpwood-djangoviews
 </a>.
 
@@ -12,119 +13,209 @@ Kong. It integrates with
   <img src="static_doc/sitelogo-horizontal.png" /> <br>
 
   <a href="https://en.wikipedia.org/wiki/Cecropia">
-    Pumpwood is a native brasilian tree
+    Pumpwood is a native Brazilian tree
   </a> which has a symbiotic relation with ants (Murabei)
 </p>
 
 ## Environment variables
-Some environment variables are used to configuration features at the package:
 
-### Kong integration (API_GATEWAY_URL)
-To set the Kong Api host, use the environment variable `API_GATEWAY_URL`.
-Calling system end-point without setting the variable may lead to errors.
+The `config` module centralizes singletons used across Pumpwood Auth.
+Network and disk clients are wrapped in ``LazyProxy`` and created on first
+use. When running gunicorn with ``--preload``, call
+``reset_config_singletons()`` from a ``post_fork`` hook so workers do not
+reuse master-process connections.
 
-### Pumpwood Microservice Integration
-It is possible to use microservice objects to call other Pumpwood end-points,
-or even make a self call in multi-process architecture (more than one
-instance of the authentication application). For at it is necessary to set:
+### Kong integration
 
-- `MICROSERVICE_NAME`: microservice object name, used for debug pourposes.
-- `MICROSERVICE_URL`: Full path of the Pumpwood Api Gateway or Service Mesh.
-- `MICROSERVICE_USERNAME`: Username to be used at login.
-- `MICROSERVICE_PASSWORD`: Password to be used at login.
+- `API_GATEWAY_URL`: Kong admin API host. Required to register services and
+  routes through ``KongService`` and ``KongRoute`` models.
 
-### Pumpwood Storage Integration
-- `STORAGE_TYPE`: storage type to be used serving media files [google_bucket, aws_s3, azure_storage]
-- `STORAGE_BUCKET_NAME`: Name of the bucket, blog or S3 to be used.
-- `STORAGE_BASE_PATH`: Base path to be used when saving files with auth microservice.
+### Pumpwood microservice integration
 
-#### Pumpwood Storage cloud configuration
-Depending on the storage back-end, it must be provided credentials and other information.
+- `MICROSERVICE_NAME`: microservice object name, used for debug purposes.
+- `MICROSERVICE_URL`: full path of the Pumpwood API Gateway or service mesh.
+- `MICROSERVICE_USERNAME`: username used for service-to-service login.
+- `MICROSERVICE_PASSWORD`: password used for service-to-service login.
+
+Service users flagged with ``UserProfile.is_service_user`` cannot log in from
+outside the application cluster.
+
+### Pumpwood storage integration
+
+- `STORAGE_TYPE`: storage back-end
+  [``google_bucket``, ``aws_s3``, ``azure_storage``].
+- `STORAGE_BUCKET_NAME`: name of the bucket, blob or S3 to be used.
+- `STORAGE_BASE_PATH`: base path when saving files. Defaults to
+  ``pumpwood_auth``.
+- `MEDIA_URL`: media base URL for Kong routes. Defaults to ``media/``.
+
+#### Pumpwood storage cloud configuration
+
+Depending on the storage back-end, credentials and other information must be
+provided.
+
 - aws_s3
-  -  `AWS_ACCESS_KEY_ID`: Access Key for the service user to access s3.
-  - `AWS_SECRET_ACCESS_KEY`:  Secret Key for the service user to access s3.
+  - `AWS_ACCESS_KEY_ID`: access key for the service user to access S3.
+  - `AWS_SECRET_ACCESS_KEY`: secret key for the service user to access S3.
 - azure_storage
-  - `AZURE_STORAGE_CONNECTION_STRING`: Storage connection string to access storage account.
+  - `AZURE_STORAGE_CONNECTION_STRING`: connection string for the storage
+    account.
 - google_bucket
-  - `GOOGLE_APPLICATION_CREDENTIALS`: Path for the google application credentials.
+  - `GOOGLE_APPLICATION_CREDENTIALS`: path to Google application credentials.
 
-### Logging user activity
-It is possible to log consumer activify using RabbitMQ and a cosumer process
-this option is activated using `PUMPWOOD_AUTH_IS_RABBITMQ_LOG` parameter.
-All call that has `X-PUMPWOOD-Ingress-Request` header (that may be set using
-a NGINX termination container) and user that request is not a a service user
-(`UserProfile.is_service_user == False`) will be sent to `auth__api_request_log`
-RabbitMQ queue.
-- `PUMPWOOD_AUTH_IS_RABBITMQ_LOG [TRUE, FALSE]`: Set if authentication logs
-  should be sent to RabbitMQ (TRUE) or just printed on stdout (FALSE).
-  If `PUMPWOOD_AUTH_IS_RABBITMQ_LOG` is `TRUE`, but RabbitMQ credentials are not
-  set authentication logs will be sent to stdout anyway.
+### RabbitMQ logging
+
+- `RABBITMQ_USERNAME`, `RABBITMQ_PASSWORD`, `RABBITMQ_HOST`,
+  `RABBITMQ_PORT`: credentials and host for RabbitMQ log delivery.
+- `PUMPWOOD_AUTH_IS_RABBITMQ_LOG` [``TRUE``, ``FALSE``]: send authentication
+  logs to RabbitMQ (``TRUE``) or stdout (``FALSE``). When ``TRUE`` but
+  RabbitMQ credentials are missing, logs fall back to stdout.
+
+All calls with the ``X-PUMPWOOD-Ingress-Request`` header (set by an NGINX
+termination container) whose user is not a service user are sent to the
+``auth__api_request_log`` queue.
+
+### Cache expiration
+
+- `PUMPWOOD_AUTH__I8N_CACHE_EXPIRATION`: i18n cache TTL in seconds. Default
+  ``300``.
+- `PUMPWOOD_AUTH__TOKEN_CACHE_EXPIRATION`: permission token cache TTL.
+  Default ``300``.
+- `PUMPWOOD_AUTH__ROW_PERMISSION_CACHE_EXPIRATION`: row permission cache TTL.
+  Default ``300``.
 
 ## Quick start
-Crate basic models and end-points to integrate with pumpwood communication
-and views. To incorporate in project add to `settings.py`.
+
+Add Pumpwood Auth apps to ``settings.py``:
 
 ```
 INSTALLED_APPS = [
+    # Admin APPs
+    'flat_json_widget',
+    'pumpwood_djangoviews',
+
+    # Django apps
+    'django.contrib.admin',
+    'django.contrib.auth',
+    'django.contrib.contenttypes',
+    'django.contrib.sessions',
+    'django.contrib.messages',
+    'django.contrib.staticfiles',
+    'django_extensions',
+
+    # MFA Admin
+    'rest_framework',
+    'knox',
+
     # Django Pumpwood Auth Models
+    'pumpwood_djangoauth',
+    'pumpwood_djangoauth.i8n',
+    'pumpwood_djangoauth.mfaadmin',
     'pumpwood_djangoauth.registration',
     'pumpwood_djangoauth.system',
-
-    [...]
+    'pumpwood_djangoauth.groups',
+    'pumpwood_djangoauth.row_permission',
+    'pumpwood_djangoauth.api_permission',
 ]
 ```
 
-Add views to url.py:
+Add request logging middleware (login must be the last middleware call):
+
+```
+MIDDLEWARE = [
+    'corsheaders.middleware.CorsMiddleware',
+    'django.middleware.security.SecurityMiddleware',
+    'django.contrib.sessions.middleware.SessionMiddleware',
+    'django.middleware.common.CommonMiddleware',
+    'django.contrib.auth.middleware.AuthenticationMiddleware',
+    'django.contrib.messages.middleware.MessageMiddleware',
+    'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'pumpwood_djangoauth.log.middleware.RequestLogMiddleware',
+]
+```
+
+Configure REST framework and Knox:
+
+```
+REST_FRAMEWORK = {
+    'DEFAULT_PERMISSION_CLASSES': (
+        'rest_framework.permissions.IsAuthenticated',
+    ),
+    'DEFAULT_AUTHENTICATION_CLASSES': (
+        'knox.auth.TokenAuthentication',
+    ),
+    'EXCEPTION_HANDLER': (
+        'pumpwood_djangoviews.exception_handler.custom_exception_handler'
+    )
+}
+```
+
+Add routes to ``urls.py``. You can include each app separately or use the
+consolidated entry point:
+
 ```
 urlpatterns = [
-    [...],
-    # Health check, it is important to set a health check end-point.
     url(r'^health-check/pumpwood-auth-app/',
         lambda r: JsonResponse(True, safe=False)),
-
-    # Registration end-points
-    url(r'^rest/', include('pumpwood_djangoauth.registration.urls')),
-    url(r'^rest/', include('pumpwood_djangoauth.system.urls')),
-
-    [...],
+    url(r'^rest/', include('pumpwood_djangoauth.urls')),
 ]
 ```
 
+### Gunicorn preload
+
+When using gunicorn with ``--preload``, reset lazy singletons after fork:
+
+```
+def post_fork(server, worker):
+    from pumpwood_djangoauth.config import reset_config_singletons
+    reset_config_singletons()
+```
+
+### Permission codes
+
+Groups, row permissions and API permission policies expose a ``code`` field
+for stable identification across environments and integrations.
+
+- `PumpwoodUserGroup.code`: required, unique identifier for a permission
+  group.
+- `PumpwoodRowPermission.code`: optional, unique identifier for a row
+  permission tag.
+- `PumpwoodPermissionPolicy.code`: optional, unique identifier for an API
+  permission policy.
+- `PumpwoodPermissionPolicyAction.code`: optional, unique identifier for a
+  policy action.
+
+Codes are available on REST serializers and can be used when linking policies
+programmatically instead of relying on database primary keys.
+
 ### Registering end-points
-To register end-points it is possible to use register_auth_kong_objects.
-It is possible to set using a dictionary or using pumpwood views.
+
+Use ``register_auth_kong_objects`` to register services and routes at Kong.
+For the default auth layout, ``get_service_definitions`` from
+``pumpwood_djangoauth.service_registration`` returns ready-made service and
+route dictionaries.
 
 ```
 from pumpwood_djangoauth.kong.create_routes import register_auth_kong_objects
+from pumpwood_djangoauth.service_registration import get_service_definitions
 from pumpwood_djangoauth.system.views import (
     RestKongRoute, RestKongService)
 from pumpwood_djangoauth.registration.views import RestUser
 
-# Pumpwood Views from models
-from people.rest import (RestPeople, RestCats)
-
-# Enviroment variable defining path to the service at the cluster
-# (may be akubenetes service)
 service_url = os.environ.get("SERVICE_URL")
 
-# Register rest end-points and admin
 register_auth_kong_objects(
-    # Set description of the services that will receive the routes
-
     service_url=service_url,
     service_name="people-and-cats-main",
     healthcheck_route="/health-check/pumpwood-auth-app/",
     service_description="Main auth application",
-    service_notes=(
-        "Main app."),
-    service_dimentions={
+    service_notes="Main app.",
+    service_dimensions={
         "microservice": "pumpwood-auth-app",
         "type": "core",
         "function": "authentication"},
     service_icon=None,
     service_extra_info={},
-
-    # These routes are necessary for auth
     routes=[{
         "route_url": "/rest/registration/",
         "route_name": "api--registration",
@@ -133,7 +224,7 @@ register_auth_kong_objects(
         "notes": (
             "End-point for login, logout and other Authentication "
             "functions"),
-        "dimentions": {
+        "dimensions": {
             "microservice": "pumpwood-auth-app",
             "service_type": "core",
             "function": "authentication",
@@ -141,74 +232,31 @@ register_auth_kong_objects(
             "route_type": "aux"},
         "icon": "",
         "extra_info": {}
-    }, {
-
-    # Some auxiliary end-points for Pumpwood
-        "route_url": "/rest/pumpwood/",
-        "route_name": "api--pumpwood",
-        "route_type": "aux",
-        "description": "Pumpwood System",
-        "notes": (
-            "System related end-points to list Kong routes, and "
-            "dummy-calls"),
-        "dimentions": {
-            "microservice": "pumpwood-auth-app",
-            "service_type": "core",
-            "function": "system",
-            "endpoint": "pumpwood",
-            "route_type": "aux"},
-        "icon": "",
-        "extra_info": {}
-    }, {
-
-    # Add admin routes if necessary
-        "route_url": "/admin/pumpwood-auth-app/",
-        "route_name": "admin--pumpwood-auth-app",
-        "route_type": "admin",
-        "description": "Pumpwood Auth Admin",
-        "notes": (
-            "Admin for pumpwood-auth-app microservice."),
-        "dimentions": {
-            "microservice": "pumpwood-auth-app",
-            "service_type": "core",
-            "function": "gui",
-            "route_type": "admin"},
-        "icon": "",
-        "extra_info": {}
-    }, {
-
-    # Add gui and other routes if necessary
-        "route_url": "/gui/",
-        "route_name": "gui--pumpwood-auth-app",
-        "route_type": "gui",
-        "description": (
-            "Cats and people GUI"),
-        "notes": (
-            "GUI to access cats and people GUI."),
-        "dimentions": {
-            "microservice": "pumpwood-auth-app",
-            "service_type": "core",
-            "function": "gui",
-            "route_type": "gui"},
-        "icon": "",
-        "extra_info": {}
     }],
-
-    # Expose Pumpwood Rest Views end-points
-    viewsets=[
-        RestKongRoute, RestKongService, RestUser,
-        RestPeople, RestCats])
+    viewsets=[RestKongRoute, RestKongService, RestUser])
 ```
 
 ### Login MFA
-Enviroment variables:
-- **PUMPWOOD__MFA__TOKEN_EXPIRATION_INTERVAL:** Set expiration interval of the
-  MFA token sent to user, it is in seconds.
-- **PUMPWOOD__MFA__APPLICATION_NAME:** Set application name to be used on
-  MFA messages.
 
-### Twilio SMS Message
-To send SMS using Twilio back-end it is necessary to set these Environment
-variables.
-- **PUMPWOOD__MFA__TWILIO_ACCOUNT_SID:** Twilio Account SID.
-- **PUMPWOOD__MFA__TWILIO_AUTH_TOKEN:** Twilio Auth Token.
+- `PUMPWOOD__MFA__TOKEN_EXPIRATION_INTERVAL`: MFA token expiration in
+  seconds.
+- `PUMPWOOD__MFA__APPLICATION_NAME`: application name used on MFA messages.
+
+### Twilio SMS
+
+- `PUMPWOOD__MFA__TWILIO_ACCOUNT_SID`: Twilio Account SID.
+- `PUMPWOOD__MFA__TWILIO_AUTH_TOKEN`: Twilio Auth Token.
+
+### Single sign-on (SSO)
+
+- `PUMPWOOD__SSO__PROVIDER`: SSO provider. Supported value:
+  ``microsoft-entra``.
+- `PUMPWOOD__SSO__REDIRECT_URL`: redirect URL after SSO login.
+- `PUMPWOOD__SSO__AUTHORIZATION_URL`: authorization URL for SSO login.
+- `PUMPWOOD__SSO__TOKEN_URL`: token URL for SSO login.
+- `PUMPWOOD__SSO__CLIENT_ID`: OAuth client ID (Entra).
+- `PUMPWOOD__SSO__SECRET`: OAuth client secret (Entra).
+- `PUMPWOOD__SSO__SCOPE`: JSON list of OAuth scopes. Default
+  ``["openid", "profile", "email"]``.
+- `PUMPWOOD__SSO__PROXY_HTTP` and `PUMPWOOD__SSO__PROXY_HTTPS`: optional
+  HTTP/HTTPS proxies for SSO requests. Both must be set when using proxies.

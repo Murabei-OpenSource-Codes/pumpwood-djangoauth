@@ -1,4 +1,4 @@
-"""Create views for metabase end-points."""
+"""Create views for i8n end-points."""
 from pumpwood_djangoviews.views import PumpWoodRestService
 from pumpwood_djangoauth.config import storage_object, microservice
 from pumpwood_djangoauth.i8n.models import PumpwoodI8nTranslation

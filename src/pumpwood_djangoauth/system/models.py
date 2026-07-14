@@ -8,18 +8,19 @@ from loguru import logger
 from typing import List, Dict
 from django.db import models
 from django.db.models import Q
+from dataclasses import dataclass
 from psycopg2.errors import UniqueViolation
 from pumpwood_djangoviews.action import action
+from pumpwood_djangoviews.app import PumpwoodDjangoAppInspect
 from pumpwood_djangoauth.config import kong_api
 from pumpwood_communication import exceptions
 from pumpwood_communication.serializers import PumpWoodJSONEncoder
 from pumpwood_communication.cache import default_cache
-from pumpwood_communication.type import ActionReturnFile
-from pumpwood_djangoauth.i8n.translate import t
+from pumpwood_communication.type import (
+    ActionReturnFile, PumpwoodDataclassMixin)
 
 # Aux classes
-from pumpwood_djangoauth.config import (
-    microservice, PUMPWOOD__AUTH__TOKEN_CACHE_EXPIRE)
+from pumpwood_djangoauth.config import TOKEN_CACHE_EXPIRATION
 from pumpwood_djangoauth.system.aux import (
     RouteAPIPermissionAux, MapPathRoleAux, GetRouteAux)
 
@@ -80,13 +81,8 @@ class KongService(models.Model):
         unique_together = [
             ['service_url', 'service_name'],
         ]
-
-        verbose_name = t(
-            'Service',
-            tag="KongService__admin")
-        verbose_name_plural = t(
-            'Services',
-            tag="KongService__admin", plural=True)
+        verbose_name = 'Service'
+        verbose_name_plural = 'Services'
 
     @classmethod
     @action(info='Load service/routes on Kong.')
@@ -338,6 +334,7 @@ class KongService(models.Model):
                         'indexed': field_data.get('indexed'),
                         'unique': field_data.get('unique'),
                         'read_only': field_data.get('read_only'),
+                        'options_in': field_data.get('in'),
                         'foreign_key_model_class':
                             field_data.get('foreign_key_model_class'),
                         'foreign_key_display_field':
@@ -470,6 +467,21 @@ class KongService(models.Model):
             'notes': self.notes,
             'route_set': route_set
         }
+
+
+@dataclass
+class PumpWoodAuthKongRoutePermissionCache(PumpwoodDataclassMixin):
+    """Cache for Kong route permission."""
+    user_id: int
+    """User ID."""
+    method: str
+    """Method."""
+    path: str
+    """Path."""
+    role: str
+    """Role."""
+    context: str = 'pumpwood_djangoauth__kong_route_permission'
+
 
 
 class KongRoute(models.Model):
@@ -802,10 +814,9 @@ class KongRoute(models.Model):
             Return True if self user has access to path/method.
         """
         user = request.user
-        hash_dict = {
-            'context': 'has-permission', 'user_id': user.id,
-            'method': method, 'path': path, 'role': role}
-        cache_data = default_cache.get(hash_dict=hash_dict)
+        cache_dict = PumpWoodAuthKongRoutePermissionCache(
+            user_id=user.id, method=method, path=path, role=role)
+        cache_data = default_cache.get(hash_dict=cache_dict)
         if cache_data is not None:
             return cache_data
 
@@ -830,8 +841,8 @@ class KongRoute(models.Model):
             'role': role_arg, 'action': route_info['action'],
             'route_id': route_info['route'].id}
         default_cache.set(
-            hash_dict=hash_dict, value=return_dict,
-            expire=PUMPWOOD__AUTH__TOKEN_CACHE_EXPIRE)
+            hash_dict=cache_dict, value=return_dict,
+            expire=TOKEN_CACHE_EXPIRATION)
         return return_dict
 
     @classmethod
@@ -932,46 +943,52 @@ class KongRoute(models.Model):
         if self.route_type == 'endpoint':
             # Retrieve fields data
             try:
-                fill_validation_data = microservice.fill_validation(
-                    model_class=self.route_name)
-                field_descriptions = fill_validation_data['field_descriptions']
-                for key, item in field_descriptions.items():
-                    temp_item = deepcopy(item)
-                    temp_item['column'] = key
+                fill_validation_data = (
+                    PumpwoodDjangoAppInspect.fill_validation_local(
+                        model_class=self.route_name))
+                if fill_validation_data is not None:
+                    field_descriptions = (
+                        fill_validation_data['field_descriptions'])
+                    for key, item in field_descriptions.items():
+                        temp_item = deepcopy(item)
+                        temp_item['column'] = key
 
-                    # Foreign Key data
-                    temp_item['model_class'] = None
-                    temp_item['display_field'] = None
-                    temp_item['many'] = None
-                    temp_item['object_field'] = None
+                        # Foreign Key data
+                        temp_item['model_class'] = None
+                        temp_item['display_field'] = None
+                        temp_item['many'] = None
+                        temp_item['object_field'] = None
 
-                    # Treat information from foreign_key
-                    if temp_item['type'] == 'foreign_key':
-                        extra_info = temp_item['extra_info']
-                        temp_item['foreign_key_model_class'] = \
-                            extra_info.get('model_class')
-                        temp_item['foreign_key_display_field'] = \
-                            extra_info.get('display_field')
-                        temp_item['foreign_key_object_field'] = \
-                            extra_info.get('object_field')
+                        # Treat information from foreign_key
+                        if temp_item['type'] == 'foreign_key':
+                            extra_info = temp_item['extra_info']
+                            temp_item['foreign_key_model_class'] = \
+                                extra_info.get('model_class')
+                            temp_item['foreign_key_display_field'] = \
+                                extra_info.get('display_field')
+                            temp_item['foreign_key_object_field'] = \
+                                extra_info.get('object_field')
 
-                    # Treat information from related_model
-                    elif temp_item['type'] == 'related_model':
-                        extra_info = temp_item['extra_info']
-                        temp_item['related_model_model_class'] = \
-                            extra_info.get('model_class')
-                        temp_item['related_model_pk_field'] = \
-                            extra_info.get('pk_field')
-                        temp_item['related_model_foreign_key'] = \
-                            extra_info.get('foreign_key')
-                    fields_data.append(temp_item)
+                        # Treat information from related_model
+                        elif temp_item['type'] == 'related_model':
+                            extra_info = temp_item['extra_info']
+                            temp_item['related_model_model_class'] = \
+                                extra_info.get('model_class')
+                            temp_item['related_model_pk_field'] = \
+                                extra_info.get('pk_field')
+                            temp_item['related_model_foreign_key'] = \
+                                extra_info.get('foreign_key')
+
+                        fields_data.append(temp_item)
             except Exception: # NOQA
                 pass
 
             # Retrieve action data
             try:
-                action_data = microservice.list_actions(
+                action_data = PumpwoodDjangoAppInspect.list_actions_local(
                     model_class=self.route_name)
+                if action_data is None:
+                    action_data = []
             except Exception: # NOQA
                 pass
 

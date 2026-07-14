@@ -86,6 +86,11 @@ class PumpwoodPermissionPolicy(models.Model):
     """Action Permission choices that will restrict `can_run_actions`
        attribute."""
 
+    code = models.TextField(
+        null=True, unique=True, blank=True,
+        verbose_name="Code",
+        help_text="A code to identify the permission group.")
+    """@private"""
     description = models.TextField(
         null=False, unique=True, blank=False,
         verbose_name="Description",
@@ -203,6 +208,11 @@ class PumpwoodPermissionPolicyAction(models.Model):
     ]
     """Choices associated with custom action policy."""
 
+    code = models.TextField(
+        null=True, unique=True, blank=True,
+        verbose_name="Code",
+        help_text="A code to identify the permission group.")
+    """@private"""
     policy = models.ForeignKey(
         PumpwoodPermissionPolicy, on_delete=models.CASCADE,
         related_name="action_set", verbose_name="Policy",

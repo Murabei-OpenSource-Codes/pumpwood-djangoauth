@@ -16,8 +16,6 @@ def get_service_definitions():
         RestKongRoute, RestKongService)
     from pumpwood_djangoauth.registration.views import (
         RestUser, RestUserProfile)
-    from pumpwood_djangoauth.metabase.views import (
-        RestMetabaseDashboard, RestMetabaseDashboardParameter)
     from pumpwood_djangoauth.i8n.views import RestPumpwoodI8nTranslation
     from pumpwood_djangoauth.api_permission.views import (
         RestPumpwoodPermissionPolicy, RestPumpwoodPermissionPolicyAction,
@@ -28,9 +26,6 @@ def get_service_definitions():
         RestPumpwoodRowPermissionUserM2M)
     from pumpwood_djangoauth.groups.views import (
         RestPumpwoodUserGroup, RestPumpwoodUserGroupM2M)
-
-    # Local Models
-    from fixtures.views import RestFixturesRowLevelPermission
 
     auth_service_definition = {
         "service_url": _service_url,
@@ -127,8 +122,6 @@ def get_service_definitions():
             RestKongService,
             RestUser,
             RestUserProfile,
-            RestMetabaseDashboard,
-            RestMetabaseDashboardParameter,
             RestPumpwoodI8nTranslation,
             RestPumpwoodPermissionPolicy,
             RestPumpwoodPermissionPolicyAction,
@@ -137,7 +130,6 @@ def get_service_definitions():
             RestPumpwoodRowPermission,
             RestPumpwoodRowPermissionGroupM2M,
             RestPumpwoodRowPermissionUserM2M,
-            RestFixturesRowLevelPermission,
             RestPumpwoodUserGroup,
             RestPumpwoodUserGroupM2M]
     }

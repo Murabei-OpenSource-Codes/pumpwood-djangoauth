@@ -32,11 +32,10 @@ class PumpwoodPermissionPolicyAdmin(admin.ModelAdmin):
     form = PumpwoodRowPermissionAdminForm
 
     list_filter = []
-    search_fields = ["description", "notes", ]
+    search_fields = ["code", "description", "notes", ]
 
     list_display = (
-        "description", "notes", "dimensions", "extra_info", "updated_by",
-        "updated_at")
+        "code", "description", "notes", "updated_by", "updated_at")
     readonly_fields = ["updated_by", "updated_at"]
 
     inlines = [
@@ -46,12 +45,12 @@ class PumpwoodPermissionPolicyAdmin(admin.ModelAdmin):
     fieldsets = ((
              None, {
                  'fields': (
-                     'description', 'notes', 'dimensions',
-                     'updated_by', 'updated_at',
+                     'code', 'description', 'notes', 'updated_by',
+                     'updated_at',
                  )}
          ), (
              'Extra-info', {
-                 'fields': ('extra_info', ), }
+                 'fields': ('dimensions', 'extra_info', ), }
 
          )
     )

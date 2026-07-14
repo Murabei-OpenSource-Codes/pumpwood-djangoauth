@@ -11,6 +11,7 @@ class PumpwoodUserGroup(models.Model):
     PermissionPolicy collectivity.
 
     Model fields:
+        - **code [TextField]:** Unique code identifying the permission group.
         - **description [TextField]:** Description of the permission group.
         - **notes [TextField]:** Long notes associated with permission group.
         - **dimensions [JSONField]:** Key/Value tags for organization of
@@ -23,6 +24,11 @@ class PumpwoodUserGroup(models.Model):
             group was updated.
     """
 
+    code = models.TextField(
+        null=False, unique=True, blank=True,
+        verbose_name="Code",
+        help_text="A code to identify the permission group.")
+    """@private"""
     description = models.TextField(
         null=False, unique=True, blank=False,
         verbose_name="Description",

@@ -19,7 +19,6 @@ from pumpwood_communication.exceptions import (
 from pumpwood_djangoviews.action import action
 from pumpwood_djangoauth.registration.mfa_aux.message_delivery import (
     send_mfa_code)
-from pumpwood_djangoauth.i8n.translate import t
 
 # Auxiliary classes and functions
 from pumpwood_djangoauth.registration.aux import (
@@ -242,12 +241,8 @@ class PumpwoodMFAMethod(models.Model):
             "of the MFA Method"))
     extra_info = models.JSONField(
         default=dict, blank=True, encoder=PumpWoodJSONEncoder,
-        verbose_name=t(
-            "Extra info.",
-            tag="PumpwoodMFAMethod__admin__extra_info"),
-        help_text=t((
-            "Extra information for MFA method"),
-            tag="PumpwoodMFAMethod__admin__extra_info"))
+        verbose_name="Extra info.",
+        help_text="Extra information for MFA method")
 
     class Meta:
         """Meta class."""
@@ -256,12 +251,8 @@ class PumpwoodMFAMethod(models.Model):
             ['user_id', 'type'],
             ['user_id', 'priority']
         ]
-        verbose_name = t(
-            'MFA Method',
-            tag="PumpwoodMFAMethod__admin")
-        verbose_name_plural = t(
-            'MFA Methods',
-            tag="PumpwoodMFAMethod__admin", plural=True)
+        verbose_name = 'MFA Method'
+        verbose_name_plural = 'MFA Methods'
 
     def save(self, *args, **kwargs):
         """Validate creation of MFA when saving object."""

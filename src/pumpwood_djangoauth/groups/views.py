@@ -33,8 +33,8 @@ class RestPumpwoodUserGroup(PumpWoodRestService):
     gui_retrieve_fieldset = [{
             "name": "main",
             "fields": [
-                'pk', 'model_class', 'description', 'notes', 'dimensions',
-                "updated_by_id", "updated_at"]
+                'pk', 'model_class', 'code', 'description', 'notes',
+                'dimensions', "updated_by_id", "updated_at"]
         }, {
             "name": "extra-info",
             "fields": ['extra_info']

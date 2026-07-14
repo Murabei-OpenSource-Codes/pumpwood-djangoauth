@@ -1,17 +1,21 @@
 """Functions to help fetching permissions from user."""
 import copy
 import importlib.resources as pkg_resources
+from dataclasses import dataclass
 from typing import List, Dict, Union, Any
 from django.db import connection
 from django.contrib.auth import get_user_model
-from pumpwood_djangoauth.config import (
-    diskcache, DISKCACHE_EXPIRATION, microservice)
+from pumpwood_djangoviews.app import PumpwoodDjangoAppInspect
+from pumpwood_djangoauth.config import microservice, TOKEN_CACHE_EXPIRATION
 
 # Pumpwood Exceptions
 from pumpwood_communication.exceptions import (
     PumpWoodActionArgsException, PumpWoodOtherException,
     PumpWoodNotImplementedError, PumpWoodObjectDoesNotExist,
     PumpWoodForbidden)
+from pumpwood_communication.cache import default_cache
+from pumpwood_communication.type import PumpwoodDataclassMixin
+
 
 # Read sql query from package resources
 route_api_permissions = pkg_resources.read_text(
@@ -33,6 +37,34 @@ def _get_item_or_none(list_data: list, index: int) -> Union[None, Any]:
         otherwise.
     """
     return list_data[index] if index < len(list_data) else None
+
+
+@dataclass
+class PumpwoodAuthActionRoleCache(PumpwoodDataclassMixin):
+    """Cache for Pumpwood permission."""
+
+    model_class: str
+    """Model class to check for permission."""
+    context: str = "pumpwood_djangoauth__action_role"
+    """Context for the cache key."""
+
+
+@dataclass
+class PumpwoodAuthHasPermissionCache(PumpwoodDataclassMixin):
+    """Cache entry for route permission checks."""
+
+    is_authenticated: bool
+    """Whether the request is authenticated."""
+    route_id: int
+    """Kong route primary key."""
+    user_id: int
+    """User primary key."""
+    role: str
+    """Role being validated."""
+    action: str
+    """Action being validated."""
+    context: str = "pumpwood_djangoauth__has_permission"
+    """Context for the cache key."""
 
 
 class MapPathRoleAux:
@@ -95,78 +127,50 @@ class MapPathRoleAux:
         """Get action permission_role."""
         # Try to retrieve cache from local before retrieving action
         # data from microservice.
-        dict_actions = cls._get_action_roles_cache(
-            model_class=model_class)
+        hash_dict = PumpwoodAuthActionRoleCache(model_class=model_class)
+        dict_actions = default_cache.get(hash_dict=hash_dict)
         if dict_actions is None:
-            action_list = microservice.list_actions(model_class=model_class)
-            dict_actions = dict(
-                [[x['action_name'],
-                  x.get('permission_role', 'can_run_actions')]
-                for x in action_list])
+            # Fetch locally the actions and permissions
+            action_list = PumpwoodDjangoAppInspect\
+                .list_actions_local(model_class=model_class)
+            if action_list is None:
+                # If not found locally, try to fetch from microservice
+                action_list = microservice.list_actions(
+                    model_class=model_class)
+                
+                # If it is not found 
+                if action_list is None:
+                    msg = (''
+                        "It was not possible to retrieve actions and "
+                        "permissions for model_class[{model_class}]. Check "
+                        "if it was registered on Pumpwood.")
+                    raise PumpWoodObjectDoesNotExist(
+                        msg, payload={
+                            'action': action, 'model_class': model_class})
 
+            # Create a dictionary with the actions and their permissions
+            dict_actions = dict(
+                [
+                    [x['action_name'],
+                    x.get('permission_role', 'can_run_actions')
+                ]
+                for x in action_list])
+            
             # Set diskcache to reduce call on microservice to check for
             # action permission
-            cls._set_action_roles_cache(
-                model_class=model_class, action_roles=dict_actions)
+            default_cache.set(hash_dict=hash_dict, value=dict_actions)
 
+        # Check if the action is available in the dictionary
         if action not in dict_actions.keys():
             msg = (
                 "Action [{action}] was is not avaiable at " +
                 "model_class[{model_class}]. Call list actions to verify " +
-                "the possible actions and its arguments.")
+                "the possible actions and its arguments for the model class.")
             raise PumpWoodObjectDoesNotExist(
                 msg, payload={'action': action, 'model_class': model_class})
 
         permission_role = dict_actions.get(action)
         return permission_role
-
-    @classmethod
-    def _get_action_role_cache_key(cls, model_class: str) -> str:
-        """Get action permission from diskcache.
-
-        Args:
-            model_class (str):
-                Model class associated with action.
-
-        Returns:
-            Return key for model classe action permission roles.
-        """
-        return cls.ACTION_ROLE_CACHE_TEMPLATE.format(
-            model_class=model_class)
-
-    @classmethod
-    def _get_action_roles_cache(cls, model_class: str) -> str:
-        """Get action permission from diskcache.
-
-        Args:
-            model_class (str):
-                Model class associated with action.
-
-        Returns:
-            Return a dictionary with associated roles of model_class
-            actions.
-        """
-        key = cls._get_action_role_cache_key(model_class=model_class)
-        return diskcache.get(key)
-
-    @classmethod
-    def _set_action_roles_cache(cls, model_class: str,
-                                action_roles: str) -> bool:
-        """Get action associated roles from diskcache.
-
-        Args:
-            model_class (str):
-                Model class associated with action.
-            action_roles (str):
-                Association between action and roles.
-
-        Returns:
-            True if cache is set.
-        """
-        key = cls._get_action_role_cache_key(model_class=model_class)
-        return diskcache.set(
-            key=key, value=action_roles, expire=DISKCACHE_EXPIRATION,
-            tag=cls.ACTION_ROLE_CACHE_TAG)
 
     @classmethod
     def get_role_options(cls) -> List[str]:
@@ -320,6 +324,24 @@ class MapPathRoleAux:
             'action': action, }
 
 
+@dataclass
+class PumpwoodAuthHasPermissionCache(PumpwoodDataclassMixin):
+    """Cache entry for route permission checks."""
+
+    is_authenticated: bool
+    """Whether the request is authenticated."""
+    route_id: int
+    """Kong route primary key."""
+    user_id: int
+    """User primary key."""
+    role: str
+    """Role being validated."""
+    action: str
+    """Action being validated."""
+    context: str = "pumpwood_djangoauth__has_permission"
+    """Context for the cache key."""
+
+
 class RouteAPIPermissionAux:
     """Auxiliary class to check user's permissions for a route."""
 
@@ -330,91 +352,6 @@ class RouteAPIPermissionAux:
         "has-permission--auth[{is_authenticated}]_r{route_id}_u[{user_id}]_" +
         "r[{role}]_a[{action}]")
     """Template used to create a key for cache."""
-
-    @classmethod
-    def get_role_options(cls):
-        """Return role options."""
-        return copy.deepcopy(cls.ROLE_OPTIONS)
-
-    @classmethod
-    def _get_has_permission_cache_key(cls, is_authenticated: bool,
-                                      route_id: int, user_id: int, role: str,
-                                      action: str) -> str:
-        """Get key for cache of has permission function.
-
-        Args:
-            is_authenticated (bool):
-                If user is authenticated.
-            route_id (int):
-                ID of the route that will be checked for authorization.
-            user_id (int):
-                ID of the user to check for permission.
-            role (str):
-                Role that will be checked for permission.
-            action (str):
-                Action associated with permission check.
-        """
-        # Set types to avoid SQL injection.
-        return cls.HAS_PERMISSION_CACHE_TEMPLATE.format(
-            is_authenticated=is_authenticated, route_id=route_id,
-            user_id=user_id, role=role, action=action)
-
-    @classmethod
-    def _get_has_permission_cache(cls, is_authenticated: bool,
-                                  route_id: int, user_id: int, role: str,
-                                  action: str) -> bool:
-        """Get key for cache of has permission function.
-
-        Args:
-            is_authenticated (bool):
-                If user is authenticated.
-            route_id (int):
-                ID of the route that will be checked for authorization.
-            user_id (int):
-                ID of the user to check for permission.
-            role (str):
-                Role that will be checked for permission.
-            action (str):
-                Action associated with permission check.
-
-        Returns:
-            Return cached value for `has_permission` function.
-        """
-        key = cls._get_has_permission_cache_key(
-            is_authenticated=is_authenticated, route_id=route_id,
-            user_id=user_id, role=role, action=action)
-        return diskcache.get(key)
-
-    @classmethod
-    def _set_has_permission_cache(cls, is_authenticated: bool,
-                                  route_id: int, user_id: int, role: str,
-                                  action: str, value: bool) -> bool:
-        """Get key for cache of has permission function.
-
-        Args:
-            is_authenticated (bool):
-                If user is authenticated.
-            route_id (int):
-                ID of the route that will be checked for authorization.
-            user_id (int):
-                ID of the user to check for permission.
-            role (str):
-                Role that will be checked for permission.
-            action (str):
-                Action associated with permission check.
-            value (bool):
-                Valeu to be set as cached value for `has_permission`
-                function.
-
-        Returns:
-            Return `True` if cache was set.
-        """
-        key = cls._get_has_permission_cache_key(
-            is_authenticated=is_authenticated, route_id=route_id,
-            user_id=user_id, role=role, action=action)
-        return diskcache.set(
-            key=key, value=value, tag=cls.HAS_PERMISSION_CACHE_TAG,
-            expire=DISKCACHE_EXPIRATION)
 
     @classmethod
     def has_permission(cls, is_authenticated: bool, route_id: int,
@@ -466,23 +403,27 @@ class RouteAPIPermissionAux:
         if role != 'can_run_actions':
             action = "###no_action###"
 
-        # Substitute empty action values to ingect on SQL
+        # Check for spaces to reduce SQL injection, actions are always python
+        # functions they should only be characters, numbers and underlines.
         if ' ' in action:
-            # Check for spaces to reduce SQL injection
             msg = (
                 'Action [{action}] should not have spaces on name '
                 'definition')
             raise PumpWoodForbidden(
                 msg, payload={'action': action})
 
-        # Use cache to avoid permission check on backend
-        has_permission_cache = cls._get_has_permission_cache(
+        # Try to retrieve cache from local before retrieving action
+        # data from microservice.
+        cache_dict = PumpwoodAuthHasPermissionCache(
             is_authenticated=is_authenticated, route_id=route_id,
             user_id=user_id, role=role, action=action)
-        if has_permission_cache is not None:
-            return has_permission_cache
+        cached_value = default_cache.get(cache_dict)
+        if cached_value is not None:
+            return cached_value
 
-        User = get_user_model() # NOQA
+        # Fetch information from user, this information will be used to
+        # set the expected permission based on the role
+        User = get_user_model()
         user = User.objects.get(id=user_id)
 
         # If the role is explicity set to super user and user is not
@@ -490,8 +431,8 @@ class RouteAPIPermissionAux:
         if not user.is_superuser and role == 'is_superuser':
             return False
 
-        # It is not expected that any route end-point is set to allow
-        # only authenticated users
+        # According to the role, set the expected permission based on
+        # user information
         has_permission_results = None
         if user.is_superuser:
             has_permission_results = True
@@ -502,13 +443,17 @@ class RouteAPIPermissionAux:
         elif role == 'is_service_user':
             has_permission_results = user.user_profile.is_service_user
         else:
+            # If role is not a general role, check if user has permission
+            # to the route and action using api permission query
             has_permission_results = cls._get_non_general_roles(
                 route_id=route_id, user_id=user.id, role=role,
                 action=action)
-        cls._set_has_permission_cache(
-            is_authenticated=is_authenticated, route_id=route_id,
-            user_id=user_id, role=role, action=action,
-            value=has_permission_results)
+
+        # Set cache to reduce call on microservice to check for
+        # permission
+        default_cache.set(
+            cache_dict, has_permission_results,
+            expire=TOKEN_CACHE_EXPIRATION)
         return has_permission_results
 
     @classmethod

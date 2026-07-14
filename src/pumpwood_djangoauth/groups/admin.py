@@ -130,10 +130,10 @@ class PumpwoodUserGroupAdmin(admin.ModelAdmin):
     form = PumpwoodUserGroupAdminForm
 
     list_filter = []
-    search_fields = ["description", "notes", ]
+    search_fields = ["code", "description", "notes", ]
 
     list_display = (
-        "description", "notes", "updated_by", "updated_at",)
+        "code", "description", "notes", "updated_by", "updated_at",)
     readonly_fields = ['updated_by', 'updated_at']
     inlines = [
         PumpwoodUserGroupM2MInline,
@@ -142,7 +142,8 @@ class PumpwoodUserGroupAdmin(admin.ModelAdmin):
     fieldsets = ((
              None, {
                  'fields': (
-                     'description', 'notes', 'updated_by', 'updated_at')
+                     'code', 'description', 'notes', 'updated_by',
+                     'updated_at')
                  }
          ), (
              'Extra-info', {
