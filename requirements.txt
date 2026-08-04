@@ -9,6 +9,7 @@ pumpwood-communication>=1.0
 requests-oauthlib>=2.0.0
 pumpwood-kong
 pumpwood-miscellaneous
+pumpwood-djangoviews
 twilio>=8.11.0
 diskcache
 pdoc
