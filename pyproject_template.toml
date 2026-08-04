@@ -25,6 +25,7 @@ dependencies = [
     "requests-oauthlib>=2.0.0",
     "pumpwood-kong",
     "twilio>=8.11.0",
+    "pumpwood-miscellaneous"
 ]
 
 [tool.poetry]
