@@ -1,4 +1,4 @@
-"""Serializer for registration end-points."""
+"""Serializers for registration endpoints."""
 from rest_framework import serializers
 from pumpwood_djangoviews.serializers import (
     ClassNameField, DynamicFieldsModelSerializer, LocalForeignKeyField,
@@ -26,7 +26,7 @@ class SerializerUserProfile(DynamicFieldsModelSerializer):
             'pk', 'model_class', 'is_service_user', 'dimensions',
             'extra_fields', 'self_api_permissions', 'self_row_permissions')
 
-    def _serialize_permission_result(self, result):
+    def _serialize_permission_result(self, result) -> list:
         """Convert UserProfile permission results to JSON-safe data.
 
         Args:
@@ -41,7 +41,7 @@ class SerializerUserProfile(DynamicFieldsModelSerializer):
             return result.to_dict(orient='records')
         return result
 
-    def get_self_api_permissions(self, obj):
+    def get_self_api_permissions(self, obj) -> list:
         """Return effective API permissions for the profile user.
 
         Args:
@@ -61,7 +61,7 @@ class SerializerUserProfile(DynamicFieldsModelSerializer):
             user_id=obj.user_id, request=request)
         return self._serialize_permission_result(result)
 
-    def get_self_row_permissions(self, obj):
+    def get_self_row_permissions(self, obj) -> list:
         """Return effective row permissions for the profile user.
 
         Args:
@@ -197,20 +197,47 @@ class SerializerUser(DynamicFieldsModelSerializer):
             'first_name', 'last_name']
         read_only = ('last_login', 'date_joined', 'full_name')
 
-    def get_all_permissions(self, obj):
-        """Get all possible permissions."""
+    def get_all_permissions(self, obj) -> list:
+        """Return all Django permissions assigned to the user.
+
+        Args:
+            obj (User):
+                User instance being serialized.
+
+        Returns:
+            list:
+                Sorted permission codenames from ``get_all_permissions()``.
+        """
         all_permissions = list(obj.get_all_permissions())
         all_permissions.sort()
         return all_permissions
 
-    def get_group_permissions(self, obj):
-        """Get group permission."""
+    def get_group_permissions(self, obj) -> list:
+        """Return group permissions assigned to the user.
+
+        Args:
+            obj (User):
+                User instance being serialized.
+
+        Returns:
+            list:
+                Sorted permission codenames from ``get_group_permissions()``.
+        """
         group_permissions = list(obj.get_group_permissions())
         group_permissions.sort()
         return group_permissions
 
-    def get_full_name(self, obj):
-        """Return user's full name."""
+    def get_full_name(self, obj) -> str:
+        """Return the user's full name.
+
+        Args:
+            obj (User):
+                User instance being serialized.
+
+        Returns:
+            str:
+                ``first_name`` and ``last_name`` joined, stripped.
+        """
         return "{first_name} {last_name}"\
             .format(first_name=obj.first_name, last_name=obj.last_name)\
             .strip()

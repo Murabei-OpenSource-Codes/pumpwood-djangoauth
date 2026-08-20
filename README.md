@@ -190,9 +190,10 @@ urlpatterns = [
 
 Successful password, MFA code, and SSO login return a Knox token plus a
 full ``SerializerUser`` payload when ``foreign_key_fields`` and
-``related_fields`` are enabled. The ``user`` object includes related
-M2M sets (``api_permission_set``, ``row_permission_set``, MFA methods,
-and groups) and a nested ``user_profile`` with effective permissions:
+``related_fields`` are enabled. The ``user`` object includes Django
+permission codenames (``all_permissions``, ``group_permissions``),
+``user_group_m2m_set``, and a nested ``user_profile`` with effective
+permissions:
 
 - ``user_profile.self_api_permissions`` — merged API route access from
   direct and group links (via ``UserProfile.user_api_permissions``).

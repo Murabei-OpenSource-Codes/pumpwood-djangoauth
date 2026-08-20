@@ -3,7 +3,7 @@ import os
 import hashlib
 import random
 import datetime
-from typing import List
+from typing import List, Union
 from django.utils import timezone
 from django.db import models
 from django.conf import settings
@@ -60,7 +60,7 @@ class UserProfile(models.Model):
     @classmethod
     @action(info="List self assciated API permissions",
             request='request')
-    def self_api_permissions(cls, request) -> List[dict]:
+    def self_api_permissions(cls, request) -> Union[List[dict], "pd.DataFrame"]:
         """List effective API permissions for the authenticated user.
 
         Args:
@@ -68,16 +68,18 @@ class UserProfile(models.Model):
                 Django request with authenticated user.
 
         Returns:
-            List[dict]:
+            Union[List[dict], pd.DataFrame]:
                 Route permissions merged from direct and group links.
-                Superusers receive all routes with full access flags.
+                Superusers receive a list with full access flags.
+                Other users receive a merged permissions DataFrame.
         """
         return ApiPermissionAux.get(user=request.user, request=request)
 
     @classmethod
     @action(info="List user's assciated API permissions",
             request='request')
-    def user_api_permissions(cls, user_id: int, request) -> List[dict]:
+    def user_api_permissions(cls, user_id: int, request) -> Union[
+            List[dict], "pd.DataFrame"]:
         """List effective API permissions for a user.
 
         Args:
@@ -87,8 +89,10 @@ class UserProfile(models.Model):
                 Django request used for route serialization context.
 
         Returns:
-            List[dict]:
+            Union[List[dict], pd.DataFrame]:
                 Route permissions merged from direct and group links.
+                Superusers receive a list with full access flags.
+                Other users receive a merged permissions DataFrame.
 
         Raises:
             User.DoesNotExist:

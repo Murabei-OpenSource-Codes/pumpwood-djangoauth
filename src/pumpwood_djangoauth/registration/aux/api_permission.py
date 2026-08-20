@@ -1,4 +1,4 @@
-"""Functions to help fetching permissions from user."""
+"""Helpers to resolve effective API permissions for a user."""
 import pandas as pd
 import importlib.resources as pkg_resources
 from typing import List, Union
@@ -11,11 +11,11 @@ group_user_api_permissions = pkg_resources.read_text(
 
 
 class ApiPermissionAux:
-    """Auxiliary class to fetch user's permissions."""
+    """Auxiliary class to fetch user API permissions."""
 
     @classmethod
     def get(cls, user, request) -> Union[List[dict], pd.DataFrame]:
-        """Get user permission, including self and group related.
+        """Get user API permissions, including self and group related.
 
         Args:
             user (User):
@@ -35,14 +35,18 @@ class ApiPermissionAux:
 
     @classmethod
     def _get_superuser(cls, request) -> List[dict]:
-        """Return permissions of a superuser.
+        """Return API permissions visible to a superuser.
 
-        It will simulate allow permission from all routes, but they will be not
-        present on database
+        Simulates full access on every route. Permission records are not
+        persisted for the superuser in the database.
 
         Args:
             request:
-                Django request.
+                Django request used for route serialization context.
+
+        Returns:
+            List[dict]:
+                Route permission dicts with all access flags set to True.
         """
         # Import dependencies on function to skip circular imports
         from pumpwood_djangoauth.system.models import KongRoute
@@ -72,7 +76,7 @@ class ApiPermissionAux:
 
     @classmethod
     def _get_non_superuser(cls, user, request) -> pd.DataFrame:
-        """Get non-superuser permissions associated with user.
+        """Get non-superuser API permissions associated with the user.
 
         Args:
             user (User):

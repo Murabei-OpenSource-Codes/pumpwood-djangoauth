@@ -1,4 +1,4 @@
-"""Functions to help fetching permissions from user."""
+"""Helpers to resolve effective row permissions for a user."""
 import importlib.resources as pkg_resources
 from typing import List
 
@@ -10,7 +10,7 @@ sql_content = pkg_resources.read_text(
 
 
 class RowPermissionAux:
-    """Auxiliary class to fetch user's permissions."""
+    """Auxiliary class to fetch user row permissions."""
 
     @classmethod
     def get(cls, user, request) -> List[dict]:
@@ -33,14 +33,18 @@ class RowPermissionAux:
 
     @classmethod
     def _get_superuser(cls, request) -> List[dict]:
-        """Return permissions of a superuser.
+        """Return row permissions visible to a superuser.
 
-        It will simulate allow permission from all routes, but they will be not
-        present on database
+        Simulates full access by serializing every row-permission record.
+        These records are not persisted for the superuser in the database.
 
         Args:
             request:
-                Django request.
+                Django request used for serializer context.
+
+        Returns:
+            List[dict]:
+                Serialized row-permission records.
         """
         from pumpwood_djangoauth.row_permission.models import (
             PumpwoodRowPermission)
@@ -53,7 +57,19 @@ class RowPermissionAux:
 
     @classmethod
     def _get_non_superuser(cls, user, request) -> List[dict]:
-        """Get non superuser permissions associated with user."""
+        """Return row permissions for a non-superuser.
+
+        Args:
+            user (User):
+                User whose row permissions are resolved.
+            request:
+                Django request used for serializer context.
+
+        Returns:
+            List[dict]:
+                Serialized row-permission records from direct and group
+                links.
+        """
         from pumpwood_djangoauth.row_permission.models import (
             PumpwoodRowPermission)
         from pumpwood_djangoauth.row_permission.serializers import (
