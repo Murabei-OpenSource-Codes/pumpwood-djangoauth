@@ -177,25 +177,6 @@ class SerializerUser(DynamicFieldsModelSerializer):
     full_name = serializers.SerializerMethodField()
 
     # ForeignKey
-    mfa_method_set = LocalRelatedField(
-        serializer=SerializerPumpwoodMFAMethod,
-        order_by=["-id"])
-    mfa_token_set = LocalRelatedField(
-        serializer=SerializerPumpwoodMFAToken,
-        order_by=["-created_at"])
-    recovery_codes_set = LocalRelatedField(
-        serializer=SerializerPumpwoodMFARecoveryCode,
-        order_by=["-id"])
-    api_permission_set = LocalRelatedField(
-        serializer=(
-            "pumpwood_djangoauth.api_permission." +
-            "serializers.SerializerPumpwoodPermissionPolicyUserM2M"),
-        order_by=["-id"])
-    row_permission_set = LocalRelatedField(
-        serializer=(
-            "pumpwood_djangoauth.row_permission." +
-            "serializers.SerializerPumpwoodRowPermissionUserM2M"),
-        order_by=["-id"])
     user_group_m2m_set = LocalRelatedField(
         serializer=(
             "pumpwood_djangoauth.groups." +
@@ -209,9 +190,7 @@ class SerializerUser(DynamicFieldsModelSerializer):
             'pk', 'model_class', 'username', 'email', 'first_name',
             'last_name', 'last_login', 'date_joined', 'is_active', 'is_staff',
             'is_superuser', 'all_permissions', 'group_permissions',
-            'user_profile', 'mfa_method_set', 'api_permission_set',
-            'user_group_m2m_set', 'mfa_method_set', 'mfa_token_set',
-            'recovery_codes_set', 'row_permission_set', 'full_name')
+            'user_profile', 'user_group_m2m_set', 'full_name')
         list_fields = [
             "pk", "model_class", 'is_active', 'is_superuser', 'is_staff',
             'username', 'email', 'last_login', 'full_name',

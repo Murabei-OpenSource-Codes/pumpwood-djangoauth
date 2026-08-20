@@ -1,0 +1,4 @@
+        url = urllib.parse.urljoin(test_url, 'rest/registration/login/')
+        response_1 = requests.post(url, json={
+            "username": "permission--allow--list-metabase",
+            "password": "p@ssword!1"}, timeout=30)
