@@ -13,14 +13,18 @@ class RowPermissionAux:
     """Auxiliary class to fetch user's permissions."""
 
     @classmethod
-    def get(cls, user, request):
-        """Get user permission, including self and group related.
+    def get(cls, user, request) -> List[dict]:
+        """Get user row permissions, including self and group related.
 
         Args:
             user (User):
                 User object to fetch associated permissions.
             request:
-                Django request.
+                Django request used for serializer context.
+
+        Returns:
+            List[dict]:
+                Serialized row-permission records.
         """
         if user.is_superuser:
             return cls._get_superuser(request=request)

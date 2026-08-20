@@ -22,7 +22,14 @@ class PumpwoodPermission(IsAuthenticated):
                 Django view.
 
         Returns:
-            Return True if user has access to the resource.
+            bool:
+                ``True`` when the user may access the resource.
+
+        Raises:
+            PumpWoodUnauthorized:
+                If credentials are invalid for a protected endpoint.
+            PumpWoodForbidden:
+                If credentials are valid but the role is denied.
         """
         has_permission_result = KongRoute.self_has_permission(
             request=request, path=request.path, method=request.method,

@@ -117,13 +117,16 @@ class MicrosoftEntraSSO:
             "authorization_url": authorization_url,
             "state": state}
 
-    def fetch_token(self, authorization_response_url: str):
-        """Fetch authorization token and user information.
+    def fetch_token(self, authorization_response_url: str) -> dict:
+        """Fetch OAuth tokens and decode SSO user claims.
 
         Args:
             authorization_response_url (str):
-                Autorization response url passed after redirect of SSO
-                authentication.
+                Authorization response URL passed after SSO redirect.
+
+        Returns:
+            dict:
+                Decoded ``id_token`` and ``access_token`` claim payloads.
         """
         token = self.oauth_session.fetch_token(
             self.PUMPWOOD__SSO__TOKEN_URL,

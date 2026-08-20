@@ -17,6 +17,31 @@ Kong. It integrates with
   </a> which has a symbiotic relation with ants (Murabei)
 </p>
 
+## Objective and motivation
+
+Pumpwood Django Auth is the authentication and authorization service for
+the Pumpwood stack. It exposes user registration, MFA and SSO login, API
+permission policies, row permissions, and Kong route registration.
+
+### Why this exists
+
+It centralizes auth, permission checks, and service-mesh route metadata
+so consumer applications integrate through one Django package.
+
+### How it is used
+
+Deploy as the ``pumpwood-auth-app`` image. Frontends and workers call
+``/rest/registration/`` for login, token validation, and permission
+endpoints. Service users authenticate in-cluster; external login is
+blocked for them.
+
+### Scope
+
+Owns users, profiles, groups, API and row permissions, and Kong sync.
+Business-domain models live in consuming applications.
+
+Licensed under BSD-3-Clause (see ``pyproject.toml``).
+
 ## Environment variables
 
 The `config` module centralizes singletons used across Pumpwood Auth.
@@ -160,6 +185,23 @@ urlpatterns = [
     url(r'^rest/', include('pumpwood_djangoauth.urls')),
 ]
 ```
+
+### Login response
+
+Successful password, MFA code, and SSO login return a Knox token plus a
+full ``SerializerUser`` payload when ``foreign_key_fields`` and
+``related_fields`` are enabled. The ``user`` object includes related
+M2M sets (``api_permission_set``, ``row_permission_set``, MFA methods,
+and groups) and a nested ``user_profile`` with effective permissions:
+
+- ``user_profile.self_api_permissions`` — merged API route access from
+  direct and group links (via ``UserProfile.user_api_permissions``).
+- ``user_profile.self_row_permissions`` — merged row-permission records
+  (via ``UserProfile.user_row_permissions``).
+
+Pass ``context={'request': request}`` when serializing so profile
+permission fields resolve. ``retrieve_authenticated_user`` follows the
+same pattern.
 
 ### Gunicorn preload
 

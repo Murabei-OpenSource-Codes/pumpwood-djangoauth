@@ -89,7 +89,7 @@ class RestPumpwoodPermissionPolicyAction(PumpWoodRestService):
 
 
 class RestPumpwoodPermissionPolicyGroupM2M(PumpWoodRestService):
-    """End-point with information about Pumpwood users."""
+    """REST endpoint for group-to-API-policy associations."""
 
     endpoint_description = "PumpwoodPermissionPolicyGroupM2M"
     notes = "End-point with user information"
@@ -133,7 +133,7 @@ class RestPumpwoodPermissionPolicyGroupM2M(PumpWoodRestService):
 
 
 class RestPumpwoodPermissionPolicyUserM2M(PumpWoodRestService):
-    """End-point with information about Pumpwood users."""
+    """REST endpoint for user-to-API-policy associations."""
 
     endpoint_description = "PumpwoodPermissionPolicyUserM2M"
     notes = "End-point with user information"

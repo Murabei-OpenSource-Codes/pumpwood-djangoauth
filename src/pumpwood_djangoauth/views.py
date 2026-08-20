@@ -28,7 +28,20 @@ class PumpWoodRestServiceRowPermission(PumpWoodRestService):
     """
 
     def base_query(self, request, **kwargs):
-        """Super base query to filter using row_permission_id if present."""
+        """Filter queryset rows by the user's row-permission tags.
+
+        Args:
+            request:
+                Authenticated Django REST request.
+            **kwargs:
+                Arguments forwarded to the parent ``base_query``.
+
+        Returns:
+            QuerySet | Exception:
+                Filtered queryset when the model exposes
+                ``row_permission_id``; otherwise an ``Exception`` instance
+                describing unsupported row permissions.
+        """
         from pumpwood_djangoauth.registration.models import (
             UserProfile)
 

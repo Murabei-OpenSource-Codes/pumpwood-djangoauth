@@ -27,13 +27,33 @@ class SerializerUserProfile(DynamicFieldsModelSerializer):
             'extra_fields', 'self_api_permissions', 'self_row_permissions')
 
     def _serialize_permission_result(self, result):
-        """Convert UserProfile permission results to JSON-safe data."""
+        """Convert UserProfile permission results to JSON-safe data.
+
+        Args:
+            result (list | DataFrame):
+                Permission payload from ``UserProfile`` actions.
+
+        Returns:
+            list:
+                JSON-serializable permission records.
+        """
         if hasattr(result, 'to_dict'):
             return result.to_dict(orient='records')
         return result
 
     def get_self_api_permissions(self, obj):
-        """Return API permissions from UserProfile for this user."""
+        """Return effective API permissions for the profile user.
+
+        Args:
+            obj (UserProfile):
+                Profile instance being serialized.
+
+        Returns:
+            list:
+                Effective API permissions from
+                ``UserProfile.user_api_permissions``. Empty when request
+                context is missing.
+        """
         request = self.context.get('request')
         if request is None:
             return []
@@ -42,7 +62,18 @@ class SerializerUserProfile(DynamicFieldsModelSerializer):
         return self._serialize_permission_result(result)
 
     def get_self_row_permissions(self, obj):
-        """Return row permissions from UserProfile for this user."""
+        """Return effective row permissions for the profile user.
+
+        Args:
+            obj (UserProfile):
+                Profile instance being serialized.
+
+        Returns:
+            list:
+                Effective row permissions from
+                ``UserProfile.user_row_permissions``. Empty when request
+                context is missing.
+        """
         request = self.context.get('request')
         if request is None:
             return []

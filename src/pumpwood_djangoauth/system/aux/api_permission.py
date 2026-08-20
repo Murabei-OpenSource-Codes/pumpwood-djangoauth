@@ -184,24 +184,33 @@ class MapPathRoleAux:
 
     @classmethod
     def map(cls, route, method: str, model_class: str, endpoint: str,
-            action: str) -> str:
-        """Map endpoint/method to Pumpwood roles.
+            action: str) -> Dict[str, str]:
+        """Map endpoint and HTTP method to Pumpwood role metadata.
 
         Args:
             route (KongRoute):
                 Kong route object.
             method (str):
-                Method to map to Pumpwood roles.
+                HTTP method to map to Pumpwood roles.
             model_class (str):
-                pass
+                Model class parsed from the request path.
             endpoint (str):
-                pass
+                Pumpwood endpoint segment from the path.
             action (str):
-                pass
+                Action name when the endpoint is ``actions``.
 
         Returns:
-            Pumpwood `role`, `model_class`, `endpoint` and `action` associated
-            with method and path.
+            dict:
+                Keys ``role``, ``type``, ``model_class``, ``endpoint``,
+                and ``action`` describing the resolved permission role.
+
+        Raises:
+            PumpWoodNotImplementedError:
+                If endpoint or method is not supported.
+            PumpWoodActionArgsException:
+                If route type or action method is invalid.
+            PumpWoodObjectDoesNotExist:
+                If a named action is not registered for the model.
         """
         # According to `route_type` set the expected role, in some cases
         # it is expected to have custom implemention for some endpoints
@@ -518,18 +527,22 @@ class GetRouteAux:
     """Class to help get route using differente methods."""
 
     @classmethod
-    def from_path(cls, path: str):
-        """Get route from path.
-
-        Return route that correponds to the begging of the path.
+    def from_path(cls, path: str) -> Dict[str, str]:
+        """Resolve path components and the matching Kong route.
 
         Args:
             path (str):
-                Path used at the query.
+                Request path used for route lookup.
 
         Returns:
-            A KongRoute object with path correspondent to the start the path
-            of the function argument.
+            dict:
+                Path components plus ``route`` (``KongRoute`` instance).
+                Keys: ``type``, ``model_class``, ``endpoint``, ``action``,
+                ``route``.
+
+        Raises:
+            PumpWoodObjectDoesNotExist:
+                If zero or multiple routes match the path prefix.
         """
         splited_path = cls._split_path(path=path)
         query_template = """

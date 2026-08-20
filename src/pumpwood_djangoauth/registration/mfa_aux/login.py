@@ -10,7 +10,22 @@ class MFALoginResponse:
     @classmethod
     def run(cls, priority_mfa, user: object,
             is_ingress_request: bool, full_path: str) -> Response:
-        """Run the workflow to generate a MFA token and redirect user."""
+        """Issue an MFA token and run the priority MFA delivery method.
+
+        Args:
+            priority_mfa (PumpwoodMFAMethod):
+                Enabled MFA method with highest priority.
+            user (User):
+                Authenticated user pending MFA confirmation.
+            is_ingress_request (bool | str):
+                Ingress header value for logging.
+            full_path (str):
+                Request path used for API logging.
+
+        Returns:
+            Response:
+                MFA token payload, method result, expiry, and MFA cookies.
+        """
         from pumpwood_djangoauth.registration.models import (
             PumpwoodMFAToken)
         new_mfa_token = PumpwoodMFAToken(user=user)
