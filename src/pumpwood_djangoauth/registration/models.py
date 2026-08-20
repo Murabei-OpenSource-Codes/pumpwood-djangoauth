@@ -320,14 +320,6 @@ class PumpwoodMFAMethod(models.Model):
         raise PumpWoodNotImplementedError(
             msg, payload={"method": self.type})
 
-        return {
-            'mfa_method_type': self.type,
-            'mfa_method_result': {
-                'authorization_url': authorization_url['authorization_url']
-            },
-            'expiry': validation_mfa.expire_at,
-            'mfa_token': validation_mfa.token}
-
 
 class PumpwoodMFAToken(models.Model):
     """Create MFA token when user login and it has MFA enabled."""

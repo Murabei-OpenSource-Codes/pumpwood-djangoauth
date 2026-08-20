@@ -144,10 +144,19 @@ class LoginView(KnoxLoginView):
             # Authenticate the request
             login(request, user)
             resp = super().post(request, format=None).data
+
+            # Get user with all related fields and foreign keys
+            # associated with
+            user_data = SerializerUser(
+                request.user, many=False, foreign_key_fields=True,
+                related_fields=True,
+                context={'request': request}).data
             response = Response({
                 'expiry': resp['expiry'], 'token': resp['token'],
-                'user': SerializerUser(request.user, many=False).data,
+                'user': user_data,
                 "ingress-call": is_ingress_request})
+
+            # Set the PumpwoodAuthorization cookie
             response.set_cookie(
                 'PumpwoodAuthorization', resp['token'],
                 httponly=settings.SESSION_COOKIE_HTTPONLY,

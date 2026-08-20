@@ -229,10 +229,13 @@ class SSOLoginView(KnoxLoginView):
             request=request, user=request.user)
         data = self.get_post_response_data(request, token, instance)
 
+        user_data = SerializerUser(
+            request.user, many=False, foreign_key_fields=True,
+            related_fields=True,
+            context={'request': request}).data
         response = Response({
             'expiry': data['expiry'], 'token': data['token'],
-            'user': SerializerUser(request.user, many=False).data,
-            "ingress-call": is_ingress_request})
+            'user': user_data, "ingress-call": is_ingress_request})
         response.set_cookie(
             'PumpwoodAuthorization', data['token'],
             expires=data['expiry'],

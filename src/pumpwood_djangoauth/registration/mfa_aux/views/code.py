@@ -88,9 +88,13 @@ class CodeLoginView(KnoxLoginView):
         login(request, user)
 
         resp = super().post(request, format=None).data
+        user_data = SerializerUser(
+            request.user, many=False, foreign_key_fields=True,
+            related_fields=True,
+            context={'request': request}).data
         response = Response({
             'expiry': resp['expiry'], 'token': resp['token'],
-            'user': SerializerUser(request.user, many=False).data,
+            'user': user_data,
             "ingress-call": is_ingress_request})
         response.set_cookie(
             'PumpwoodAuthorization', resp['token'],

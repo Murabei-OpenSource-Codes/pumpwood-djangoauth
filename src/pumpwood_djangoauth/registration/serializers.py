@@ -13,16 +13,41 @@ class SerializerUserProfile(DynamicFieldsModelSerializer):
     """Serializer for model UserProfile."""
     pk = serializers.IntegerField(source='id', allow_null=True, required=False)
     model_class = ClassNameField()
+    self_api_permissions = serializers.SerializerMethodField()
+    self_row_permissions = serializers.SerializerMethodField()
 
     class Meta:
         """Meta."""
         model = UserProfile
         fields = (
             'pk', 'model_class', 'is_service_user', 'dimensions',
-            'extra_fields')
+            'extra_fields', 'self_api_permissions', 'self_row_permissions')
         list_fields = (
             'pk', 'model_class', 'is_service_user', 'dimensions',
-            'extra_fields')
+            'extra_fields', 'self_api_permissions', 'self_row_permissions')
+
+    def _serialize_permission_result(self, result):
+        """Convert UserProfile permission results to JSON-safe data."""
+        if hasattr(result, 'to_dict'):
+            return result.to_dict(orient='records')
+        return result
+
+    def get_self_api_permissions(self, obj):
+        """Return API permissions from UserProfile for this user."""
+        request = self.context.get('request')
+        if request is None:
+            return []
+        result = UserProfile.user_api_permissions(
+            user_id=obj.user_id, request=request)
+        return self._serialize_permission_result(result)
+
+    def get_self_row_permissions(self, obj):
+        """Return row permissions from UserProfile for this user."""
+        request = self.context.get('request')
+        if request is None:
+            return []
+        return UserProfile.user_row_permissions(
+            user_id=obj.user_id, request=request)
 
 
 class SerializerPumpwoodMFAMethod(DynamicFieldsModelSerializer):
@@ -167,12 +192,6 @@ class SerializerUser(DynamicFieldsModelSerializer):
         all_permissions = list(obj.get_all_permissions())
         all_permissions.sort()
         return all_permissions
-
-    def get_user_permissions(self, obj):
-        """Get user's permissions."""
-        user_permissions = list(obj.get_user_permissions())
-        user_permissions.sort()
-        return user_permissions
 
     def get_group_permissions(self, obj):
         """Get group permission."""
