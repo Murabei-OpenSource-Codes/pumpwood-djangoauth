@@ -143,7 +143,6 @@ FROM (
   FROM public.api_permission__policy_user_m2m AS user_m2m
   JOIN public.api_permission__policy AS api_policy
     ON api_policy.id = user_m2m.custom_policy_id
-  WHERE user_id = %(user_id)s
+  WHERE user_m2m.user_id = %(user_id)s
 ) AS sub
 GROUP BY sub.route_id
-WHERE 1=1

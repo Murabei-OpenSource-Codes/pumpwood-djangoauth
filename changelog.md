@@ -5,6 +5,60 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.1.62-b.0] - 2026-08-20
+
+### Changed
+- ``SerializerUser`` — remove ``api_permission_set``,
+  ``row_permission_set``, ``mfa_method_set``, ``mfa_token_set``, and
+  ``recovery_codes_set`` from login payloads; effective permissions
+  remain on nested ``user_profile.self_*`` fields.
+- ``ApiPermissionAux``, ``RowPermissionAux``, ``UserProfile`` permission
+  actions, and registration serializers — docstrings and return types
+  aligned with actual behavior.
+
+## [2.1.61-b.0] - 2026-08-20
+
+### Added
+- ``SerializerUserProfile`` — ``self_api_permissions`` and
+  ``self_row_permissions`` resolved through ``UserProfile`` actions.
+
+### Changed
+- ``LoginView``, ``CodeLoginView``, and ``SSOLoginView`` — return full
+  ``SerializerUser`` with ``foreign_key_fields``, ``related_fields``,
+  and request context on successful authentication.
+- ``retrieve_authenticated_user`` — aligned with the same serializer
+  options.
+
+### Fixed
+- ``group_user_api_permissions.sql`` — remove invalid ``WHERE`` after
+  ``GROUP BY`` and qualify ``user_m2m.user_id`` (broke
+  ``UserProfile.user_api_permissions`` on ``create_user``).
+
+### Removed
+- Unreachable return block after ``PumpwoodMFAMethod.run_method`` raises
+  for unimplemented MFA types.
+
+## [2.1.60-b.0] - 2026-07-14
+
+### Changed
+- ``groups`` migration ``0005_pumpwoodusergroup_code`` — add ``code``
+  field before backfill ``RunPython`` step.
+
+## [2.1.59-b.0] - 2026-07-14
+
+### Changed
+- ``groups`` migration ``0005_pumpwoodusergroup_code`` — backfill
+  ``PumpwoodUserGroup.code`` from slugified description and enforce
+  unique non-blank codes.
+
+## [2.1.58-b.0] - 2026-07-14
+
+### Changed
+- ``register_auth_kong_objects`` — call ``cls_fields_options()`` without
+  ``translate=False`` when building Kong search options.
+- Reformat ``changelog.md`` release history (image tags through
+  ``2.1.57-b.0``).
+
 ## [2.1.57-b.0] - 2026-07-13
 ### Added
 - ``aux.general.django_apps_ready`` helper for deferred local i18n.

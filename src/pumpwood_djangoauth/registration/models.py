@@ -3,7 +3,7 @@ import os
 import hashlib
 import random
 import datetime
-from typing import List
+from typing import List, Union
 from django.utils import timezone
 from django.db import models
 from django.conf import settings
@@ -60,26 +60,43 @@ class UserProfile(models.Model):
     @classmethod
     @action(info="List self assciated API permissions",
             request='request')
-    def self_api_permissions(cls, request) -> List[dict]:
-        """List users api permissions.
+    def self_api_permissions(cls, request) -> Union[List[dict], "pd.DataFrame"]:
+        """List effective API permissions for the authenticated user.
 
         Args:
             request:
-                Django request.
+                Django request with authenticated user.
+
+        Returns:
+            Union[List[dict], pd.DataFrame]:
+                Route permissions merged from direct and group links.
+                Superusers receive a list with full access flags.
+                Other users receive a merged permissions DataFrame.
         """
         return ApiPermissionAux.get(user=request.user, request=request)
 
     @classmethod
     @action(info="List user's assciated API permissions",
             request='request')
-    def user_api_permissions(cls, user_id: int, request) -> List[dict]:
-        """List users api permissions.
+    def user_api_permissions(cls, user_id: int, request) -> Union[
+            List[dict], "pd.DataFrame"]:
+        """List effective API permissions for a user.
 
         Args:
             user_id (int):
-                User's id associated with API permissions.
+                User id whose permissions are resolved.
             request:
-                Django request.
+                Django request used for route serialization context.
+
+        Returns:
+            Union[List[dict], pd.DataFrame]:
+                Route permissions merged from direct and group links.
+                Superusers receive a list with full access flags.
+                Other users receive a merged permissions DataFrame.
+
+        Raises:
+            User.DoesNotExist:
+                If ``user_id`` is not registered.
         """
         User = get_user_model() # NOQA
         user = User.objects.get(id=user_id)
@@ -89,11 +106,16 @@ class UserProfile(models.Model):
     @action(info="List user's assciated API permissions",
             request='request', permission_role='is_authenticated')
     def self_row_permissions(cls, request) -> List[dict]:
-        """List users api permissions.
+        """List effective row permissions for the authenticated user.
 
         Args:
             request:
-                Django request.
+                Django request with authenticated user.
+
+        Returns:
+            List[dict]:
+                Serialized row-permission records for the user and
+                associated groups.
         """
         user = request.user
         return RowPermissionAux.get(user=user, request=request)
@@ -102,13 +124,22 @@ class UserProfile(models.Model):
     @action(info="List user's assciated API permissions",
             request='request')
     def user_row_permissions(cls, user_id: int, request) -> List[dict]:
-        """List users api permissions.
+        """List effective row permissions for a user.
 
         Args:
             user_id (int):
-                User's id associated with API permissions.
+                User id whose row permissions are resolved.
             request:
-                Django request.
+                Django request used for serializer context.
+
+        Returns:
+            List[dict]:
+                Serialized row-permission records for the user and
+                associated groups.
+
+        Raises:
+            User.DoesNotExist:
+                If ``user_id`` is not registered.
         """
         User = get_user_model() # NOQA
         user = User.objects.get(id=user_id)
@@ -124,11 +155,11 @@ class UserProfile(models.Model):
                     profile_is_service_user: bool = False,
                     profile_dimensions: dict = {},
                     profile_extra_fields: dict = {}) -> dict:
-        """List users api permissions.
+        """Create a Django user and associated profile.
 
         Args:
             request:
-                Django request.
+                Django request used for serializer context.
             username (str):
                 User name of the new user.
             password (str):
@@ -155,6 +186,14 @@ class UserProfile(models.Model):
                 used better organizate users on database.
             profile_extra_fields (dict):
                 Extra information.
+
+        Returns:
+            dict:
+                Serialized user payload from ``SerializerUser``.
+
+        Raises:
+            PumpWoodActionArgsException:
+                If password validation fails.
         """
         # Import serialized in fuction to not make circular imports
         from pumpwood_djangoauth.registration.serializers import (
@@ -277,16 +316,23 @@ class PumpwoodMFAMethod(models.Model):
             self.msg = e.message
             super(PumpwoodMFAMethod, self).save(*args, **kwargs)
 
-    def run_method(self, mfa_token: str):
-        """Run MFA method.
+    def run_method(self, mfa_token: str) -> dict:
+        """Run MFA method delivery for a pending login token.
 
         Args:
             mfa_token (str):
-                MFA Token.
-        Kwargs:
-            No Kwargs.
-        Return [dict]:
-            pass
+                MFA token issued during password login.
+
+        Returns:
+            dict:
+                Method-specific payload (for example code status or SSO
+                authorization URL).
+
+        Raises:
+            PumpWoodMFAError:
+                If the MFA token is not found.
+            PumpWoodNotImplementedError:
+                If the MFA ``type`` is not implemented.
         """
         from pumpwood_djangoauth.registration.mfa_aux.views.oauth2 import (
             create_sso_client)
@@ -319,14 +365,6 @@ class PumpwoodMFAMethod(models.Model):
         msg = "Method {method} not implemented"
         raise PumpWoodNotImplementedError(
             msg, payload={"method": self.type})
-
-        return {
-            'mfa_method_type': self.type,
-            'mfa_method_result': {
-                'authorization_url': authorization_url['authorization_url']
-            },
-            'expiry': validation_mfa.expire_at,
-            'mfa_token': validation_mfa.token}
 
 
 class PumpwoodMFAToken(models.Model):

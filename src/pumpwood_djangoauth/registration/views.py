@@ -40,9 +40,29 @@ class LoginView(KnoxLoginView):
     permission_classes = (permissions.AllowAny,)
 
     def post(self, request, format=None):
-        """Login user using its password and username.
+        """Login with username and password.
 
-        Check if header have indication that the request came from "outside"
+        Validates payload, authenticates the user, and returns either an MFA
+        step response or a Knox authentication token with serialized user
+        data. Blocks external login attempts for service users.
+
+        Args:
+            request:
+                Django REST request with ``username`` and ``password``.
+            format:
+                Optional format hint from DRF.
+
+        Returns:
+            Response:
+                MFA token payload when MFA is required, otherwise Knox
+                token, expiry, user payload, and auth cookies.
+
+        Raises:
+            PumpWoodWrongParameters:
+                If payload keys or credentials are invalid.
+            PumpWoodUnauthorized:
+                If authentication fails or external service-user login
+                is attempted.
         """
         is_ingress_request = request.headers.get(
             "X-PUMPWOOD-Ingress-Request", 'NOT-EXTERNAL')
@@ -144,10 +164,19 @@ class LoginView(KnoxLoginView):
             # Authenticate the request
             login(request, user)
             resp = super().post(request, format=None).data
+
+            # Get user with all related fields and foreign keys
+            # associated with
+            user_data = SerializerUser(
+                request.user, many=False, foreign_key_fields=True,
+                related_fields=True,
+                context={'request': request}).data
             response = Response({
                 'expiry': resp['expiry'], 'token': resp['token'],
-                'user': SerializerUser(request.user, many=False).data,
+                'user': user_data,
                 "ingress-call": is_ingress_request})
+
+            # Set the PumpwoodAuthorization cookie
             response.set_cookie(
                 'PumpwoodAuthorization', resp['token'],
                 httponly=settings.SESSION_COOKIE_HTTPONLY,
@@ -173,14 +202,19 @@ class LoginView(KnoxLoginView):
 
 # Fuction to validate MFA Token
 def validate_mfa_token(request):
-    """Validate MFA Token and return user if possible.
+    """Validate MFA token from request headers.
 
     Args:
         request:
-            Django Rest request.
+            Django REST request with ``X-PUMPWOOD-MFA-Autorization`` header.
 
     Returns:
-        Return user associated with MFA Token.
+        PumpwoodMFAToken:
+            Valid, non-expired MFA token instance.
+
+    Raises:
+        PumpWoodUnauthorized:
+            If the token is missing, unknown, or expired.
     """
     mfa_autorization = request.headers.get("X-PUMPWOOD-MFA-Autorization")
     try:
@@ -205,7 +239,20 @@ def validate_mfa_token(request):
 @api_view(['GET'])
 @permission_classes([permissions.AllowAny])
 def get_user_mfa_methods(request):
-    """Retrieve information about the authenticated user."""
+    """List MFA methods for the user bound to an MFA token.
+
+    Args:
+        request:
+            Django REST request with valid MFA authorization header.
+
+    Returns:
+        Response:
+            Serialized ``PumpwoodMFAMethod`` records for the token user.
+
+    Raises:
+        PumpWoodUnauthorized:
+            If MFA token validation fails.
+    """
     from pumpwood_djangoauth.registration.serializers import (
         SerializerPumpwoodMFAMethod)
 
@@ -220,7 +267,20 @@ class CheckAuthentication(APIView):
     """API to validate login token and permission."""
 
     def get(self, request):
-        """Authenticate call legacy."""
+        """Validate token and optional Django permission (legacy).
+
+        Args:
+            request:
+                Authenticated request. Optional ``permission`` query param.
+
+        Returns:
+            Response:
+                ``True`` when permission check passes.
+
+        Raises:
+            PumpWoodUnauthorized:
+                If the optional permission is missing on the user.
+        """
         permission = request.GET.get('permission', '')
         has_perm = True
         if permission:
@@ -260,10 +320,20 @@ class CheckAuthentication(APIView):
         return Response(True)
 
     def post(self, request):
-        """Log API calls.
+        """Log authenticated API calls and validate permissions.
 
-        New end-point that sets setting user_id and other information of the
-        requested API.
+        Args:
+            request:
+                Authenticated request with API call metadata in the body
+                (``request_method``, ``path``, ``end_point``, etc.).
+
+        Returns:
+            Response:
+                ``True`` when permission check passes.
+
+        Raises:
+            PumpWoodUnauthorized:
+                If permission validation fails.
         """
         request_data = request.data
         request_method = request_data.get("request_method")

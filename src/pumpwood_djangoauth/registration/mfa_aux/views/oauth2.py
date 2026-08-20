@@ -46,14 +46,23 @@ def create_sso_client():
 @api_view(['POST'])
 @permission_classes([permissions.AllowAny])
 def oauth2_get_authorization_url(request) -> Response:
-    """Processs callback from Auth2.
+    """Start SSO login by returning the provider authorization URL.
 
     Args:
-        request (str):
-            Django request.
+        request:
+            Django REST request with ``email`` in the body.
 
     Returns:
-        .
+        Response:
+            MFA token, SSO authorization URL, expiry, and MFA cookies.
+
+    Raises:
+        PumpWoodWrongParameters:
+            If payload validation fails.
+        PumpWoodUnauthorized:
+            If email or SSO MFA method is not found.
+        PumpWoodNotImplementedError:
+            If SSO provider is not configured or supported.
     """
     #####################################################################
     # Validate if email is registred at aplication before make SSO call #
@@ -128,7 +137,23 @@ class SSOLoginView(KnoxLoginView):
         raise exceptions.PumpWoodForbidden(msg)
 
     def get(self, request) -> Response:
-        """Login user with MFA Token and MFA Code."""
+        """Complete SSO login from the OAuth redirect callback.
+
+        Args:
+            request:
+                Django REST request with OAuth ``state`` (MFA token) and
+                provider callback query parameters.
+
+        Returns:
+            Response:
+                Knox token, expiry, serialized user, and auth cookies.
+
+        Raises:
+            PumpWoodForbidden:
+                If POST is used instead of GET.
+            PumpWoodUnauthorized:
+                If MFA token, SSO identity, or user mapping fails.
+        """
         is_ingress_request = request.headers.get(
             "X-PUMPWOOD-Ingress-Request", 'NOT-EXTERNAL')
 
@@ -229,10 +254,13 @@ class SSOLoginView(KnoxLoginView):
             request=request, user=request.user)
         data = self.get_post_response_data(request, token, instance)
 
+        user_data = SerializerUser(
+            request.user, many=False, foreign_key_fields=True,
+            related_fields=True,
+            context={'request': request}).data
         response = Response({
             'expiry': data['expiry'], 'token': data['token'],
-            'user': SerializerUser(request.user, many=False).data,
-            "ingress-call": is_ingress_request})
+            'user': user_data, "ingress-call": is_ingress_request})
         response.set_cookie(
             'PumpwoodAuthorization', data['token'],
             expires=data['expiry'],

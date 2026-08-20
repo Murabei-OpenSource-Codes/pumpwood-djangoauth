@@ -280,15 +280,13 @@ class KongService(models.Model):
             service_id_list (list[int]):
                 The ids of the services that will have a documentation
                 generated.
-            file_type (Literal['spreadsheet']):
-                The type of file that will be returned.
+            file_type (Literal['xlsx']):
+                Spreadsheet format to generate.
 
-        Returns (list[dict]):
-            A list of dictionaries with:
-                - service_doc (dict): A dictionary if information related
-                    to service.
-                - route_doc_set (list[dict]):
-                    A list of the documentations associated with each route.
+        Returns:
+            ActionReturnFile:
+                Spreadsheet file with service, route, field, and action
+                documentation sheets.
         """
         file_type_options = ['xlsx']
         if file_type not in file_type_options:
@@ -769,17 +767,19 @@ class KongRoute(models.Model):
     @action(info=(
         "Receive end-point and HTTP method returning to correspondent role"))
     def get_route_from_path(cls, path: str) -> Dict[str, str]:
-        """Map request end-point and HTTP method to Pumpwood role.
+        """Resolve a request path to serialized Kong route data.
 
         Args:
             path (str):
-                Path to resource to check if self has the permission.
-            method (str):
-                HTTP method to translate to Pumpwood Roles. It is case
-                insensitive and must be in `['get', 'post', 'delete']`.
+                Request path used to match a registered Kong route.
 
         Returns:
-            Return pumpwood role according to endpoint and method.
+            dict:
+                Serialized ``KongRoute`` payload for the matched route.
+
+        Raises:
+            PumpWoodObjectDoesNotExist:
+                If zero or multiple routes match the path prefix.
         """
         from pumpwood_djangoauth.system.serializers import (
             KongRouteSerializer)
@@ -793,25 +793,24 @@ class KongRoute(models.Model):
         info=("Verify if self has access to a path"), request="request",
         permission_role='is_authenticated')
     def self_has_permission(cls, request, path: str, method: str,
-                            role: str = None) -> bool:
-        """Map request end-point and HTTP method to Pumpwood role.
+                            role: str = None) -> Dict[str, object]:
+        """Check whether the authenticated user may access a path.
 
         Args:
-            request (str):
-                Django request.
+            request:
+                Django request with authenticated user.
             path (str):
-                Path to resource to check if self has the permission.
+                Request path to evaluate against registered routes.
             method (str):
-                HTTP method to translate to Pumpwood Roles. It is case
-                insensitive and must be in `['get', 'post', 'delete']`.
+                HTTP method used to map the Pumpwood role.
             role (str):
-                Overwrite expected role at path/method, it will return
-                if user has this role on the correspondent route according
-                to the path. It will be validated if role passed is
-                valid. Check `list_route_roles` for possible roles.
+                Optional role override. Must be a value from
+                ``list_route_roles``.
 
         Returns:
-            Return True if self user has access to path/method.
+            dict:
+                Keys include ``has_permission``, ``model_class``,
+                ``endpoint``, ``role``, ``action``, and ``route_id``.
         """
         user = request.user
         cache_dict = PumpWoodAuthKongRoutePermissionCache(
@@ -848,27 +847,26 @@ class KongRoute(models.Model):
     @classmethod
     @action(info=("Verify if self has access to a path"), request="request")
     def user_has_permission(cls, request, user_id: int, path: str,
-                            method: str, role: str = None) -> bool:
-        """Check if user with id `user_id` has permission for a path.
+                            method: str, role: str = None) -> Dict[str, object]:
+        """Check whether a user may access a path.
 
         Args:
-            request (str):
-                Django request.
+            request:
+                Django request used for authentication context.
             user_id (int):
-                ID of the user to check for permission.
+                User id to evaluate.
             path (str):
-                Path to resource to check if self has the permission.
+                Request path to evaluate against registered routes.
             method (str):
-                HTTP method to translate to Pumpwood Roles. It is case
-                insensitive and must be in `['get', 'post', 'delete']`.
+                HTTP method used to map the Pumpwood role.
             role (str):
-                Overwrite expected role at path/method, it will return
-                if user has this role on the correspondent route according
-                to the path. It will be validated if role passed is
-                valid. Check `list_route_roles` for possible roles.
+                Optional role override. Must be a value from
+                ``list_route_roles``.
 
         Returns:
-            Return True if self user has access to path/method.
+            dict:
+                Keys include ``has_permission``, ``model_class``,
+                ``endpoint``, ``role``, ``action``, and ``route_id``.
         """
         route_info = GetRouteAux.from_path(path=path)
         role_endpoint = MapPathRoleAux.map(
