@@ -1,5 +1,4 @@
-"""
-Define custom exception handlers for Pumpwood systems.
+"""Define custom exception handlers for Pumpwood systems.
 
 Custom errors can be used to treat Pumpwood exceptions and return a JSON
 payload with a non-2XX status code.
@@ -87,30 +86,34 @@ def custom_exception_handler(exc, context) -> Response:
     if issubclass(type(exc), django_exceptions.FieldError):
         pump_exc = PumpWoodQueryException(message=str(exc))
         payload = pump_exc.to_dict()
+        return Response(
+            payload, status=pump_exc.status_code)
 
-    elif issubclass(type(exc), django_exceptions.ObjectDoesNotExist):
+    if issubclass(type(exc), django_exceptions.ObjectDoesNotExist):
         pump_exc = PumpWoodObjectDoesNotExist(message=str(exc))
         payload = pump_exc.to_dict()
         return Response(
             payload, status=pump_exc.status_code)
 
-    elif issubclass(type(exc), django_exceptions.PermissionDenied):
+    if issubclass(type(exc), django_exceptions.PermissionDenied):
         pump_exc = PumpWoodUnauthorized(message=str(exc))
         payload = pump_exc.to_dict()
         return Response(
             payload, status=pump_exc.status_code)
 
     # Django database error
-    elif issubclass(type(exc), DatabaseError):
+    if issubclass(type(exc), DatabaseError):
         pg_exception = exc.__cause__
         connection_url = _create_sqlachemy_str(
             django_db_dict=settings.DATABASES)
-        return TreatPsycopg2Error.treat(
+        payload = TreatPsycopg2Error.treat(
             error=pg_exception, connection_url=connection_url)
+        status_code = payload.get('status_code', 400)
+        return Response(payload, status=status_code)
 
     #########################
     # Rest framework errors #
-    elif issubclass(type(exc), ParseError):
+    if issubclass(type(exc), ParseError):
         full_details = exc.get_full_details()
         message = full_details.pop('message')
         pump_exc = PumpWoodWrongParameters(
@@ -119,61 +122,61 @@ def custom_exception_handler(exc, context) -> Response:
         return Response(
             payload, status=exc.status_code)
 
-    elif issubclass(type(exc), AuthenticationFailed):
+    if issubclass(type(exc), AuthenticationFailed):
         full_details = exc.get_full_details()
         message = full_details.pop('message')
         pump_exc = PumpWoodUnauthorized(
             message=message, payload=full_details)
         payload = pump_exc.to_dict()
         return Response(
-            payload, status=exc.status_code)
+            payload, status=pump_exc.status_code)
 
-    elif issubclass(type(exc), NotAuthenticated):
+    if issubclass(type(exc), NotAuthenticated):
         full_details = exc.get_full_details()
         message = full_details.pop('message')
         pump_exc = PumpWoodUnauthorized(
             message=message, payload=full_details)
         payload = pump_exc.to_dict()
         return Response(
-            payload, status=exc.status_code)
+            payload, status=pump_exc.status_code)
 
-    elif issubclass(type(exc), PermissionDenied):
+    if issubclass(type(exc), PermissionDenied):
         full_details = exc.get_full_details()
         message = full_details.pop('message')
         pump_exc = PumpWoodForbidden(
             message=message, payload=full_details)
         payload = pump_exc.to_dict()
         return Response(
-            payload, status=exc.status_code)
+            payload, status=pump_exc.status_code)
 
-    elif issubclass(type(exc), NotFound):
+    if issubclass(type(exc), NotFound):
         full_details = exc.get_full_details()
         message = full_details.pop('message')
         pump_exc = PumpWoodObjectDoesNotExist(
             message=message, payload=full_details)
         payload = pump_exc.to_dict()
         return Response(
-            payload, status=exc.status_code)
+            payload, status=pump_exc.status_code)
 
-    elif issubclass(type(exc), MethodNotAllowed):
+    if issubclass(type(exc), MethodNotAllowed):
         full_details = exc.get_full_details()
         message = full_details.pop('message')
         pump_exc = PumpWoodForbidden(
             message=message, payload=full_details)
         payload = pump_exc.to_dict()
         return Response(
-            payload, status=exc.status_code)
+            payload, status=pump_exc.status_code)
 
-    elif issubclass(type(exc), NotAcceptable):
+    if issubclass(type(exc), NotAcceptable):
         full_details = exc.get_full_details()
         message = full_details.pop('message')
         pump_exc = PumpWoodForbidden(
             message=message, payload=full_details)
         payload = pump_exc.to_dict()
         return Response(
-            payload, status=exc.status_code)
+            payload, status=pump_exc.status_code)
 
-    elif issubclass(type(exc), ValidationError):
+    if issubclass(type(exc), ValidationError):
         full_details = exc.get_full_details()
         message_list = []
         msg_template = "[key] {message}"
@@ -184,17 +187,17 @@ def custom_exception_handler(exc, context) -> Response:
         pump_exc = PumpWoodObjectSavingException(
             message=message, payload=full_details)
         payload = pump_exc.to_dict()
+        return Response(
+            payload, status=pump_exc.status_code)
 
     ######################################################################
     # Treat Pumpwood Exceptions and return the serialized information on a
     # dictonary with correct status_code
-    elif issubclass(type(exc), PumpWoodException):
+    if issubclass(type(exc), PumpWoodException):
         pump_exc = exc
         payload = pump_exc.to_dict()
-
-    if payload is not None:
         return Response(
             payload, status=pump_exc.status_code)
-    else:
-        response = exception_handler(exc, context)
-        return response
+
+    response = exception_handler(exc, context)
+    return response
