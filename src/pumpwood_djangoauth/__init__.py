@@ -114,7 +114,7 @@ Keep ``knox.auth.TokenAuthentication`` as
 ``DEFAULT_AUTHENTICATION_CLASSES``,
 ``rest_framework.permissions.IsAuthenticated`` on
 ``DEFAULT_PERMISSION_CLASSES`` and
-``pumpwood_djangoviews.exception_handler.custom_exception_handler`` as
+``pumpwood_djangoauth.exception_handler.custom_exception_handler`` as
 ``EXCEPTION_HANDLER``.
 
 ```python
@@ -126,7 +126,7 @@ REST_FRAMEWORK = {
         'knox.auth.TokenAuthentication',
     ),
     'EXCEPTION_HANDLER': (
-        'pumpwood_djangoviews.exception_handler.custom_exception_handler'
+        'pumpwood_djangoauth.exception_handler.custom_exception_handler'
     )
 }
 ```

@@ -22,7 +22,22 @@ class PumpwoodAuthentication(TokenAuthentication):
     """
 
     def authenticate(self, request):
-        """Authenticate request using header or cookie and cache results."""
+        """Authenticate request using header or cookie and cache results.
+
+        Args:
+            request:
+                Django HTTP request; reads ``Authorization`` header or
+                ``PumpwoodAuthorization`` cookie.
+
+        Returns:
+            tuple | None:
+                ``(user, auth_token)`` when credentials are valid;
+                ``None`` when no token is provided.
+
+        Raises:
+            exceptions.AuthenticationFailed:
+                When the authorization header format is invalid.
+        """
         auth = get_authorization_header(request).split()
         prefix = knox_settings.AUTH_HEADER_PREFIX.encode()
 

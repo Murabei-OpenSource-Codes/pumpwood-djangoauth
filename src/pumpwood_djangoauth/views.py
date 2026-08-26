@@ -39,8 +39,8 @@ class PumpWoodRestServiceRowPermission(PumpWoodRestService):
         Returns:
             QuerySet | Exception:
                 Filtered queryset when the model exposes
-                ``row_permission_id``; otherwise an ``Exception`` instance
-                describing unsupported row permissions.
+                ``row_permission_id``; otherwise an ``Exception`` describing
+                unsupported row permissions.
         """
         from pumpwood_djangoauth.registration.models import (
             UserProfile)

@@ -34,6 +34,10 @@ def register_auth_kong_objects(service_url: str, service_description: str,
             Icon associated with the service.
         service_extra_info (dict):
             Extra metadata saved with the service.
+
+    Returns:
+        None:
+            Persists Kong service and route records in the database.
     """
     from django import db
     from django.core.wsgi import get_wsgi_application

@@ -1,4 +1,4 @@
-"""Module to implement custom permission for Pumpwod End-Points."""
+"""Custom DRF permission classes for Pumpwood API endpoints."""
 from rest_framework.permissions import IsAuthenticated
 from pumpwood_communication.exceptions import (
     PumpWoodUnauthorized, PumpWoodForbidden)
@@ -8,7 +8,7 @@ from pumpwood_djangoauth.system.models import KongRoute
 class PumpwoodPermission(IsAuthenticated):
     """Use api permission to check if user can perform action."""
 
-    role: str = None
+    role: str | None = None
     """If will overwrite the expected role at the endpoint according
        to path."""
 
@@ -17,9 +17,9 @@ class PumpwoodPermission(IsAuthenticated):
 
         Args:
             request:
-                Django request.
+                Django REST framework request.
             view:
-                Django view.
+                View handling the request.
 
         Returns:
             bool:

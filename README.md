@@ -88,17 +88,18 @@ provided.
 - google_bucket
   - `GOOGLE_APPLICATION_CREDENTIALS`: path to Google application credentials.
 
-### RabbitMQ logging
+### Request audit logging
 
-- `RABBITMQ_USERNAME`, `RABBITMQ_PASSWORD`, `RABBITMQ_HOST`,
-  `RABBITMQ_PORT`: credentials and host for RabbitMQ log delivery.
-- `PUMPWOOD_AUTH_IS_RABBITMQ_LOG` [``TRUE``, ``FALSE``]: send authentication
-  logs to RabbitMQ (``TRUE``) or stdout (``FALSE``). When ``TRUE`` but
-  RabbitMQ credentials are missing, logs fall back to stdout.
+``RequestLogMiddleware`` writes structured API request audit lines to
+stdout via loguru. External REST calls (header
+``X-PUMPWOOD-Ingress-Request: EXTERNAL``) from non-service users are
+logged; login and check endpoints are excluded.
 
-All calls with the ``X-PUMPWOOD-Ingress-Request`` header (set by an NGINX
-termination container) whose user is not a service user are sent to the
-``auth__api_request_log`` queue.
+- ``RABBITMQ_USERNAME``, ``RABBITMQ_PASSWORD``, ``RABBITMQ_HOST``,
+  ``RABBITMQ_PORT``: optional RabbitMQ client credentials exposed as the
+  ``rabbitmq_api`` singleton in ``config``.
+- ``PUMPWOOD_AUTH_IS_RABBITMQ_LOG`` [``TRUE``, ``FALSE``]: retained for
+  compatibility; request audit logging currently uses stdout only.
 
 ### Cache expiration
 
@@ -170,7 +171,7 @@ REST_FRAMEWORK = {
         'knox.auth.TokenAuthentication',
     ),
     'EXCEPTION_HANDLER': (
-        'pumpwood_djangoviews.exception_handler.custom_exception_handler'
+        'pumpwood_djangoauth.exception_handler.custom_exception_handler'
     )
 }
 ```

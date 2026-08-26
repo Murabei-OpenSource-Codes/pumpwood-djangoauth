@@ -7,7 +7,18 @@ class SpecialCharacterValidator:
     """Check if password has a special character."""
 
     def validate(self, password, user=None):
-        """Validate value."""
+        """Require at least one non-alphanumeric character in the password.
+
+        Args:
+            password (str):
+                Candidate password to validate.
+            user:
+                Django user instance; unused by this validator.
+
+        Raises:
+            ValidationError:
+                When the password contains only alphanumeric characters.
+        """
         has_special_char = any([not c.isalnum() for c in password])
         if not has_special_char:
             raise ValidationError(
@@ -16,5 +27,10 @@ class SpecialCharacterValidator:
             )
 
     def get_help_text(self):
-        """Get help text."""
+        """Return validator help text shown on password forms.
+
+        Returns:
+            str:
+                Localized help message for password requirements.
+        """
         return _("Sua senha precisa conter pelo menos um caracter especial")
