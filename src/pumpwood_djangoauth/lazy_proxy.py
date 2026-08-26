@@ -19,7 +19,12 @@ class LazyProxy:
     """
 
     def __init__(self, factory):
-        """Initialize proxy with a factory callable."""
+        """Initialize proxy with a factory callable.
+
+        Args:
+            factory (callable):
+                Callable that returns the object to proxy.
+        """
         object.__setattr__(self, '_factory', factory)
         object.__setattr__(self, '_instance', _UNSET)
 

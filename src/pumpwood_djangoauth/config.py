@@ -1,5 +1,4 @@
-"""
-Define configurations for Pumpwood systems and initiate singleton objects.
+"""Define configurations for Pumpwood systems and initiate singleton objects.
 
 Centralizes creation and initialization of Pumpwood singletons. Objects are
 set using environment variables and can be imported throughout the
@@ -215,7 +214,7 @@ _LAZY_SINGLETONS = (
     rabbitmq_api, pumpwood_i8n)
 
 
-def reset_config_singletons():
+def reset_config_singletons() -> None:
     """Reset lazy singletons after gunicorn worker fork.
 
     Call this function from a gunicorn ``post_fork`` hook when using

@@ -16,7 +16,7 @@ REST_FRAMEWORK = {
     ),
     'EXCEPTION_HANDLER': (
         # Add custom handler for API Calls
-        'pumpwood_djangoviews.exception_handler.custom_exception_handler'
+        'pumpwood_djangoauth.exception_handler.custom_exception_handler'
     )
 }
 ```
@@ -38,16 +38,15 @@ from pumpwood_database_error.psycopg2_error import TreatPsycopg2Error
 
 
 def _create_sqlachemy_str(django_db_dict: dict) -> str:
-    """Create string associated with connection to postgres.
+    """Build a PostgreSQL SQLAlchemy connection URL from Django settings.
 
     Args:
         django_db_dict (dict):
-            Django database dictonary that will be used to create the
-            SQLAlchemy connection string.
+            Django ``DATABASES`` mapping; the ``default`` entry is used.
 
     Returns:
-        Returns the SQLAlchemy connection string associated with
-        database.
+        str:
+            SQLAlchemy connection URL for PostgreSQL.
     """
     connection_string = (
     "postgresql://{user}:{password}@{host}:{port}/{name}")\
@@ -60,18 +59,20 @@ def _create_sqlachemy_str(django_db_dict: dict) -> str:
     return connection_string
 
 
-def custom_exception_handler(exc, context) -> Response:
-    """Treat custom exception handler to PumpWoodExceptions.
+def custom_exception_handler(exc, context) -> Response | None:
+    """Map Django, DRF, and PumpWood exceptions to API error responses.
 
     Args:
         exc (Exception):
-            Exception raised processing request.
-        context:
-            Context of the error that was raised.
+            Exception raised while processing the request.
+        context (dict):
+            DRF exception context with ``view`` and ``request`` keys.
 
     Returns:
-        Return a response with error code depending of the PumpWoodException
-        raised. It returns a serialized dictionary with exception data.
+        Response | None:
+            ``Response`` with serialized PumpWood error payload and matching
+            HTTP status when the exception is handled; otherwise the result
+            of DRF's default ``exception_handler``, which may be ``None``.
     """
     from rest_framework.views import exception_handler
 

@@ -8,7 +8,18 @@ request_logger = logging.getLogger(__name__)
 
 
 def list_get_or_none(list_obj, i):
-    """Get an element from a list or return None."""
+    """Return list element at index or ``None`` when out of range.
+
+    Args:
+        list_obj (list):
+            Source list.
+        i (int):
+            Zero-based index to read.
+
+    Returns:
+        object | None:
+            Element at ``i`` when present; otherwise ``None``.
+    """
     return list_obj[i] if i < len(list_obj) else None
 
 
@@ -18,11 +29,25 @@ class RequestLogMiddleware:
     knox_auth_token = None
 
     def __init__(self, get_response):
-        """__init__."""
+        """Store the next middleware or view callable.
+
+        Args:
+            get_response (callable):
+                Django get-response callable for the middleware chain.
+        """
         self.get_response = get_response
 
     def __call__(self, request):
-        """__call__."""
+        """Log selected requests and forward to the next handler.
+
+        Args:
+            request:
+                Django HTTP request.
+
+        Returns:
+            HttpResponse:
+                Response from the next middleware or view.
+        """
         content_type = request.content_type
         full_path = request.path.strip("/")
         splited_full_path = full_path.split("/")
@@ -46,7 +71,16 @@ class RequestLogMiddleware:
         return self.get_response(request)
 
     def log_admin_calls(self, request):
-        """Log admin calls on Pumpwood Backends."""
+        """Log Django admin requests for audit.
+
+        Args:
+            request:
+                Django HTTP request.
+
+        Returns:
+            None:
+                No value is returned; logging is side-effect only.
+        """
         if request.user is None:
             return None
 
@@ -75,7 +109,16 @@ class RequestLogMiddleware:
             payload=payload)
 
     def log_media_calls(self, request):
-        """Log Media calls using django views."""
+        """Log media file requests for audit.
+
+        Args:
+            request:
+                Django HTTP request.
+
+        Returns:
+            None:
+                No value is returned; logging is side-effect only.
+        """
         if request.user is None:
             return None
 
@@ -95,7 +138,17 @@ class RequestLogMiddleware:
             payload=None)
 
     def log_rest_calls(self, request):
-        """Log rest calls on Pumpwood Backends."""
+        """Log REST API requests from external non-service users.
+
+        Args:
+            request:
+                Django HTTP request.
+
+        Returns:
+            None:
+                No value is returned; unauthenticated or internal calls are
+                skipped without logging.
+        """
         if self.knox_auth_token is None:
             self.knox_auth_token = TokenAuthentication()
 

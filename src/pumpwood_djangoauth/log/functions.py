@@ -7,40 +7,34 @@ from pumpwood_communication.serializers import pumpJsonDump
 def log_api_request(user_id: int, permission_check: str, request_method: str,
                     path: str, model_class: str, end_point: str,
                     first_arg: str, second_arg: str, ingress_request: str = '',
-                    payload: str = '') -> dict:
-    """Log API request using a RabbitMQ queue, if rabbitmq_api is not None.
-
-    RabbitMQ queue will be consumed by a worker, that may latter save
-    information for audit.
-
-    If rabbitmq_api is not set, logs will be sent to STDOUT with prefix,
-    ## api_request_log ## .
+                    payload: str = '') -> None:
+    """Write an API request audit line to stdout via loguru.
 
     Args:
         user_id (int):
-            ID of the logged user reponsible for the request.
+            ID of the user responsible for the request.
         permission_check (str):
-            Result of the permission check of the user.
+            Result of the permission check for the user.
         request_method (str):
-            Method used on request, POST, GET, DELETE, ...
+            HTTP method used on the request, for example POST or GET.
         path (str):
             Full request path.
         model_class (str):
-            Model class associated with request.
+            Model class associated with the request.
         end_point (str):
-            End-point used at the call, ex: retrieve, list,
-            delete, save, retrieve-file, ...
+            Endpoint action, for example retrieve, list, or save.
         first_arg (str):
-            First argument of the end-point.
+            First path argument for the endpoint.
         second_arg (str):
-            Second argument of the end-point.
-        payload (str): Payload of POST request, it will be limited to 300
-            characters avoiding overload during database uploads.
+            Second path argument for the endpoint.
         ingress_request (str):
-            Log if call came througth ingress or was cluster internal.
+            Whether the call came through ingress or was cluster-internal.
+        payload (str):
+            POST body snippet; callers should truncate to avoid large logs.
 
     Returns:
-        Return the dictionary that will be passed to RabbitMQ.
+        None:
+            Logging is side-effect only; nothing is returned.
     """
     log_time = datetime.datetime.now(datetime.UTC).isoformat()
     log_dict = {

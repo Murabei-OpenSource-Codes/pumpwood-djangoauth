@@ -11,7 +11,13 @@ _auth_static_service = os.environ.get("AUTH_STATIC_SERVICE")
 
 
 def get_service_definitions():
-    """Function to generate service definition."""
+    """Build default Pumpwood Auth Kong service and route definitions.
+
+    Returns:
+        dict:
+            Service definition payload accepted by
+            ``register_auth_kong_objects``.
+    """
     from pumpwood_djangoauth.system.views import (
         RestKongRoute, RestKongService)
     from pumpwood_djangoauth.registration.views import (
